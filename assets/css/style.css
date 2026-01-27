@@ -35,7 +35,7 @@ body::before {
     left: 50%;
     transform: translate(-50%, -50%);
     font-family: 'Black Ops One', cursive; 
-    font-size: 35vw;
+    font-size: 25vw;
     font-weight: 900;
     letter-spacing: -0.02em;
     color: transparent;
@@ -1166,7 +1166,7 @@ body::after {
 
 @media (max-width: 576px) {
     body::before {
-        font-size: 35vw;
+        font-size: 15vw;
     }
     
     .navbar-brand {
