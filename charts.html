@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charts - Lyrix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Inter:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="assets/images/pngtree-song-lyrics-icon-3d-png-image_16634818-2.webp" alt="Lyrix Logo" class="navbar-logo">
+                Lyrix
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="charts.html"><i class="fas fa-chart-line"></i> Charts</a>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="nav-link btn-back" href="javascript:history.back()">
+                            <i class="fas fa-chevron-left"></i> Back
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Charts Section -->
+    <section id="charts" class="section active">
+        <div class="container">
+            <div class="charts-header">
+                <h1><i class="fas fa-chart-line"></i> Top Charts</h1>
+                <p>Khám phá những bài hát, nghệ sĩ và album hot nhất</p>
+            </div>
+
+            <!-- Time Period Filter -->
+            <div class="time-period-filter">
+                <button class="active" data-period="day" onclick="switchTimePeriod('day')">
+                    <i class="fas fa-calendar-day"></i> Hôm nay
+                </button>
+                <button data-period="week" onclick="switchTimePeriod('week')">
+                    <i class="fas fa-calendar-week"></i> Tuần này
+                </button>
+                <button data-period="month" onclick="switchTimePeriod('month')">
+                    <i class="fas fa-calendar-alt"></i> Tháng này
+                </button>
+                <button data-period="all" onclick="switchTimePeriod('all')">
+                    <i class="fas fa-infinity"></i> Mọi thời đại
+                </button>
+            </div>
+
+            <!-- Chart Type Tabs -->
+            <div class="chart-tabs">
+                <button class="active" data-chart="songs" onclick="switchChart('songs')">
+                    <i class="fas fa-music"></i> Top Songs
+                </button>
+                <button data-chart="artists" onclick="switchChart('artists')">
+                    <i class="fas fa-user-music"></i> Top Artists
+                </button>
+                <button data-chart="albums" onclick="switchChart('albums')">
+                    <i class="fas fa-compact-disc"></i> Top Albums
+                </button>
+            </div>
+
+            <div class="chart-content" id="chartContent">
+                <div class="loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/charts.js"></script>
+</body>
+</html>
