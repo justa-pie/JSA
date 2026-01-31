@@ -156,12 +156,13 @@ async function loadArtistDetails() {
     html += '<div id="artist-songs-tab" class="tab-content-item active animate-slide-up"><div class="results-grid">';
     if (songs && songs.songs && songs.songs.length > 0) {
         songs.songs.forEach(song => {
-            const songImg = song.song_art_image_url || song.header_image_url || '../assets/images/placeholder.png';
+            const songImg = song.song_art_image_thumbnail_url || '../assets/images/placeholder.png';
             html += `
-                <div class="result-card" onclick="navigateToSong(${song.id})">
-                    <img src="${songImg}" alt="${song.title}" onerror="this.src='../assets/images/placeholder.png'">
-                    <div class="result-card-body">
-                        <div class="result-card-title">${song.title}</div>
+                <div class="chart-item" onclick="navigateToSong(${song.id})" style="width: 100%;">
+                    <img src="${songImg}" class="chart-image" style="width: 50px; height: 50px;">
+                    <div class="chart-info">
+                        <div class="chart-title">${song.title}</div>
+                        <div class="chart-subtitle">${song.artist_names}</div>
                     </div>
                 </div>
             `;
@@ -177,10 +178,11 @@ async function loadArtistDetails() {
         albums.albums.forEach(album => {
             const albumImg = album.cover_art_url || '../assets/images/placeholder.png';
             html += `
-                <div class="result-card" onclick="navigateToAlbum(${album.id})">
-                    <img src="${albumImg}" alt="${album.name}" onerror="this.src='../assets/images/placeholder.png'">
-                    <div class="result-card-body">
-                        <div class="result-card-title">${album.name}</div>
+                <div class="chart-item" onclick="navigateToAlbum(${album.id})" style="width: 100%;">
+                    <img src="${albumImg}" class="chart-image" style="width: 50px; height: 50px;">
+                    <div class="chart-info">
+                        <div class="chart-title">${album.name}</div>
+                        <div class="chart-subtitle">${album.release_date_components?.year || ''}</div>
                     </div>
                 </div>
             `;

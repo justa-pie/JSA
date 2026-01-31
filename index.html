@@ -51,12 +51,12 @@
                     </button>
                 </div>
 
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Nhập tên bài hát để tìm nhanh...">
-                    <button onclick="performSearch()">
+                <form class="search-box" onsubmit="event.preventDefault(); performSearch();">
+                    <input type="text" id="searchInput" placeholder="Nhập tên bài hát...">
+                    <button type="submit">
                         <i class="fas fa-search"></i>
                     </button>
-                </div>
+                </form>
 
                 <div id="searchResults"></div>
             </div>

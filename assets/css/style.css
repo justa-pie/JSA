@@ -343,10 +343,10 @@ body::before {
 
 /* ===== Spotify-Style Grid ===== */
 .results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-    padding: 20px 0;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px;
+    padding: 15px 0;
 }
 
 .result-card {
@@ -481,6 +481,14 @@ body::before {
     cursor: pointer;
     border: 1px solid rgba(139, 92, 246, 0.05);
     position: relative;
+}
+
+/* Đảm bảo chart-item luôn dài hết cỡ */
+.chart-item {
+    width: 100% !important;
+    max-width: none !important;
+    display: flex;
+    align-items: center;
 }
 
 .chart-item:hover {
@@ -1163,4 +1171,22 @@ body::before {
         padding: 12px 30px !important;
         margin: 5px 0;
     }
+}
+
+/* Thêm vào cuối file style.css */
+.results-list, .artist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px 0;
+}
+
+/* Đảm bảo các tab content hiển thị dạng dọc thay vì lưới */
+.tab-content-item {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+.tab-content-item.active {
+    display: flex;
 }
