@@ -1,7 +1,7 @@
 // ===== API Configuration =====
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: '921a586d1fmsh69ee8a6dd23c9f2p18680ejsn47c95a390283',
+    key: '268afb6dadmsh8966c28e919fb8cp147776jsnb2d41662650e',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
@@ -119,9 +119,14 @@ async function loadChart(type) {
     
     let html = '<div class="chart-list">';
     
-    data.chart_items.forEach(chartItem => {
+    data.chart_items.forEach((chartItem, index) => {
         const item = chartItem.item;
-        const position = chartItem.chart_position;
+        // Debug: log để xem cấu trúc dữ liệu
+        console.log('Chart Item:', chartItem);
+        
+        // Thử nhiều cách lấy position
+        const position = chartItem.chart_position || chartItem.position || (index + 1);
+        
         let positionClass = '';
         if (position === 1) positionClass = 'top-1';
         else if (position === 2) positionClass = 'top-2';
@@ -131,7 +136,7 @@ async function loadChart(type) {
             html += `
                 <div class="chart-item" onclick="navigateToSong(${item.id})">
                     <div class="chart-position ${positionClass}">
-                        ${position <= 3 ? (position === 1 ? '🥇' : position === 2 ? '🥈' : '🥉') : '#' + position}
+                        ${position}
                     </div>
                     <img src="${item.song_art_image_url || item.header_image_url}" alt="${item.title}" class="chart-image">
                     <div class="chart-info">
@@ -148,7 +153,7 @@ async function loadChart(type) {
             html += `
                 <div class="chart-item" onclick="navigateToArtist(${item.id})">
                     <div class="chart-position ${positionClass}">
-                        ${position <= 3 ? (position === 1 ? '🥇' : position === 2 ? '🥈' : '🥉') : '#' + position}
+                        ${position}
                     </div>
                     <img src="${item.image_url}" alt="${item.name}" class="chart-image artist">
                     <div class="chart-info">
@@ -160,7 +165,7 @@ async function loadChart(type) {
             html += `
                 <div class="chart-item" onclick="navigateToAlbum(${item.id})">
                     <div class="chart-position ${positionClass}">
-                        ${position <= 3 ? (position === 1 ? '🥇' : position === 2 ? '🥈' : '🥉') : '#' + position}
+                        ${position}
                     </div>
                     <img src="${item.cover_art_url}" alt="${item.name}" class="chart-image">
                     <div class="chart-info">
