@@ -1068,7 +1068,7 @@ body::before {
 
 @media (max-width: 576px) {
     body::before {
-        font-size: 15vw;
+        font-size: 20vw;
     }
     
     .navbar-brand {
