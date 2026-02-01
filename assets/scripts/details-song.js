@@ -52,6 +52,13 @@ function formatNumber(num) {
     return num.toString();
 }
 
+function formatDuration(seconds) {
+    if (!seconds) return null;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 function navigateToArtist(artistId) {
     window.location.href = `details-artist.html?id=${artistId}`;
 }
@@ -101,11 +108,14 @@ async function loadSongDetails() {
     }
     
     const song = details.song;
-    const imgUrl = song.song_art_image_url || song.header_image_url || '../assets/images/placeholder.png';
+    const imgUrl = song.song_art_image_url || song.header_image_url || 'assets/images/placeholder.png';
+    
+    // Format duration if available
+    const duration = song.duration || song.duration_ms ? formatDuration(song.duration || Math.floor(song.duration_ms / 1000)) : null;
     
     let html = `
         <div class="song-detail-header animate-slide-up">
-            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image" onerror="this.src='../assets/images/placeholder.png'">
+            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image" onerror="this.src='assets/images/placeholder.png'">
             <h2 class="song-detail-title">${song.full_title || song.title || 'Unknown Title'}</h2>
             <p class="song-detail-artist" onclick="navigateToArtist(${song.primary_artist?.id})" style="cursor: pointer;">
                 <i class="fas fa-user"></i> ${song.primary_artist?.name || 'Unknown Artist'}
@@ -116,6 +126,12 @@ async function loadSongDetails() {
                     <div class="stat-item">
                         <div class="stat-value"><i class="fas fa-calendar"></i></div>
                         <div class="stat-label">${song.release_date_for_display}</div>
+                    </div>
+                ` : ''}
+                ${duration ? `
+                    <div class="stat-item">
+                        <div class="stat-value"><i class="fas fa-clock"></i></div>
+                        <div class="stat-label">${duration}</div>
                     </div>
                 ` : ''}
                 ${song.stats?.pageviews ? `
@@ -144,25 +160,40 @@ async function loadSongDetails() {
         if (lyrics.lyrics?.lyrics?.body?.plain) {
             lyricsText = lyrics.lyrics.lyrics.body.plain;
         }
-        // Try structure 2: lyrics.lyrics.plain
+        // Try structure 2: lyrics.lyrics.body.plain
+        else if (lyrics.lyrics?.body?.plain) {
+            lyricsText = lyrics.lyrics.body.plain;
+        }
+        // Try structure 3: lyrics.lyrics.plain
         else if (lyrics.lyrics?.plain) {
             lyricsText = lyrics.lyrics.plain;
         }
-        // Try structure 3: lyrics.plain
+        // Try structure 4: lyrics.plain
         else if (lyrics.plain) {
             lyricsText = lyrics.plain;
         }
-        // Try structure 4: lyrics.lyrics (direct text)
+        // Try structure 5: lyrics.lyrics (direct text)
         else if (typeof lyrics.lyrics === 'string') {
             lyricsText = lyrics.lyrics;
+        }
+        // Try structure 6: lyrics as direct string
+        else if (typeof lyrics === 'string') {
+            lyricsText = lyrics;
         }
     }
     
     if (lyricsText) {
+        // Format lyrics with proper line breaks
+        const formattedLyrics = lyricsText
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join('<br>');
+            
         html += `
             <div class="lyrics-container animate-slide-up">
                 <h3><i class="fas fa-align-left"></i> Lời bài hát</h3>
-                <div class="lyrics-text">${lyricsText}</div>
+                <div class="lyrics-text">${formattedLyrics}</div>
             </div>
         `;
     } else {
@@ -185,10 +216,10 @@ async function loadSongDetails() {
         if (song.writer_artists && song.writer_artists.length > 0) {
             html += '<h4><i class="fas fa-pen"></i> Nhạc sĩ</h4><div class="credits-grid">';
             song.writer_artists.forEach(artist => {
-                const artistImg = artist.image_url || '../assets/images/placeholder.png';
+                const artistImg = artist.image_url || 'assets/images/placeholder.png';
                 html += `
                     <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='../assets/images/placeholder.png'">
+                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
                         <div class="credit-name">${artist.name}</div>
                     </div>
                 `;
@@ -199,10 +230,10 @@ async function loadSongDetails() {
         if (song.producer_artists && song.producer_artists.length > 0) {
             html += '<h4 style="margin-top: 20px;"><i class="fas fa-sliders-h"></i> Producer</h4><div class="credits-grid">';
             song.producer_artists.forEach(artist => {
-                const artistImg = artist.image_url || '../assets/images/placeholder.png';
+                const artistImg = artist.image_url || 'assets/images/placeholder.png';
                 html += `
                     <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='../assets/images/placeholder.png'">
+                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
                         <div class="credit-name">${artist.name}</div>
                     </div>
                 `;
@@ -213,10 +244,10 @@ async function loadSongDetails() {
         if (song.featured_artists && song.featured_artists.length > 0) {
             html += '<h4 style="margin-top: 20px;"><i class="fas fa-star"></i> Featured Artists</h4><div class="credits-grid">';
             song.featured_artists.forEach(artist => {
-                const artistImg = artist.image_url || '../assets/images/placeholder.png';
+                const artistImg = artist.image_url || 'assets/images/placeholder.png';
                 html += `
                     <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='../assets/images/placeholder.png'">
+                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
                         <div class="credit-name">${artist.name}</div>
                     </div>
                 `;

@@ -1,7 +1,7 @@
 // ===== API Configuration =====
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: '268afb6dadmsh8966c28e919fb8cp147776jsnb2d41662650e', // Đảm bảo Key này còn hoạt động
+    key: '268afb6dadmsh8966c28e919fb8cp147776jsnb2d41662650e',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
@@ -29,6 +29,13 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
+function formatNumber(num) {
+    if (!num) return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
 // ===== Mode Switching =====
 window.setSearchMode = function(mode) {
     currentSearchMode = mode;
@@ -53,9 +60,9 @@ window.performSearch = async function() {
     if (currentSearchMode === 'song') {
         const data = await fetchAPI('/search', { q: query });
         if (data && data.hits) {
-            displayListResults(data.hits.map(h => ({...h.result, type: 'song'})), container);
+            displayChartResults(data.hits.map(h => ({...h.result, type: 'song'})), container, 'Kết quả tìm kiếm');
         } else {
-            container.innerHTML = '<p class="text-center">Không tìm thấy kết quả.</p>';
+            container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
         }
     } else {
         const data = await fetchAPI('/search/multi', { q: query });
@@ -65,28 +72,48 @@ window.performSearch = async function() {
     }
 };
 
-function createResultCard(type, id, title, subtitle, img) {
+// Create chart-style result item
+function createChartItem(type, id, title, subtitle, img, stats = {}) {
     const navFunc = type === 'song' ? 'navigateToSong' : (type === 'artist' ? 'navigateToArtist' : 'navigateToAlbum');
     const imgClass = type === 'artist' ? 'chart-image artist' : 'chart-image';
     
     return `
-        <div class="chart-item animate-slide-up" onclick="${navFunc}(${id})" style="width: 100%; display: flex; align-items: center; margin-bottom: 10px;">
-            <div class="chart-info" style="display: flex; align-items: center; width: 100%; gap: 15px;">
-                <img src="${img}" class="${imgClass}" style="width: 50px; height: 50px; flex-shrink: 0;" onerror="this.src='https://via.placeholder.com/300'">
-                <div style="flex-grow: 1; min-width: 0;">
-                    <div class="chart-title" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</div>
-                    <div class="chart-subtitle" style="margin: 0;">${subtitle}</div>
-                </div>
-                <i class="fas fa-chevron-right" style="opacity: 0.2;"></i>
+        <div class="chart-item animate-slide-up" onclick="${navFunc}(${id})">
+            <img src="${img}" class="${imgClass}" onerror="this.src='assets/images/placeholder.png'">
+            <div class="chart-info">
+                <div class="chart-title">${title}</div>
+                <div class="chart-subtitle">${subtitle}</div>
+            </div>
+            <div class="chart-stats">
+                ${stats.views ? `<div class="chart-views"><i class="fas fa-eye"></i> ${formatNumber(stats.views)}</div>` : ''}
+                ${stats.hot ? '<span class="badge-hot"><i class="fas fa-fire"></i> HOT</span>' : ''}
+                ${!stats.views && !stats.hot ? '<i class="fas fa-chevron-right" style="opacity: 0.2;"></i>' : ''}
             </div>
         </div>
     `;
 }
 
-function displayListResults(results, container) {
-    let html = '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">';
+function displayChartResults(results, container, title = '') {
+    let html = '';
+    
+    if (title) {
+        html += `<h3 style="color: var(--accent-purple); margin: 30px 0 20px 0; font-size: 1.5rem;"><i class="fas fa-search"></i> ${title}</h3>`;
+    }
+    
+    html += '<div class="chart-list">';
     results.forEach(item => {
-        html += createResultCard(item.type, item.id, item.title, item.artist_names, item.song_art_image_thumbnail_url);
+        const stats = {
+            views: item.stats?.pageviews,
+            hot: item.stats?.hot
+        };
+        html += createChartItem(
+            item.type, 
+            item.id, 
+            item.title || item.name, 
+            item.artist_names || item.primary_artist?.name || (item.type === 'artist' ? 'Nghệ sĩ' : ''),
+            item.song_art_image_thumbnail_url || item.image_url || item.cover_art_url || 'assets/images/placeholder.png',
+            stats
+        );
     });
     html += '</div>';
     container.innerHTML = html;
@@ -94,31 +121,46 @@ function displayListResults(results, container) {
 
 function displayMultiResults(sections, container) {
     let html = `
-        <div class="chart-tabs mt-4" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-            <button class="tab-btn active" data-tab-id="top" onclick="switchResultTab('top')">Tất cả</button>
-            <button class="tab-btn" data-tab-id="song" onclick="switchResultTab('song')">Bài hát</button>
-            <button class="tab-btn" data-tab-id="artist" onclick="switchResultTab('artist')">Nghệ sĩ</button>
-            <button class="tab-btn" data-tab-id="album" onclick="switchResultTab('album')">Album</button>
+        <div class="chart-tabs" style="display: flex; gap: 10px; overflow-x: auto; padding: 20px 0 10px 0; justify-content: center; flex-wrap: wrap;">
+            <button class="tab-btn active" data-tab-id="top" onclick="switchResultTab('top')">
+                <i class="fas fa-star"></i> Tất cả
+            </button>
+            <button class="tab-btn" data-tab-id="song" onclick="switchResultTab('song')">
+                <i class="fas fa-music"></i> Bài hát
+            </button>
+            <button class="tab-btn" data-tab-id="artist" onclick="switchResultTab('artist')">
+                <i class="fas fa-user-music"></i> Nghệ sĩ
+            </button>
+            <button class="tab-btn" data-tab-id="album" onclick="switchResultTab('album')">
+                <i class="fas fa-compact-disc"></i> Album
+            </button>
         </div>
-        <div class="tab-content mt-3">
+        <div class="tab-content">
     `;
 
     ['top', 'song', 'artist', 'album'].forEach(type => {
         const section = sections.find(s => s.type === type);
         const activeClass = type === 'top' ? 'active' : '';
-        const displayStyle = type === 'top' ? 'flex' : 'none';
+        const displayStyle = type === 'top' ? 'block' : 'none';
 
-        html += `<div class="tab-content-item ${activeClass}" data-tab-content="${type}" style="display: ${displayStyle}; flex-direction: column; gap: 10px;">`;
+        html += `<div class="tab-content-item ${activeClass}" data-tab-content="${type}" style="display: ${displayStyle};">`;
+        
         if (section && section.hits.length > 0) {
+            html += '<div class="chart-list">';
             section.hits.forEach(hit => {
                 const res = hit.result;
                 const title = res.title || res.name || res.full_title;
                 const subtitle = res.artist_names || (hit.type === 'artist' ? 'Nghệ sĩ' : '');
-                const img = res.song_art_image_thumbnail_url || res.image_url || res.cover_art_url;
-                html += createResultCard(hit.type, res.id, title, subtitle, img);
+                const img = res.song_art_image_thumbnail_url || res.image_url || res.cover_art_url || 'assets/images/placeholder.png';
+                const stats = {
+                    views: res.stats?.pageviews,
+                    hot: res.stats?.hot
+                };
+                html += createChartItem(hit.type, res.id, title, subtitle, img, stats);
             });
+            html += '</div>';
         } else {
-            html += '<p class="text-center py-4">Không có dữ liệu</p>';
+            html += '<p class="text-center py-5" style="color: var(--text-secondary);">Không có dữ liệu</p>';
         }
         html += '</div>';
     });
@@ -132,7 +174,7 @@ window.switchResultTab = function(type) {
     document.querySelector(`[data-tab-id="${type}"]`)?.classList.add('active');
     document.querySelectorAll('.tab-content-item').forEach(c => c.style.display = 'none');
     const target = document.querySelector(`[data-tab-content="${type}"]`);
-    if (target) target.style.display = 'flex';
+    if (target) target.style.display = 'block';
 };
 
 window.navigateToSong = (id) => { window.location.href = `details-song.html?id=${id}`; };

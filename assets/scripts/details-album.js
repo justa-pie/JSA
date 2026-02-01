@@ -86,6 +86,7 @@ async function loadAlbumDetails() {
         </div>
     `;
     
+    // Fetch album details và tracks
     const data = await fetchAPI('/album/details/', { id: albumId });
     
     if (!data || !data.album) {
@@ -97,12 +98,14 @@ async function loadAlbumDetails() {
     console.log('💿 Album data:', album);
     console.log('🎵 Tracks:', album.tracks);
     console.log('🎵 Track appearances:', album.track_appearances);
+    console.log('🎵 Songs:', album.songs);
+    console.log('🎵 Track performances:', album.performance_tracks);
     
-    const coverImg = album.cover_art_url || '../assets/images/placeholder.png';
+    const coverImg = album.cover_art_url || 'assets/images/placeholder.png';
     
     let html = `
         <div class="album-detail-header animate-slide-up">
-            <img src="${coverImg}" alt="${album.name}" class="album-cover" onerror="this.src='../assets/images/placeholder.png'">
+            <img src="${coverImg}" alt="${album.name}" class="album-cover" onerror="this.src='assets/images/placeholder.png'">
             <div class="album-info">
                 <h2>${album.name || 'Unknown Album'}</h2>
                 <p style="font-size: 1.2rem; margin-bottom: 10px; cursor: pointer; color: var(--text-secondary);" onclick="navigateToArtist(${album.artist?.id})">
@@ -121,10 +124,12 @@ async function loadAlbumDetails() {
     // Structure 1: album.tracks (array)
     if (album.tracks && Array.isArray(album.tracks) && album.tracks.length > 0) {
         tracks = album.tracks;
+        console.log('✅ Using album.tracks');
     }
     // Structure 2: album.track_appearances (array)
     else if (album.track_appearances && Array.isArray(album.track_appearances) && album.track_appearances.length > 0) {
         tracks = album.track_appearances;
+        console.log('✅ Using album.track_appearances');
     }
     // Structure 3: album.songs (array)
     else if (album.songs && Array.isArray(album.songs) && album.songs.length > 0) {
@@ -132,6 +137,24 @@ async function loadAlbumDetails() {
             number: index + 1,
             song: song
         }));
+        console.log('✅ Using album.songs');
+    }
+    // Structure 4: album.performance_tracks
+    else if (album.performance_tracks && Array.isArray(album.performance_tracks) && album.performance_tracks.length > 0) {
+        tracks = album.performance_tracks;
+        console.log('✅ Using album.performance_tracks');
+    }
+    
+    // Nếu không tìm thấy tracks trong album details, thử fetch từ album/tracks endpoint
+    if (!tracks || tracks.length === 0) {
+        console.log('⚠️ No tracks in album details, trying /album/tracks/ endpoint');
+        const tracksData = await fetchAPI('/album/tracks/', { id: albumId });
+        console.log('🎵 Tracks data from /album/tracks/:', tracksData);
+        
+        if (tracksData && tracksData.tracks && tracksData.tracks.length > 0) {
+            tracks = tracksData.tracks;
+            console.log('✅ Found tracks from /album/tracks/ endpoint');
+        }
     }
     
     if (tracks && tracks.length > 0) {
@@ -142,19 +165,22 @@ async function loadAlbumDetails() {
         
         tracks.forEach((track, index) => {
             // Handle different track structures
-            const trackNumber = track.number || (index + 1);
+            const trackNumber = track.number || track.track_number || (index + 1);
             const song = track.song || track;
             const songId = song.id || song.song_id;
-            const songTitle = song.title || song.name || 'Unknown Title';
-            const artistName = song.primary_artist?.name || song.artist?.name || '';
+            const songTitle = song.title || song.name || song.full_title || 'Unknown Title';
+            const artistName = song.primary_artist?.name || song.artist?.name || song.artist_names || '';
+            const imgUrl = song.song_art_image_thumbnail_url || song.song_art_image_url || song.header_image_thumbnail_url || 'assets/images/placeholder.png';
             
             html += `
                 <div class="track-item" onclick="navigateToSong(${songId})">
                     <div class="track-number">${trackNumber}</div>
+                    <img src="${imgUrl}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;" onerror="this.src='assets/images/placeholder.png'">
                     <div class="track-title">
                         <strong>${songTitle}</strong>
                         ${artistName ? `<div style="font-size: 0.9rem; opacity: 0.8; color: var(--text-secondary);">${artistName}</div>` : ''}
                     </div>
+                    <i class="fas fa-chevron-right" style="opacity: 0.3; margin-left: auto;"></i>
                 </div>
             `;
         });

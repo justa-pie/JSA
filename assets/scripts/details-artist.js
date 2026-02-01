@@ -45,6 +45,13 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
+function formatNumber(num) {
+    if (!num) return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
 }
@@ -102,10 +109,11 @@ async function loadArtistDetails() {
         </div>
     `;
     
+    // Fetch artist details, top 20 songs, và tất cả albums
     const [details, songs, albums] = await Promise.all([
         fetchAPI('/artist/details/', { id: artistId }),
         fetchAPI('/artist/songs/', { id: artistId, sort: 'popularity', per_page: 20 }),
-        fetchAPI('/artist/albums/', { id: artistId, per_page: 10 })
+        fetchAPI('/artist/albums/', { id: artistId, per_page: 50 }) // Tăng lên 50 để lấy nhiều albums hơn
     ]);
     
     if (!details || !details.artist) {
@@ -114,13 +122,13 @@ async function loadArtistDetails() {
     }
     
     const artist = details.artist;
-    const bannerImg = artist.header_image_url || '../assets/images/placeholder.png';
-    const avatarImg = artist.image_url || '../assets/images/placeholder.png';
+    const bannerImg = artist.header_image_url || 'assets/images/placeholder.png';
+    const avatarImg = artist.image_url || 'assets/images/placeholder.png';
     
     let html = `
         <div class="artist-detail-header animate-slide-up">
-            <img src="${bannerImg}" alt="${artist.name}" class="artist-banner" onerror="this.src='../assets/images/placeholder.png'">
-            <img src="${avatarImg}" alt="${artist.name}" class="artist-avatar" onerror="this.src='../assets/images/placeholder.png'">
+            <img src="${bannerImg}" alt="${artist.name}" class="artist-banner" onerror="this.src='assets/images/placeholder.png'">
+            <img src="${avatarImg}" alt="${artist.name}" class="artist-avatar" onerror="this.src='assets/images/placeholder.png'">
             <h2 class="artist-name">${artist.name || 'Unknown Artist'}</h2>
             
             <div class="social-links">
@@ -144,7 +152,7 @@ async function loadArtistDetails() {
     html += `
         <div class="artist-tabs animate-slide-up">
             <button class="active" onclick="switchArtistTab('songs')">
-                <i class="fas fa-music"></i> Bài hát (${songs?.songs?.length || 0})
+                <i class="fas fa-music"></i> Top Bài hát (${songs?.songs?.length || 0})
             </button>
             <button onclick="switchArtistTab('albums')">
                 <i class="fas fa-compact-disc"></i> Albums (${albums?.albums?.length || 0})
@@ -152,45 +160,64 @@ async function loadArtistDetails() {
         </div>
     `;
     
-    // Songs tab
-    html += '<div id="artist-songs-tab" class="tab-content-item active animate-slide-up"><div class="results-grid">';
+    // Songs tab - Chart style view
+    html += '<div id="artist-songs-tab" class="tab-content-item active animate-slide-up">';
     if (songs && songs.songs && songs.songs.length > 0) {
-        songs.songs.forEach(song => {
-            const songImg = song.song_art_image_thumbnail_url || '../assets/images/placeholder.png';
+        html += '<div class="chart-list">';
+        songs.songs.forEach((song, index) => {
+            const songImg = song.song_art_image_thumbnail_url || song.song_art_image_url || 'assets/images/placeholder.png';
+            const position = index + 1;
+            let positionClass = '';
+            if (position === 1) positionClass = 'top-1';
+            else if (position === 2) positionClass = 'top-2';
+            else if (position === 3) positionClass = 'top-3';
+            
             html += `
-                <div class="chart-item" onclick="navigateToSong(${song.id})" style="width: 100%;">
-                    <img src="${songImg}" class="chart-image" style="width: 50px; height: 50px;">
+                <div class="chart-item" onclick="navigateToSong(${song.id})">
+                    <div class="chart-position ${positionClass}">${position}</div>
+                    <img src="${songImg}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
                     <div class="chart-info">
                         <div class="chart-title">${song.title}</div>
                         <div class="chart-subtitle">${song.artist_names}</div>
                     </div>
-                </div>
-            `;
-        });
-    } else {
-        html += '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No songs found</p>';
-    }
-    html += '</div></div>';
-    
-    // Albums tab
-    html += '<div id="artist-albums-tab" class="tab-content-item"><div class="results-grid">';
-    if (albums && albums.albums && albums.albums.length > 0) {
-        albums.albums.forEach(album => {
-            const albumImg = album.cover_art_url || '../assets/images/placeholder.png';
-            html += `
-                <div class="chart-item" onclick="navigateToAlbum(${album.id})" style="width: 100%;">
-                    <img src="${albumImg}" class="chart-image" style="width: 50px; height: 50px;">
-                    <div class="chart-info">
-                        <div class="chart-title">${album.name}</div>
-                        <div class="chart-subtitle">${album.release_date_components?.year || ''}</div>
+                    <div class="chart-stats">
+                        ${song.stats?.pageviews ? `<div class="chart-views"><i class="fas fa-eye"></i> ${formatNumber(song.stats.pageviews)}</div>` : ''}
+                        ${song.stats?.hot ? '<span class="badge-hot"><i class="fas fa-fire"></i> HOT</span>' : ''}
                     </div>
                 </div>
             `;
         });
+        html += '</div>';
+    } else {
+        html += '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No songs found</p>';
+    }
+    html += '</div>';
+    
+    // Albums tab - Chart style view  
+    html += '<div id="artist-albums-tab" class="tab-content-item">';
+    if (albums && albums.albums && albums.albums.length > 0) {
+        html += '<div class="chart-list">';
+        albums.albums.forEach((album, index) => {
+            const albumImg = album.cover_art_url || 'assets/images/placeholder.png';
+            const position = index + 1;
+            
+            html += `
+                <div class="chart-item" onclick="navigateToAlbum(${album.id})">
+                    <div class="chart-position" style="min-width: 40px; font-size: 1.2rem;">${position}</div>
+                    <img src="${albumImg}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
+                    <div class="chart-info">
+                        <div class="chart-title">${album.name}</div>
+                        <div class="chart-subtitle">${album.release_date_components?.year || ''}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="opacity: 0.2; margin-left: auto;"></i>
+                </div>
+            `;
+        });
+        html += '</div>';
     } else {
         html += '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No albums found</p>';
     }
-    html += '</div></div>';
+    html += '</div>';
     
     contentContainer.innerHTML = html;
 }
