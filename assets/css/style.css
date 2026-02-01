@@ -800,6 +800,62 @@ body::before {
     color: var(--text-secondary);
 }
 
+/* Artist Content Grid - 2 Column Layout */
+.artist-content-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+    margin-top: 40px;
+    align-items: start;
+}
+
+.artist-bio-sidebar {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.artist-bio-sidebar h3 {
+    color: var(--accent-purple);
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.artist-bio-sidebar p {
+    line-height: 1.8;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.artist-main-content {
+    min-width: 0;
+}
+
+/* Scrollbar cho bio sidebar */
+.artist-bio-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.artist-bio-sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.artist-bio-sidebar::-webkit-scrollbar-thumb {
+    background: var(--accent-purple);
+    border-radius: 3px;
+}
+
+.artist-bio-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #9d6fff;
+}
+
 .social-links {
     display: flex;
     justify-content: center;
@@ -1073,6 +1129,16 @@ body::before {
         font-size: 2rem;
         padding: 0 20px;
         margin-bottom: 15px;
+    }
+    
+    .artist-content-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .artist-bio-sidebar {
+        position: static;
+        max-height: none;
     }
     
     .artist-bio {
@@ -1357,6 +1423,17 @@ body::before {
     .artist-bio {
         padding: 18px;
         margin: 0 10px 20px;
+    }
+    
+    .artist-bio-sidebar {
+        padding: 18px;
+        margin: 0 10px 20px;
+    }
+    
+    .artist-content-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        margin-top: 20px;
     }
     
     .artist-bio h3 {

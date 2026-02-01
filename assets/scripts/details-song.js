@@ -1,11 +1,19 @@
-// ===== API Configuration =====
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: '3dc5636b7amsh5e270d52d86cf8ap1509d6jsn2aacc81b2040',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
-// ===== Utility Functions =====
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
+/**
+ * Gọi API với endpoint và parameters
+ */
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -45,6 +53,9 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
+/**
+ * Format số lượng views
+ */
 function formatNumber(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -52,6 +63,9 @@ function formatNumber(num) {
     return num.toString();
 }
 
+/**
+ * Format thời lượng từ giây sang phút:giây
+ */
 function formatDuration(seconds) {
     if (!seconds) return null;
     const mins = Math.floor(seconds / 60);
@@ -59,217 +73,257 @@ function formatDuration(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function navigateToArtist(artistId) {
-    window.location.href = `details-artist.html?id=${artistId}`;
-}
-
+/**
+ * Hiển thị thông báo lỗi
+ */
 function showError(message) {
     return `
         <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 40px; margin: 40px 0; text-align: center;">
             <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ef4444; margin-bottom: 20px;"></i>
-            <h2 style="color: #fca5a5; font-weight: 700; margin-bottom: 15px;">Error Loading Song</h2>
+            <h2 style="color: #fca5a5; font-weight: 700; margin-bottom: 15px;">Lỗi tải thông tin bài hát</h2>
             <p style="color: #fca5a5; font-size: 1.1rem;">${message}</p>
             <a href="index.html" class="btn-gradient" style="display: inline-block; margin-top: 20px; text-decoration: none;">
-                <i class="fas fa-home"></i> Back to Home
+                <i class="fas fa-home"></i> Về trang chủ
             </a>
         </div>
     `;
 }
 
-// ===== Load Song Details =====
+// ========================================
+// NAVIGATION FUNCTIONS
+// ========================================
+
+function navigateToArtist(artistId) {
+    window.location.href = `details-artist.html?id=${artistId}`;
+}
+
+// ========================================
+// RENDER FUNCTIONS
+// ========================================
+
+/**
+ * Render header của bài hát
+ */
+function renderSongHeader(song) {
+    const imgUrl = song.song_art_image_url || song.header_image_url || 'assets/images/placeholder.png';
+    const duration = song.duration || song.duration_ms ? formatDuration(song.duration || Math.floor(song.duration_ms / 1000)) : null;
+    
+    let statsHTML = '<div class="song-detail-stats">';
+    
+    // Release date
+    if (song.release_date_for_display) {
+        statsHTML += `
+            <div class="stat-item">
+                <div class="stat-value"><i class="fas fa-calendar"></i></div>
+                <div class="stat-label">${song.release_date_for_display}</div>
+            </div>
+        `;
+    }
+    
+    // Duration
+    if (duration) {
+        statsHTML += `
+            <div class="stat-item">
+                <div class="stat-value"><i class="fas fa-clock"></i></div>
+                <div class="stat-label">${duration}</div>
+            </div>
+        `;
+    }
+    
+    // Page views
+    if (song.stats?.pageviews) {
+        statsHTML += `
+            <div class="stat-item">
+                <div class="stat-value">${formatNumber(song.stats.pageviews)}</div>
+                <div class="stat-label">Lượt xem</div>
+            </div>
+        `;
+    }
+    
+    // Hot badge
+    if (song.stats?.hot) {
+        statsHTML += `
+            <div class="stat-item">
+                <span class="badge-hot"><i class="fas fa-fire"></i> TRENDING</span>
+            </div>
+        `;
+    }
+    
+    statsHTML += '</div>';
+    
+    return `
+        <div class="song-detail-header animate-slide-up">
+            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image" onerror="this.src='assets/images/placeholder.png'">
+            <h2 class="song-detail-title">${song.full_title || song.title || 'Chưa rõ tên'}</h2>
+            <p class="song-detail-artist" onclick="navigateToArtist(${song.primary_artist?.id})" style="cursor: pointer;">
+                <i class="fas fa-user"></i> ${song.primary_artist?.name || 'Nghệ sĩ chưa rõ'}
+            </p>
+            ${statsHTML}
+        </div>
+    `;
+}
+
+/**
+ * Render link đến lyrics trên Genius
+ */
+function renderLyricsLink(song) {
+    if (!song.url) return '';
+    
+    return `
+        <div class="lyrics-link-container animate-slide-up" style="text-align: center; margin: 30px 0;">
+            <a href="${song.url}" target="_blank" class="btn-gradient" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+                <i class="fas fa-external-link-alt"></i>
+                Xem lời bài hát trên Genius
+            </a>
+        </div>
+    `;
+}
+
+/**
+ * Render description/about của bài hát
+ */
+function renderSongDescription(song) {
+    // Kiểm tra nhiều cấu trúc description
+    let descText = null;
+    
+    if (song.description && song.description.plain) {
+        descText = song.description.plain;
+    } else if (song.description && song.description.html) {
+        descText = song.description.html.replace(/<[^>]*>/g, '');
+    } else if (typeof song.description === 'string' && song.description.length > 0) {
+        descText = song.description;
+    }
+    
+    if (!descText || descText.trim().length === 0) {
+        return '';
+    }
+    
+    return `
+        <div class="lyrics-container animate-slide-up">
+            <h3><i class="fas fa-info-circle"></i> Về bài hát</h3>
+            <p style="line-height: 1.8; text-align: left; white-space: pre-wrap;">${descText}</p>
+        </div>
+    `;
+}
+
+/**
+ * Render credits (writers, producers, featured artists)
+ */
+function renderCredits(song) {
+    const hasWriters = song.writer_artists && song.writer_artists.length > 0;
+    const hasProducers = song.producer_artists && song.producer_artists.length > 0;
+    const hasFeatured = song.featured_artists && song.featured_artists.length > 0;
+    
+    if (!hasWriters && !hasProducers && !hasFeatured) {
+        return '';
+    }
+    
+    let html = '<div class="credits-section animate-slide-up">';
+    
+    // Writers
+    if (hasWriters) {
+        html += '<h4><i class="fas fa-pen"></i> Nhạc sĩ</h4><div class="credits-grid">';
+        song.writer_artists.forEach(artist => {
+            const artistImg = artist.image_url || 'assets/images/placeholder.png';
+            html += `
+                <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
+                    <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
+                    <div class="credit-name">${artist.name}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    
+    // Producers
+    if (hasProducers) {
+        html += '<h4 style="margin-top: 20px;"><i class="fas fa-sliders-h"></i> Producer</h4><div class="credits-grid">';
+        song.producer_artists.forEach(artist => {
+            const artistImg = artist.image_url || 'assets/images/placeholder.png';
+            html += `
+                <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
+                    <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
+                    <div class="credit-name">${artist.name}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    
+    // Featured Artists
+    if (hasFeatured) {
+        html += '<h4 style="margin-top: 20px;"><i class="fas fa-star"></i> Featured Artists</h4><div class="credits-grid">';
+        song.featured_artists.forEach(artist => {
+            const artistImg = artist.image_url || 'assets/images/placeholder.png';
+            html += `
+                <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
+                    <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
+                    <div class="credit-name">${artist.name}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// ========================================
+// MAIN LOAD FUNCTION
+// ========================================
+
 async function loadSongDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');
-    
     const contentContainer = document.getElementById('songContent');
     
+    // Kiểm tra ID hợp lệ
     if (!songId) {
-        contentContainer.innerHTML = showError('Invalid song ID. Please go back and try again.');
+        contentContainer.innerHTML = showError('ID bài hát không hợp lệ. Vui lòng quay lại và thử lại.');
         return;
     }
     
-    // Show loading
+    // Hiển thị loading
     contentContainer.innerHTML = `
         <div class="loading">
             <div class="spinner-border text-light" role="status"></div>
-            <p style="color: var(--text-secondary); margin-top: 20px;">Loading song details...</p>
+            <p style="color: var(--text-secondary); margin-top: 20px;">Đang tải thông tin bài hát...</p>
         </div>
     `;
     
-    // Fetch song details and lyrics in parallel
-    const [details, lyrics] = await Promise.all([
-        fetchAPI('/song/details/', { id: songId }),
-        fetchAPI('/song/lyrics/', { id: songId })
-    ]);
+    // Fetch song details
+    const details = await fetchAPI('/song/details/', { id: songId });
     
+    // Kiểm tra dữ liệu
     if (!details || !details.song) {
-        contentContainer.innerHTML = showError('Failed to load song details. The song may not exist or the API is unavailable.');
+        contentContainer.innerHTML = showError('Không thể tải thông tin bài hát. Bài hát có thể không tồn tại hoặc API đang gặp sự cố.');
         return;
     }
     
     const song = details.song;
-    const imgUrl = song.song_art_image_url || song.header_image_url || 'assets/images/placeholder.png';
     
-    // Format duration if available
-    const duration = song.duration || song.duration_ms ? formatDuration(song.duration || Math.floor(song.duration_ms / 1000)) : null;
+    // Build HTML
+    let html = '';
     
-    let html = `
-        <div class="song-detail-header animate-slide-up">
-            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image" onerror="this.src='assets/images/placeholder.png'">
-            <h2 class="song-detail-title">${song.full_title || song.title || 'Unknown Title'}</h2>
-            <p class="song-detail-artist" onclick="navigateToArtist(${song.primary_artist?.id})" style="cursor: pointer;">
-                <i class="fas fa-user"></i> ${song.primary_artist?.name || 'Unknown Artist'}
-            </p>
-            
-            <div class="song-detail-stats">
-                ${song.release_date_for_display ? `
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-calendar"></i></div>
-                        <div class="stat-label">${song.release_date_for_display}</div>
-                    </div>
-                ` : ''}
-                ${duration ? `
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-clock"></i></div>
-                        <div class="stat-label">${duration}</div>
-                    </div>
-                ` : ''}
-                ${song.stats?.pageviews ? `
-                    <div class="stat-item">
-                        <div class="stat-value">${formatNumber(song.stats.pageviews)}</div>
-                        <div class="stat-label">Views</div>
-                    </div>
-                ` : ''}
-                ${song.stats?.hot ? `
-                    <div class="stat-item">
-                        <span class="badge-hot"><i class="fas fa-fire"></i> TRENDING</span>
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    `;
+    // 1. Header (image, title, artist, stats)
+    html += renderSongHeader(song);
     
-    // Debug lyrics structure
-    console.log('🎵 Lyrics Response:', lyrics);
+    // 2. Lyrics link
+    html += renderLyricsLink(song);
     
-    // Lyrics Section - TRY MULTIPLE STRUCTURES
-    let lyricsText = null;
+    // 3. Description/About
+    html += renderSongDescription(song);
     
-    if (lyrics) {
-        // Try structure 1: lyrics.lyrics.lyrics.body.plain
-        if (lyrics.lyrics?.lyrics?.body?.plain) {
-            lyricsText = lyrics.lyrics.lyrics.body.plain;
-        }
-        // Try structure 2: lyrics.lyrics.body.plain
-        else if (lyrics.lyrics?.body?.plain) {
-            lyricsText = lyrics.lyrics.body.plain;
-        }
-        // Try structure 3: lyrics.lyrics.plain
-        else if (lyrics.lyrics?.plain) {
-            lyricsText = lyrics.lyrics.plain;
-        }
-        // Try structure 4: lyrics.plain
-        else if (lyrics.plain) {
-            lyricsText = lyrics.plain;
-        }
-        // Try structure 5: lyrics.lyrics (direct text)
-        else if (typeof lyrics.lyrics === 'string') {
-            lyricsText = lyrics.lyrics;
-        }
-        // Try structure 6: lyrics as direct string
-        else if (typeof lyrics === 'string') {
-            lyricsText = lyrics;
-        }
-    }
+    // 4. Credits
+    html += renderCredits(song);
     
-    if (lyricsText) {
-        // Format lyrics with proper line breaks
-        const formattedLyrics = lyricsText
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join('<br>');
-            
-        html += `
-            <div class="lyrics-container animate-slide-up">
-                <h3><i class="fas fa-align-left"></i> Lời bài hát</h3>
-                <div class="lyrics-text">${formattedLyrics}</div>
-            </div>
-        `;
-    } else {
-        console.warn('⚠️ Lyrics not found in response');
-        html += `
-            <div class="lyrics-container animate-slide-up">
-                <h3><i class="fas fa-align-left"></i> Lời bài hát</h3>
-                <p style="text-align: center; color: var(--text-secondary); padding: 30px;">
-                    <i class="fas fa-music-slash" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
-                    Lời bài hát chưa có sẵn
-                </p>
-            </div>
-        `;
-    }
-    
-    // Credits Section
-    if (song.writer_artists || song.producer_artists || song.featured_artists) {
-        html += '<div class="credits-section animate-slide-up">';
-        
-        if (song.writer_artists && song.writer_artists.length > 0) {
-            html += '<h4><i class="fas fa-pen"></i> Nhạc sĩ</h4><div class="credits-grid">';
-            song.writer_artists.forEach(artist => {
-                const artistImg = artist.image_url || 'assets/images/placeholder.png';
-                html += `
-                    <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
-                        <div class="credit-name">${artist.name}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-        
-        if (song.producer_artists && song.producer_artists.length > 0) {
-            html += '<h4 style="margin-top: 20px;"><i class="fas fa-sliders-h"></i> Producer</h4><div class="credits-grid">';
-            song.producer_artists.forEach(artist => {
-                const artistImg = artist.image_url || 'assets/images/placeholder.png';
-                html += `
-                    <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
-                        <div class="credit-name">${artist.name}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-        
-        if (song.featured_artists && song.featured_artists.length > 0) {
-            html += '<h4 style="margin-top: 20px;"><i class="fas fa-star"></i> Featured Artists</h4><div class="credits-grid">';
-            song.featured_artists.forEach(artist => {
-                const artistImg = artist.image_url || 'assets/images/placeholder.png';
-                html += `
-                    <div class="credit-item" onclick="navigateToArtist(${artist.id})" style="cursor: pointer;">
-                        <img src="${artistImg}" alt="${artist.name}" onerror="this.src='assets/images/placeholder.png'">
-                        <div class="credit-name">${artist.name}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-        
-        html += '</div>';
-    }
-    
-    // Description
-    if (song.description && song.description.plain) {
-        html += `
-            <div class="lyrics-container animate-slide-up" style="margin-top: 30px;">
-                <h3><i class="fas fa-info-circle"></i> Về bài hát</h3>
-                <p style="line-height: 1.8; text-align: left;">${song.description.plain}</p>
-            </div>
-        `;
-    }
-    
+    // Render
     contentContainer.innerHTML = html;
 }
 
-// ===== Initialize =====
+// ========================================
+// INITIALIZATION
+// ========================================
+
 document.addEventListener('DOMContentLoaded', loadSongDetails);
