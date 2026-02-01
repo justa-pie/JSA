@@ -69,10 +69,9 @@ body::before {
 
 /* ===== Navbar ===== */
 .navbar {
-    background: rgba(10, 10, 10, 0.98);
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(20, 10, 30, 0.98) 100%);
     backdrop-filter: blur(20px);
-    box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3), 
-                0 4px 20px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3);
     border-bottom: 2px solid rgba(139, 92, 246, 0.4);
     position: sticky;
     top: 0;
@@ -89,7 +88,7 @@ body::before {
 }
 
 .navbar-brand:hover .navbar-logo {
-    filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.9));
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.9));
     transform: scale(1.2) rotate(5deg);
 }
 
@@ -98,10 +97,7 @@ body::before {
     align-items: center;
     font-size: 1.8rem;
     font-weight: bold;
-    background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-purple);
     cursor: pointer;
     transition: all 0.3s;
     filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.4));
@@ -110,6 +106,7 @@ body::before {
 .navbar-brand:hover {
     transform: scale(1.1);
     filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.8));
+    color: var(--accent-purple);
 }
 
 .navbar-toggler {
@@ -157,7 +154,7 @@ body::before {
 }
 
 .btn-back {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+    background: rgba(139, 92, 246, 0.3);
     border-radius: 50px;
     padding: 10px 24px !important;
     border: 2px solid rgba(139, 92, 246, 0.4);
@@ -165,7 +162,7 @@ body::before {
 }
 
 .btn-back:hover {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5));
+    background: rgba(139, 92, 246, 0.5);
     border-color: rgba(139, 92, 246, 0.6);
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
     transform: translateY(-3px) translateX(-2px);
@@ -181,6 +178,11 @@ body::before {
 
 .section.active {
     display: block;
+}
+
+.section .container {
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 @keyframes fadeIn {
@@ -238,7 +240,7 @@ body::before {
 }
 
 .pill-item.active {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
@@ -282,7 +284,7 @@ body::before {
     padding: 14px 28px;
     border: none;
     border-radius: 50px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     cursor: pointer;
     transition: all 0.3s;
@@ -291,6 +293,7 @@ body::before {
 
 .search-box button:hover {
     box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    background: #9d6fff;
 }
 
 .search-box button:active {
@@ -328,7 +331,7 @@ body::before {
 
 .tab-btn.active,
 .result-tabs button.active {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
@@ -407,10 +410,7 @@ body::before {
 .charts-header h1 {
     font-size: 3.5rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-purple);
     margin-bottom: 10px;
 }
 
@@ -427,6 +427,7 @@ body::before {
     gap: 12px;
     margin-bottom: 30px;
     flex-wrap: wrap;
+    padding: 0 15px;
 }
 
 .time-period-filter button,
@@ -442,6 +443,7 @@ body::before {
     font-size: 0.95rem;
     border: 2px solid rgba(139, 92, 246, 0.2);
     backdrop-filter: blur(10px);
+    white-space: nowrap;
 }
 
 .time-period-filter button:hover,
@@ -453,7 +455,7 @@ body::before {
 
 .time-period-filter button.active,
 .chart-tabs button.active {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     border-color: transparent;
     box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
@@ -582,7 +584,7 @@ body::before {
 }
 
 .badge-hot {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    background: #ef4444;
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -631,10 +633,7 @@ body::before {
     font-size: 2.8rem;
     font-weight: 900;
     margin-bottom: 15px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-purple);
 }
 
 .song-detail-artist {
@@ -746,6 +745,9 @@ body::before {
     text-align: center;
     margin-bottom: 40px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .artist-banner {
@@ -766,16 +768,16 @@ body::before {
     position: relative;
     z-index: 2;
     margin: 0 auto 20px;
+    display: block;
 }
 
 .artist-name {
     font-size: 3rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-purple);
     margin-bottom: 20px;
+    position: relative;
+    z-index: 3;
 }
 
 .artist-bio {
@@ -849,7 +851,7 @@ body::before {
 }
 
 .artist-tabs button.active {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     border-color: transparent;
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
@@ -878,11 +880,7 @@ body::before {
 .album-info h2 {
     font-size: 2.5rem;
     margin-bottom: 15px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: inline-block;
+    color: var(--accent-purple);
 }
 
 .tracklist {
@@ -1038,6 +1036,7 @@ body::before {
         font-size: 0.9rem;
     }
     
+    /* Song Detail */
     .song-detail-image {
         width: 250px;
         height: 250px;
@@ -1045,24 +1044,99 @@ body::before {
     
     .song-detail-title {
         font-size: 2rem;
+        padding: 0 20px;
     }
     
     .song-detail-artist {
         font-size: 1.2rem;
     }
     
-    .artist-name {
-        font-size: 2.2rem;
+    .song-detail-stats {
+        gap: 25px;
+    }
+    
+    /* Artist Detail - FIX OVERLAP */
+    .artist-banner {
+        height: 250px;
+        margin-bottom: 0;
+        border-radius: 20px 20px 0 0;
     }
     
     .artist-avatar {
         width: 140px;
         height: 140px;
-        margin-top: -90px;
+        margin-top: -70px;
+        margin-bottom: 15px;
     }
     
-    .artist-banner {
+    .artist-name {
+        font-size: 2rem;
+        padding: 0 20px;
+        margin-bottom: 15px;
+    }
+    
+    .artist-bio {
+        padding: 20px;
+        margin: 0 15px 25px;
+    }
+    
+    .artist-tabs {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 0 15px;
+    }
+    
+    .artist-tabs button {
+        padding: 10px 25px;
+        font-size: 0.9rem;
+    }
+    
+    /* Album Detail */
+    .album-cover {
+        width: 200px;
         height: 200px;
+    }
+    
+    .album-info h2 {
+        font-size: 1.8rem;
+        padding: 0 20px;
+    }
+    
+    .tracklist {
+        padding: 20px;
+        margin: 0 15px;
+    }
+    
+    .track-item {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    /* Lyrics */
+    .lyrics-container {
+        padding: 20px;
+        margin: 0 15px 25px;
+    }
+    
+    .lyrics-text {
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    
+    /* Credits */
+    .credits-section {
+        padding: 20px;
+        margin: 0 15px;
+    }
+    
+    .credits-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+    }
+    
+    .credit-item img {
+        width: 60px;
+        height: 60px;
     }
 }
 
@@ -1075,8 +1149,39 @@ body::before {
         font-size: 1.5rem;
     }
     
+    .navbar-logo {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .nav-link {
+        font-size: 0.95rem;
+        padding: 8px 18px !important;
+        margin: 5px 10px;
+    }
+    
     .search-container {
-        padding: 30px 20px;
+        padding: 30px 15px;
+    }
+    
+    .mode-pills {
+        width: 100%;
+    }
+    
+    .pill-item {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .search-box input {
+        padding: 16px 60px 16px 20px;
+        font-size: 0.95rem;
+    }
+    
+    .search-box button {
+        padding: 10px 20px;
     }
     
     .results-grid {
@@ -1088,31 +1193,311 @@ body::before {
         height: 120px;
     }
     
+    /* Charts */
+    .charts-header h1 {
+        font-size: 1.8rem;
+        padding: 0 10px;
+    }
+    
+    .charts-header p {
+        font-size: 0.9rem;
+        padding: 0 10px;
+    }
+    
+    .time-period-filter {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 10px;
+    }
+    
+    .time-period-filter button {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 140px;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .chart-tabs {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 10px;
+    }
+    
+    .chart-tabs button {
+        flex: 1 1 calc(33.333% - 6px);
+        min-width: 100px;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
     .chart-list {
         padding: 0 10px;
     }
     
     .chart-item {
-        gap: 12px;
-        padding: 10px 12px;
+        gap: 10px;
+        padding: 10px;
+        flex-wrap: nowrap;
+    }
+    
+    .chart-position {
+        font-size: 1.2rem;
+        min-width: 35px;
+    }
+    
+    .chart-position.top-1,
+    .chart-position.top-2,
+    .chart-position.top-3 {
+        font-size: 1.5rem;
+    }
+    
+    .chart-image {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .chart-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .chart-title {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .chart-subtitle {
+        font-size: 0.8rem;
     }
     
     .chart-stats {
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 8px;
+        width: auto;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+        margin-top: 0;
     }
     
-    .credits-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    .chart-views {
+        font-size: 0.75rem;
+    }
+    
+    .badge-hot {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+    
+    /* Song Detail */
+    .song-detail-image {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .song-detail-title {
+        font-size: 1.5rem;
+        padding: 0 15px;
+        line-height: 1.3;
+    }
+    
+    .song-detail-artist {
+        font-size: 1rem;
+        padding: 0 15px;
     }
     
     .song-detail-stats {
-        gap: 25px;
+        gap: 20px;
+        padding: 0 15px;
+    }
+    
+    .stat-item {
+        min-width: 70px;
     }
     
     .stat-value {
+        font-size: 1.3rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
+    
+    /* Artist Detail */
+    .artist-banner {
+        height: 180px;
+        border-radius: 20px 20px 0 0;
+        margin-bottom: 0;
+    }
+    
+    .artist-avatar {
+        width: 120px;
+        height: 120px;
+        margin-top: -60px;
+        margin-bottom: 12px;
+        border-width: 4px;
+    }
+    
+    .artist-name {
+        font-size: 1.6rem;
+        padding: 0 15px;
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+    
+    .social-links {
+        gap: 12px;
+        margin-top: 15px;
+    }
+    
+    .social-links a {
+        width: 42px;
+        height: 42px;
+        font-size: 1.4rem;
+    }
+    
+    .artist-bio {
+        padding: 18px;
+        margin: 0 10px 20px;
+    }
+    
+    .artist-bio h3 {
+        font-size: 1.2rem;
+    }
+    
+    .artist-bio p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    
+    .artist-tabs {
+        gap: 8px;
+        padding: 0 10px;
+        margin-bottom: 20px;
+    }
+    
+    .artist-tabs button {
+        flex: 1;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+    
+    /* Album Detail */
+    .album-detail-header {
+        gap: 20px;
+        padding: 0 10px;
+    }
+    
+    .album-cover {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .album-info h2 {
         font-size: 1.5rem;
+        padding: 0 15px;
+        line-height: 1.3;
+    }
+    
+    .album-info p {
+        font-size: 0.9rem;
+    }
+    
+    .tracklist {
+        padding: 18px;
+        margin: 0 10px;
+    }
+    
+    .tracklist h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .track-item {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .track-number {
+        min-width: 30px;
+        font-size: 0.95rem;
+    }
+    
+    .track-item img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .track-title {
+        font-size: 0.9rem;
+    }
+    
+    .track-title strong {
+        font-size: 0.9rem;
+    }
+    
+    .track-title div {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Lyrics */
+    .lyrics-container {
+        padding: 18px;
+        margin: 0 10px 20px;
+    }
+    
+    .lyrics-container h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .lyrics-text {
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+    
+    /* Credits */
+    .credits-section {
+        padding: 18px;
+        margin: 0 10px;
+    }
+    
+    .credits-section h4 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+    
+    .credits-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 12px;
+    }
+    
+    .credit-item {
+        padding: 12px;
+    }
+    
+    .credit-item img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .credit-name {
+        font-size: 0.8rem;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        padding: 40px 15px;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.2rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.9rem;
     }
 }
 
@@ -1134,7 +1519,7 @@ body::before {
 
 /* ===== Utilities ===== */
 .btn-gradient {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    background: var(--accent-purple);
     color: white;
     border: none;
     padding: 12px 30px;
@@ -1148,6 +1533,7 @@ body::before {
 .btn-gradient:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6);
+    background: #9d6fff;
 }
 
 /* ===== Mobile Navbar ===== */
