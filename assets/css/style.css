@@ -1,16 +1,16 @@
 /* ===== Variables ===== */
 :root {
-    --primary-dark: #000000;
-    --secondary-dark: #0a0a0a;
-    --accent-purple: #8b5cf6;
-    --accent-pink: #ec4899;
-    --accent-blue: #3b82f6;
-    --accent-green: #1db954; /* Spotify green */
-    --text-primary: #ffffff;
-    --text-secondary: #9ca3af;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
+    --primary-dark: #1a1a2e;
+    --secondary-dark: #16213e;
+    --accent-purple: #a78bfa;
+    --accent-pink: #f472b6;
+    --accent-blue: #60a5fa;
+    --accent-green: #34d399;
+    --text-primary: #f3f4f6;
+    --text-secondary: #d1d5db;
+    --success: #34d399;
+    --danger: #f87171;
+    --warning: #fbbf24;
 }
 
 /* ===== Reset & Base ===== */
@@ -22,7 +22,7 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', sans-serif;
-    background: #000000;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1624 100%);
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;
@@ -40,7 +40,7 @@ body::before {
     font-weight: 1000;
     letter-spacing: -0.02em;
     color: transparent;
-    -webkit-text-stroke: 1.5px rgba(160, 92, 246, 0.15);
+    -webkit-text-stroke: 1.5px rgba(167, 139, 250, 0.25);
     z-index: -2;
     pointer-events: none;
     white-space: nowrap;
@@ -69,10 +69,10 @@ body::before {
 
 /* ===== Navbar ===== */
 .navbar {
-    background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(20, 10, 30, 0.98) 100%);
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 100%);
     backdrop-filter: blur(20px);
-    box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3);
-    border-bottom: 2px solid rgba(139, 92, 246, 0.4);
+    box-shadow: 0 8px 40px rgba(167, 139, 250, 0.3);
+    border-bottom: 2px solid rgba(167, 139, 250, 0.4);
     position: sticky;
     top: 0;
     z-index: 1000;
