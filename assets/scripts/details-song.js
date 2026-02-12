@@ -3,7 +3,7 @@
 // ========================================
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: '65ecc62e44msh552bb8e1370b20bp1bc025jsne56e1cfa3325',
+    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
@@ -90,6 +90,26 @@ function showError(message) {
 }
 
 // ========================================
+// LYRICS FUNCTIONS
+// ========================================
+
+/**
+ * Fetch lyrics từ API
+ */
+async function fetchLyrics(songId) {
+    console.log('🎵 Fetching lyrics for song:', songId);
+    const data = await fetchAPI('/song/lyrics/', { id: songId });
+    
+    if (!data || !data.lyrics) {
+        console.warn('⚠️ No lyrics data received');
+        return null;
+    }
+    
+    console.log('✅ Lyrics fetched successfully');
+    return data.lyrics;
+}
+
+// ========================================
 // NAVIGATION FUNCTIONS
 // ========================================
 
@@ -164,17 +184,43 @@ function renderSongHeader(song) {
 }
 
 /**
- * Render link đến lyrics trên Genius
+ * Render lyrics của bài hát
  */
-function renderLyricsLink(song) {
-    if (!song.url) return '';
+function renderLyrics(lyricsData) {
+    if (!lyricsData || !lyricsData.lyrics || !lyricsData.lyrics.body) {
+        return '';
+    }
+    
+    const lyricsBody = lyricsData.lyrics.body;
+    
+    // Xử lý lyrics - loại bỏ HTML tags và giữ nguyên xuống dòng
+    let cleanLyrics = lyricsBody.html || lyricsBody.plain || '';
+    
+    // Nếu là HTML, convert sang plain text nhưng giữ nguyên format
+    if (cleanLyrics.includes('<')) {
+        // Chuyển <br> thành xuống dòng
+        cleanLyrics = cleanLyrics.replace(/<br\s*\/?>/gi, '\n');
+        // Chuyển </p> thành xuống dòng đôi
+        cleanLyrics = cleanLyrics.replace(/<\/p>/gi, '\n\n');
+        // Loại bỏ tất cả HTML tags còn lại
+        cleanLyrics = cleanLyrics.replace(/<[^>]*>/g, '');
+        // Decode HTML entities
+        cleanLyrics = cleanLyrics
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+    }
+    
+    // Loại bỏ khoảng trắng thừa nhưng giữ nguyên xuống dòng
+    cleanLyrics = cleanLyrics.trim();
     
     return `
-        <div class="lyrics-link-container animate-slide-up" style="text-align: center; margin: 30px 0;">
-            <a href="${song.url}" target="_blank" class="btn-gradient" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
-                <i class="fas fa-external-link-alt"></i>
-                Xem lời bài hát trên Genius
-            </a>
+        <div class="lyrics-container animate-slide-up">
+            <h3><i class="fas fa-music"></i> Lời bài hát</h3>
+            <div class="lyrics-text" style="white-space: pre-wrap; line-height: 1.8; color: var(--text-primary);">${cleanLyrics}</div>
         </div>
     `;
 }
@@ -292,8 +338,11 @@ async function loadSongDetails() {
         </div>
     `;
     
-    // Fetch song details
-    const details = await fetchAPI('/song/details/', { id: songId });
+    // Fetch song details và lyrics song song
+    const [details, lyricsData] = await Promise.all([
+        fetchAPI('/song/details/', { id: songId }),
+        fetchLyrics(songId)
+    ]);
     
     // Kiểm tra dữ liệu
     if (!details || !details.song) {
@@ -303,20 +352,29 @@ async function loadSongDetails() {
     
     const song = details.song;
     
-    // Build HTML
+    // Build HTML với layout mới
     let html = '';
     
     // 1. Header (image, title, artist, stats)
     html += renderSongHeader(song);
     
-    // 2. Lyrics link
-    html += renderLyricsLink(song);
+    // 2. Two-column layout: Left (Tiểu sử + Credits) | Right (Lyrics)
+    html += '<div class="two-column-layout">';
     
-    // 3. Description/About
-    html += renderSongDescription(song);
+    // Left column: Tiểu sử + Credits
+    html += '<div class="left-column">';
+    html += renderSongDescription(song); // Tiểu sử ở trên
+    html += renderCredits(song); // Credits ở dưới
+    html += '</div>';
     
-    // 4. Credits
-    html += renderCredits(song);
+    // Right column: Lyrics
+    html += '<div class="right-column">';
+    if (lyricsData) {
+        html += renderLyrics(lyricsData);
+    }
+    html += '</div>';
+    
+    html += '</div>'; // Close two-column-layout
     
     // Render
     contentContainer.innerHTML = html;

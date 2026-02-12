@@ -3,7 +3,7 @@
 // ========================================
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: '65ecc62e44msh552bb8e1370b20bp1bc025jsne56e1cfa3325',
+    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
@@ -175,9 +175,8 @@ function renderArtistBio(artist) {
         return ''; // Không hiển thị gì nếu không có bio
     }
     
-    // ĐÃ SỬA: Không dùng grid layout, dùng container bình thường
     return `
-        <div class="lyrics-container animate-slide-up" style="margin: 30px auto;">
+        <div class="lyrics-container animate-slide-up">
             <h3><i class="fas fa-info-circle"></i> Tiểu sử</h3>
             <p style="line-height: 1.8; color: var(--text-primary); white-space: pre-wrap;">${bioText}</p>
         </div>
@@ -292,16 +291,24 @@ async function loadArtistDetails() {
     
     const artist = details.artist;
     
-    // Build HTML - ĐÃ SỬA: Layout đơn giản hơn, không dùng grid
+    // Build HTML - Layout 2 cột giống trang song details
     let html = '';
     
     // 1. Header
     html += renderArtistHeader(artist);
     
-    // 2. Biography (nếu có) - không dùng sidebar
-    html += renderArtistBio(artist);
+    // 2. Two-column layout: Left (Tiểu sử) | Right (Top Bài hát/Albums với tabs)
+    html += '<div class="two-column-layout">';
     
-    // 3. Tabs
+    // Left column: Tiểu sử
+    html += '<div class="left-column">';
+    html += renderArtistBio(artist);
+    html += '</div>';
+    
+    // Right column: Tabs cho Songs/Albums
+    html += '<div class="right-column">';
+    
+    // Tabs
     html += `
         <div class="artist-tabs animate-slide-up">
             <button class="active" onclick="switchArtistTab('songs')">
@@ -313,15 +320,18 @@ async function loadArtistDetails() {
         </div>
     `;
     
-    // 4. Songs tab
+    // Songs tab
     html += '<div id="artist-songs-tab" class="tab-content-item active animate-slide-up">';
     html += renderSongsList(songs?.songs);
     html += '</div>';
     
-    // 5. Albums tab
+    // Albums tab
     html += '<div id="artist-albums-tab" class="tab-content-item">';
     html += renderAlbumsList(albums?.albums);
     html += '</div>';
+    
+    html += '</div>'; // Close right-column
+    html += '</div>'; // Close two-column-layout
     
     // Render
     contentContainer.innerHTML = html;

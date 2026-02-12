@@ -1,4 +1,5 @@
 /* ===== Variables ===== */
+/* VERSION: 2.0 - Updated Artist Layout 50/50 */
 :root {
     --primary-dark: #1a1a2e;
     --secondary-dark: #16213e;
@@ -640,6 +641,23 @@ body::before {
     font-size: 1.5rem;
     color: var(--text-secondary);
     margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 50px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.song-detail-artist:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.4);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
 }
 
 .song-detail-stats {
@@ -672,8 +690,8 @@ body::before {
     backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 30px;
-    max-width: 800px;
-    margin: 0 auto 30px;
+    width: 100%; /* Full width thay vì max-width */
+    margin-bottom: 30px;
     border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
@@ -696,8 +714,7 @@ body::before {
     backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 30px;
-    max-width: 1000px;
-    margin: 0 auto;
+    width: 100%; /* Full width thay vì max-width */
     border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
@@ -1575,6 +1592,60 @@ body::before {
     
     .empty-state p {
         font-size: 0.9rem;
+    }
+}
+
+/* ===== Two-Column Layout (Desktop) ===== */
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50/50 - Chia đều 2 cột */
+    gap: 30px;
+    margin-top: 30px;
+    align-items: start; /* Align to top */
+}
+
+.left-column,
+.right-column {
+    min-width: 0; /* Prevent overflow */
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Spacing giữa Tiểu sử và Credits */
+}
+
+/* Responsive: Mobile layout - stack vertically */
+@media (max-width: 991px) {
+    .two-column-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .left-column {
+        gap: 15px;
+    }
+}
+
+/* ===== Artist Two-Column Layout (Desktop) ===== */
+.artist-two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50/50 - Chia đều 2 cột */
+    gap: 30px;
+    margin-top: 30px;
+    align-items: start;
+}
+
+.artist-left-column,
+.artist-right-column {
+    min-width: 0;
+}
+
+/* Responsive: Mobile - stack vertically */
+@media (max-width: 991px) {
+    .artist-two-column-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 }
 

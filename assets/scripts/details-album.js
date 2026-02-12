@@ -3,7 +3,7 @@
 // ========================================
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: '65ecc62e44msh552bb8e1370b20bp1bc025jsne56e1cfa3325',
+    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
