@@ -1,24 +1,17 @@
-// ========================================
 // API CONFIGURATION
-// ========================================
+
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
+    key: '753fcf1226mshb230d54dc0cadb6p11f1e9jsn4c1781788720',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
-// ========================================
 // STATE MANAGEMENT
-// ========================================
+
 let currentSearchMode = 'song';
 
-// ========================================
 // UTILITY FUNCTIONS
-// ========================================
 
-/**
- * Gọi API với endpoint và parameters
- */
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -40,9 +33,6 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
-/**
- * Format số lượng views
- */
 function formatNumber(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -50,14 +40,11 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// ========================================
 // MODE SWITCHING
-// ========================================
 
 window.setSearchMode = function(mode) {
     currentSearchMode = mode;
     
-    // Update active state
     document.querySelectorAll('.pill-item').forEach(btn => {
         btn.classList.remove('active');
         if (btn.getAttribute('onclick').includes(`'${mode}'`)) {
@@ -65,16 +52,13 @@ window.setSearchMode = function(mode) {
         }
     });
     
-    // Update placeholder
     const input = document.getElementById('searchInput');
     input.placeholder = mode === 'song' 
         ? "Nhập tên bài hát..." 
         : "Tìm bài hát, nghệ sĩ, album...";
 };
 
-// ========================================
 // SEARCH LOGIC
-// ========================================
 
 window.performSearch = async function() {
     const query = document.getElementById('searchInput').value.trim();
@@ -82,11 +66,9 @@ window.performSearch = async function() {
     
     if (!query) return;
 
-    // Hiển thị loading
     container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-light"></div></div>';
 
     if (currentSearchMode === 'song') {
-        // Tìm kiếm chỉ bài hát
         const data = await fetchAPI('/search', { q: query });
         if (data && data.hits) {
             displayChartResults(data.hits.map(h => ({...h.result, type: 'song'})), container, 'Kết quả tìm kiếm');
@@ -94,7 +76,6 @@ window.performSearch = async function() {
             container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
         }
     } else {
-        // Tìm kiếm nâng cao (tất cả) - ĐÃ SỬA: Bỏ tab "Tất cả"
         const data = await fetchAPI('/search/multi', { q: query });
         if (data && data.sections) {
             displayMultiResults(data.sections, container);
@@ -104,13 +85,8 @@ window.performSearch = async function() {
     }
 };
 
-// ========================================
 // DISPLAY FUNCTIONS
-// ========================================
 
-/**
- * Tạo item chart-style cho kết quả
- */
 function createChartItem(type, id, title, subtitle, img, stats = {}) {
     const navFunc = type === 'song' ? 'navigateToSong' : (type === 'artist' ? 'navigateToArtist' : 'navigateToAlbum');
     const imgClass = type === 'artist' ? 'chart-image artist' : 'chart-image';
@@ -131,9 +107,6 @@ function createChartItem(type, id, title, subtitle, img, stats = {}) {
     `;
 }
 
-/**
- * Hiển thị kết quả dạng chart (cho search mode "song")
- */
 function displayChartResults(results, container, title = '') {
     let html = '';
     
@@ -161,11 +134,7 @@ function displayChartResults(results, container, title = '') {
     container.innerHTML = html;
 }
 
-/**
- * Hiển thị kết quả đa dạng với tabs - ĐÃ SỬA: Bỏ tab "Tất cả"
- */
 function displayMultiResults(sections, container) {
-    // Chỉ hiển thị 3 tabs: Bài hát, Nghệ sĩ, Album
     let html = `
         <div class="chart-tabs" style="display: flex; gap: 10px; overflow-x: auto; padding: 20px 0 10px 0; justify-content: center; flex-wrap: wrap;">
             <button class="tab-btn active" data-tab-id="song" onclick="switchResultTab('song')">
@@ -181,10 +150,9 @@ function displayMultiResults(sections, container) {
         <div class="tab-content">
     `;
 
-    // Render 3 tabs: song, artist, album
     ['song', 'artist', 'album'].forEach((type, index) => {
         const section = sections.find(s => s.type === type);
-        const activeClass = index === 0 ? 'active' : ''; // Tab đầu tiên (song) là active
+        const activeClass = index === 0 ? 'active' : '';
         const displayStyle = index === 0 ? 'block' : 'none';
 
         html += `<div class="tab-content-item ${activeClass}" data-tab-content="${type}" style="display: ${displayStyle};">`;
@@ -214,24 +182,18 @@ function displayMultiResults(sections, container) {
     container.innerHTML = html;
 }
 
-// ========================================
 // TAB SWITCHING
-// ========================================
 
 window.switchResultTab = function(type) {
-    // Update button states
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`[data-tab-id="${type}"]`)?.classList.add('active');
     
-    // Show/hide content
     document.querySelectorAll('.tab-content-item').forEach(c => c.style.display = 'none');
     const target = document.querySelector(`[data-tab-content="${type}"]`);
     if (target) target.style.display = 'block';
 };
 
-// ========================================
 // NAVIGATION FUNCTIONS
-// ========================================
 
 window.navigateToSong = (id) => { 
     window.location.href = `details-song.html?id=${id}`; 

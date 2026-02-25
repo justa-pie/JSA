@@ -1,22 +1,15 @@
-// ========================================
 // API CONFIGURATION
-// ========================================
+
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
+    key: '753fcf1226mshb230d54dc0cadb6p11f1e9jsn4c1781788720',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
-// Placeholder image - simple gradient with music icon
 const PLACEHOLDER_IMG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2NjdlZWEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM3NjRiYTIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNjAiPvCfjrU8L3RleHQ+PC9zdmc+';
 
-// ========================================
 // UTILITY FUNCTIONS
-// ========================================
 
-/**
- * Gọi API với endpoint và parameters
- */
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -56,9 +49,6 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
-/**
- * Hiển thị thông báo lỗi
- */
 function showError(message) {
     return `
         <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 40px; margin: 40px 0; text-align: center;">
@@ -72,9 +62,7 @@ function showError(message) {
     `;
 }
 
-// ========================================
 // NAVIGATION FUNCTIONS
-// ========================================
 
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
@@ -84,13 +72,8 @@ function navigateToArtist(artistId) {
     window.location.href = `details-artist.html?id=${artistId}`;
 }
 
-// ========================================
 // RENDER FUNCTIONS
-// ========================================
 
-/**
- * Render header của album
- */
 function renderAlbumHeader(album) {
     const coverImg = album.cover_art_url || PLACEHOLDER_IMG;
     
@@ -110,18 +93,13 @@ function renderAlbumHeader(album) {
     `;
 }
 
-/**
- * Render description của album với nút link duy nhất
- */
 function renderAlbumDescription(album) {
     console.log('🔍 Checking for album description');
     
-    // Ưu tiên description_preview từ API
     let descText = album.description_preview || album.description || null;
     
     if (!descText || descText.trim().length === 0) {
         console.log('⚠️ No description available');
-        // Nếu không có description, chỉ hiển thị nút link
         return album.url ? `
             <div class="lyrics-container animate-slide-up" style="margin-top: 30px; text-align: center;">
                 <a href="${album.url}" target="_blank" class="btn-gradient" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
@@ -149,13 +127,7 @@ function renderAlbumDescription(album) {
     `;
 }
 
-/**
- * Bỏ function renderNoTracks - không cần nữa
- */
-
-// ========================================
 // MAIN LOAD FUNCTION
-// ========================================
 
 async function loadAlbumDetails() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -164,13 +136,11 @@ async function loadAlbumDetails() {
     
     console.log('🚀 Loading album details for ID:', albumId);
     
-    // Kiểm tra ID hợp lệ
     if (!albumId) {
         contentContainer.innerHTML = showError('ID album không hợp lệ. Vui lòng quay lại và thử lại.');
         return;
     }
     
-    // Hiển thị loading
     contentContainer.innerHTML = `
         <div class="loading">
             <div class="spinner-border text-light" role="status"></div>
@@ -178,10 +148,8 @@ async function loadAlbumDetails() {
         </div>
     `;
     
-    // Fetch album data
     const albumData = await fetchAPI('/album/details/', { id: albumId });
     
-    // Kiểm tra dữ liệu
     if (!albumData || !albumData.album) {
         contentContainer.innerHTML = showError('Không thể tải thông tin album. Album có thể không tồn tại hoặc API đang gặp sự cố.');
         return;
@@ -190,23 +158,17 @@ async function loadAlbumDetails() {
     const album = albumData.album;
     console.log('📦 Album data loaded:', album.name);
     
-    // Build HTML - layout đồng bộ với artist và song
     let html = '';
     
-    // 1. Header (cover, title, artist, release date)
     html += renderAlbumHeader(album);
     
-    // 2. Description + nút Genius (nếu có)
     html += renderAlbumDescription(album);
     
-    // Render
     contentContainer.innerHTML = html;
     
     console.log('✅ Album details loaded successfully');
 }
 
-// ========================================
 // INITIALIZATION
-// ========================================
 
 document.addEventListener('DOMContentLoaded', loadAlbumDetails);

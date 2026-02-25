@@ -1,19 +1,13 @@
-// ========================================
 // API CONFIGURATION
-// ========================================
+
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
+    key: '753fcf1226mshb230d54dc0cadb6p11f1e9jsn4c1781788720',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
-// ========================================
 // UTILITY FUNCTIONS
-// ========================================
 
-/**
- * Gọi API với endpoint và parameters
- */
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -53,9 +47,6 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
-/**
- * Format số lượng views
- */
 function formatNumber(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -63,9 +54,6 @@ function formatNumber(num) {
     return num.toString();
 }
 
-/**
- * Hiển thị thông báo lỗi
- */
 function showError(message) {
     return `
         <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 40px; margin: 40px 0; text-align: center;">
@@ -79,9 +67,7 @@ function showError(message) {
     `;
 }
 
-// ========================================
 // NAVIGATION FUNCTIONS
-// ========================================
 
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
@@ -91,23 +77,18 @@ function navigateToAlbum(albumId) {
     window.location.href = `details-album.html?id=${albumId}`;
 }
 
-// ========================================
 // TAB SWITCHING
-// ========================================
 
 function switchArtistTab(tab) {
-    // Cập nhật active state cho buttons
     document.querySelectorAll('.artist-tabs button').forEach(btn => {
         btn.classList.remove('active');
     });
     event.target.classList.add('active');
     
-    // Ẩn tất cả tab content
     document.querySelectorAll('.tab-content-item').forEach(content => {
         content.classList.remove('active');
     });
     
-    // Hiển thị tab được chọn
     if (tab === 'songs') {
         document.getElementById('artist-songs-tab').classList.add('active');
     } else {
@@ -115,13 +96,8 @@ function switchArtistTab(tab) {
     }
 }
 
-// ========================================
 // RENDER FUNCTIONS
-// ========================================
 
-/**
- * Render header của artist
- */
 function renderArtistHeader(artist) {
     const bannerImg = artist.header_image_url || 'assets/images/placeholder.png';
     const avatarImg = artist.image_url || 'assets/images/placeholder.png';
@@ -141,29 +117,21 @@ function renderArtistHeader(artist) {
     `;
 }
 
-/**
- * Render tiểu sử nghệ sĩ - ĐÃ SỬA: Không dùng sidebar, dùng container bình thường
- */
 function renderArtistBio(artist) {
-    // Kiểm tra nhiều cấu trúc có thể có của description
     let bioText = null;
     
-    // Cấu trúc 1: artist.description.plain
     if (artist.description && artist.description.plain) {
         bioText = artist.description.plain;
         console.log('✅ Found description.plain');
     }
-    // Cấu trúc 2: artist.description.html (loại bỏ HTML tags)
     else if (artist.description && artist.description.html) {
         bioText = artist.description.html.replace(/<[^>]*>/g, '');
         console.log('✅ Found description.html');
     }
-    // Cấu trúc 3: artist.description là string trực tiếp
     else if (typeof artist.description === 'string' && artist.description.length > 0) {
         bioText = artist.description;
         console.log('✅ Found description as string');
     }
-    // Cấu trúc 4: artist.bio
     else if (artist.bio) {
         bioText = typeof artist.bio === 'string' ? artist.bio : (artist.bio.plain || artist.bio.html?.replace(/<[^>]*>/g, ''));
         console.log('✅ Found bio');
@@ -172,7 +140,7 @@ function renderArtistBio(artist) {
     if (!bioText || bioText.trim().length === 0) {
         console.warn('⚠️ No bio/description found');
         console.log('Artist data:', artist);
-        return ''; // Không hiển thị gì nếu không có bio
+        return '';
     }
     
     return `
@@ -183,9 +151,6 @@ function renderArtistBio(artist) {
     `;
 }
 
-/**
- * Render danh sách bài hát
- */
 function renderSongsList(songs) {
     if (!songs || songs.length === 0) {
         return '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Không tìm thấy bài hát</p>';
@@ -222,9 +187,7 @@ function renderSongsList(songs) {
     return html;
 }
 
-/**
- * Render danh sách albums
- */
+
 function renderAlbumsList(albums) {
     if (!albums || albums.length === 0) {
         return '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Không tìm thấy album</p>';
@@ -253,22 +216,18 @@ function renderAlbumsList(albums) {
     return html;
 }
 
-// ========================================
 // MAIN LOAD FUNCTION
-// ========================================
 
 async function loadArtistDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     const artistId = urlParams.get('id');
     const contentContainer = document.getElementById('artistContent');
     
-    // Kiểm tra ID hợp lệ
     if (!artistId) {
         contentContainer.innerHTML = showError('ID nghệ sĩ không hợp lệ. Vui lòng quay lại và thử lại.');
         return;
     }
     
-    // Hiển thị loading
     contentContainer.innerHTML = `
         <div class="loading">
             <div class="spinner-border text-light" role="status"></div>
@@ -276,14 +235,12 @@ async function loadArtistDetails() {
         </div>
     `;
     
-    // Fetch dữ liệu song song
     const [details, songs, albums] = await Promise.all([
         fetchAPI('/artist/details/', { id: artistId }),
         fetchAPI('/artist/songs/', { id: artistId, sort: 'popularity', per_page: 20 }),
         fetchAPI('/artist/albums/', { id: artistId, per_page: 50 })
     ]);
     
-    // Kiểm tra dữ liệu
     if (!details || !details.artist) {
         contentContainer.innerHTML = showError('Không thể tải thông tin nghệ sĩ. Nghệ sĩ có thể không tồn tại hoặc API đang gặp sự cố.');
         return;
@@ -291,24 +248,18 @@ async function loadArtistDetails() {
     
     const artist = details.artist;
     
-    // Build HTML - Layout 2 cột giống trang song details
     let html = '';
     
-    // 1. Header
     html += renderArtistHeader(artist);
     
-    // 2. Two-column layout: Left (Tiểu sử) | Right (Top Bài hát/Albums với tabs)
     html += '<div class="two-column-layout">';
     
-    // Left column: Tiểu sử
     html += '<div class="left-column">';
     html += renderArtistBio(artist);
     html += '</div>';
     
-    // Right column: Tabs cho Songs/Albums
     html += '<div class="right-column">';
     
-    // Tabs
     html += `
         <div class="artist-tabs animate-slide-up">
             <button class="active" onclick="switchArtistTab('songs')">
@@ -320,25 +271,20 @@ async function loadArtistDetails() {
         </div>
     `;
     
-    // Songs tab
     html += '<div id="artist-songs-tab" class="tab-content-item active animate-slide-up">';
     html += renderSongsList(songs?.songs);
     html += '</div>';
     
-    // Albums tab
     html += '<div id="artist-albums-tab" class="tab-content-item">';
     html += renderAlbumsList(albums?.albums);
     html += '</div>';
     
-    html += '</div>'; // Close right-column
-    html += '</div>'; // Close two-column-layout
+    html += '</div>';
+    html += '</div>';
     
-    // Render
     contentContainer.innerHTML = html;
 }
 
-// ========================================
 // INITIALIZATION
-// ========================================
 
 document.addEventListener('DOMContentLoaded', loadArtistDetails);
