@@ -28,6 +28,7 @@ body {
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    isolation: isolate;
 }
 
 body::before {
@@ -42,12 +43,10 @@ body::before {
     letter-spacing: -0.02em;
     color: transparent;
     -webkit-text-stroke: 1.5px rgba(167, 139, 250, 0.25);
-    z-index: -2;
+    z-index: -1;
     pointer-events: none;
     white-space: nowrap;
     user-select: none;
-    -webkit-mask-image: none;
-    mask-image: none;
 }
 
 /* ===== Scrollbar ===== */
@@ -1723,7 +1722,4 @@ html {
 }
 
 /* ===== Fix: flash trắng khi chuyển trang ===== */
-/* Set màu nền ngay trên html tag, trước khi CSS load xong */
-html {
-    background-color: #1a1a2e;
-}
+/* background đặt trên html để không che body::before */
