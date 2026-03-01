@@ -80,10 +80,13 @@ function navigateToAlbum(albumId) {
 // TAB SWITCHING
 
 function switchArtistTab(tab) {
+    // Update button states dựa vào tham số tab, không dùng event.target
     document.querySelectorAll('.artist-tabs button').forEach(btn => {
         btn.classList.remove('active');
+        if (btn.getAttribute('onclick')?.includes(`'${tab}'`)) {
+            btn.classList.add('active');
+        }
     });
-    event.target.classList.add('active');
     
     document.querySelectorAll('.tab-content-item').forEach(content => {
         content.classList.remove('active');
@@ -288,3 +291,18 @@ async function loadArtistDetails() {
 // INITIALIZATION
 
 document.addEventListener('DOMContentLoaded', loadArtistDetails);
+
+// ========================================
+// MOBILE NAVBAR — tự đóng sau khi click
+// ========================================
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", () => {
+            const navCollapse = document.getElementById("navbarNav");
+            if (navCollapse && navCollapse.classList.contains("show")) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                if (bsCollapse) bsCollapse.hide();
+            }
+        });
+    });
+});

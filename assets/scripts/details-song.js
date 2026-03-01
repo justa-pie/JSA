@@ -153,11 +153,11 @@ function renderSongHeader(song) {
 }
 
 function renderLyrics(lyricsData) {
-    if (!lyricsData || !lyricsData.lyrics || !lyricsData.lyrics.body) {
+    // fetchLyrics trả về data.lyrics, nên cấu trúc là lyricsData.body (không phải lyricsData.lyrics.body)
+    const lyricsBody = lyricsData?.body || lyricsData?.lyrics?.body || null;
+    if (!lyricsData || !lyricsBody) {
         return '';
     }
-    
-    const lyricsBody = lyricsData.lyrics.body;
     
     let cleanLyrics = lyricsBody.html || lyricsBody.plain || '';
     
@@ -320,3 +320,18 @@ async function loadSongDetails() {
 // INITIALIZATION
 
 document.addEventListener('DOMContentLoaded', loadSongDetails);
+
+// ========================================
+// MOBILE NAVBAR — tự đóng sau khi click
+// ========================================
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", () => {
+            const navCollapse = document.getElementById("navbarNav");
+            if (navCollapse && navCollapse.classList.contains("show")) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                if (bsCollapse) bsCollapse.hide();
+            }
+        });
+    });
+});

@@ -9,6 +9,7 @@ const API_CONFIG = {
 // STATE MANAGEMENT
 
 let currentSearchMode = 'song';
+let searchDebounceTimer = null;
 
 // UTILITY FUNCTIONS
 
@@ -61,6 +62,9 @@ window.setSearchMode = function(mode) {
 // SEARCH LOGIC
 
 window.performSearch = async function() {
+    // Debounce: huỷ lần gọi cũ nếu spam submit
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(async () => {
     const query = document.getElementById('searchInput').value.trim();
     const container = document.getElementById('searchResults');
     
@@ -83,6 +87,7 @@ window.performSearch = async function() {
             container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
         }
     }
+    }, 400); // 400ms debounce
 };
 
 // DISPLAY FUNCTIONS
@@ -206,3 +211,17 @@ window.navigateToArtist = (id) => {
 window.navigateToAlbum = (id) => { 
     window.location.href = `details-album.html?id=${id}`; 
 };
+// ========================================
+// MOBILE NAVBAR — tự đóng sau khi click
+// ========================================
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const navCollapse = document.getElementById('navbarNav');
+            if (navCollapse && navCollapse.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                if (bsCollapse) bsCollapse.hide();
+            }
+        });
+    });
+});

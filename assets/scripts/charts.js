@@ -143,7 +143,7 @@ async function loadChart(type) {
     
     // Parameters cho API
     const params = type === 'songs' 
-        ? { per_page: 20, page: 1, time_period: timeType, type: timeType } 
+        ? { per_page: 20, page: 1, time_period: timeType } 
         : { per_page: 10, time_period: timeType };
     
     // Fetch data
@@ -252,4 +252,19 @@ function renderAlbumItem(item, position, positionClass) {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadChart('songs');
+});
+
+// ========================================
+// MOBILE NAVBAR — tự đóng sau khi click
+// ========================================
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", () => {
+            const navCollapse = document.getElementById("navbarNav");
+            if (navCollapse && navCollapse.classList.contains("show")) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                if (bsCollapse) bsCollapse.hide();
+            }
+        });
+    });
 });
