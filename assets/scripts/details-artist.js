@@ -1,5 +1,4 @@
 // API CONFIGURATION
-
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
@@ -7,7 +6,6 @@ const API_CONFIG = {
 };
 
 // UTILITY FUNCTIONS
-
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -68,7 +66,6 @@ function showError(message) {
 }
 
 // NAVIGATION FUNCTIONS
-
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
 }
@@ -78,7 +75,6 @@ function navigateToAlbum(albumId) {
 }
 
 // TAB SWITCHING
-
 function switchArtistTab(tab) {
     // Update button states dựa vào tham số tab, không dùng event.target
     document.querySelectorAll('.artist-tabs button').forEach(btn => {
@@ -100,7 +96,6 @@ function switchArtistTab(tab) {
 }
 
 // RENDER FUNCTIONS
-
 function renderArtistHeader(artist) {
     const bannerImg = artist.header_image_url || 'assets/images/placeholder.png';
     const avatarImg = artist.image_url || 'assets/images/placeholder.png';
@@ -289,7 +284,6 @@ async function loadArtistDetails() {
 }
 
 // INITIALIZATION
-
 document.addEventListener('DOMContentLoaded', loadArtistDetails);
 
 // ========================================

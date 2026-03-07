@@ -1,5 +1,4 @@
 // API CONFIGURATION
-
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
@@ -9,7 +8,6 @@ const API_CONFIG = {
 const PLACEHOLDER_IMG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2NjdlZWEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM3NjRiYTIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNjAiPvCfjrU8L3RleHQ+PC9zdmc+';
 
 // UTILITY FUNCTIONS
-
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -63,7 +61,6 @@ function showError(message) {
 }
 
 // NAVIGATION FUNCTIONS
-
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
 }
@@ -73,7 +70,6 @@ function navigateToArtist(artistId) {
 }
 
 // RENDER FUNCTIONS
-
 function renderAlbumHeader(album) {
     const coverImg = album.cover_art_url || PLACEHOLDER_IMG;
     
@@ -128,7 +124,6 @@ function renderAlbumDescription(album) {
 }
 
 // MAIN LOAD FUNCTION
-
 async function loadAlbumDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     const albumId = urlParams.get('id');
@@ -170,5 +165,4 @@ async function loadAlbumDetails() {
 }
 
 // INITIALIZATION
-
 document.addEventListener('DOMContentLoaded', loadAlbumDetails);

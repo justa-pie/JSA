@@ -1,25 +1,15 @@
-// ========================================
 // API CONFIGURATION
-// ========================================
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
     baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
 };
 
-// ========================================
 // STATE MANAGEMENT
-// ========================================
 let currentChart = 'songs';
 let currentTimePeriod = 'day';
 
-// ========================================
 // UTILITY FUNCTIONS
-// ========================================
-
-/**
- * Gọi API với endpoint và parameters
- */
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -42,18 +32,12 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
-/**
- * Format số lượng views
- */
 function formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num;
 }
 
-/**
- * Hiển thị loading spinner
- */
 function showLoading(elementId) {
     const element = document.getElementById(elementId);
     element.innerHTML = `
@@ -65,9 +49,7 @@ function showLoading(elementId) {
     `;
 }
 
-// ========================================
 // NAVIGATION FUNCTIONS
-// ========================================
 
 function navigateToSong(songId) {
     window.location.href = `details-song.html?id=${songId}`;
@@ -81,107 +63,71 @@ function navigateToAlbum(albumId) {
     window.location.href = `details-album.html?id=${albumId}`;
 }
 
-// ========================================
 // FILTER FUNCTIONS
-// ========================================
-
-/**
- * Chuyển đổi time period filter
- */
 function switchTimePeriod(period) {
     currentTimePeriod = period;
-    
-    // Update button states
     document.querySelectorAll('.time-period-filter button').forEach(btn => {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-period="${period}"]`).classList.add('active');
-    
-    // Reload chart với time period mới
     loadChart(currentChart);
 }
 
-/**
- * Chuyển đổi chart type (songs/artists/albums)
- */
 function switchChart(chart) {
     currentChart = chart;
     
-    // Update button states
     document.querySelectorAll('.chart-tabs button').forEach(btn => {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-chart="${chart}"]`).classList.add('active');
     
-    // Load chart data
     loadChart(chart);
 }
 
-// ========================================
 // CHART LOADING
-// ========================================
-
-/**
- * Load chart data theo type và time period
- */
 async function loadChart(type) {
     const container = document.getElementById('chartContent');
     showLoading('chartContent');
     
-    // Xác định endpoint
     let endpoint = '';
     if (type === 'songs') endpoint = '/chart/songs/';
     else if (type === 'artists') endpoint = '/chart/artists/';
     else if (type === 'albums') endpoint = '/chart/albums/';
     
-    // Map time period sang API parameter
     let timeType = 'all';
     if (currentTimePeriod === 'day') timeType = 'day';
     else if (currentTimePeriod === 'week') timeType = 'week';
     else if (currentTimePeriod === 'month') timeType = 'month';
     else if (currentTimePeriod === 'all') timeType = 'all_time';
     
-    // Parameters cho API
     const params = type === 'songs' 
         ? { per_page: 20, page: 1, time_period: timeType } 
         : { per_page: 10, time_period: timeType };
     
-    // Fetch data
     const data = await fetchAPI(endpoint, params);
     
-    // Kiểm tra data
     if (!data || !data.chart_items || data.chart_items.length === 0) {
         container.innerHTML = '<p style="color: white; text-align: center;">Không có dữ liệu</p>';
         return;
     }
     
-    // Render chart
     renderChart(data.chart_items, type, container);
 }
 
-// ========================================
 // CHART RENDERING
-// ========================================
-
-/**
- * Render chart items
- */
 function renderChart(chartItems, type, container) {
     let html = '<div class="chart-list">';
     
     chartItems.forEach((chartItem, index) => {
         const item = chartItem.item;
         
-        // Lấy position từ nhiều nguồn có thể
         const position = chartItem.chart_position || chartItem.position || (index + 1);
         
-        // Xác định class cho top 3
         let positionClass = '';
         if (position === 1) positionClass = 'top-1';
         else if (position === 2) positionClass = 'top-2';
         else if (position === 3) positionClass = 'top-3';
         
-        // Render theo type
         if (type === 'songs') {
             html += renderSongItem(item, position, positionClass);
         } else if (type === 'artists') {
@@ -195,9 +141,6 @@ function renderChart(chartItems, type, container) {
     container.innerHTML = html;
 }
 
-/**
- * Render song item trong chart
- */
 function renderSongItem(item, position, positionClass) {
     return `
         <div class="chart-item" onclick="navigateToSong(${item.id})">
@@ -215,9 +158,6 @@ function renderSongItem(item, position, positionClass) {
     `;
 }
 
-/**
- * Render artist item trong chart
- */
 function renderArtistItem(item, position, positionClass) {
     return `
         <div class="chart-item" onclick="navigateToArtist(${item.id})">
@@ -230,9 +170,6 @@ function renderArtistItem(item, position, positionClass) {
     `;
 }
 
-/**
- * Render album item trong chart
- */
 function renderAlbumItem(item, position, positionClass) {
     return `
         <div class="chart-item" onclick="navigateToAlbum(${item.id})">
@@ -246,17 +183,12 @@ function renderAlbumItem(item, position, positionClass) {
     `;
 }
 
-// ========================================
 // INITIALIZATION
-// ========================================
-
 document.addEventListener('DOMContentLoaded', function() {
     loadChart('songs');
 });
 
-// ========================================
-// MOBILE NAVBAR — tự đóng sau khi click
-// ========================================
+// MOBILE NAVBAR
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
         link.addEventListener("click", () => {

@@ -1,5 +1,4 @@
 // API CONFIGURATION
-
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
@@ -7,7 +6,6 @@ const API_CONFIG = {
 };
 
 // UTILITY FUNCTIONS
-
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -75,7 +73,6 @@ function showError(message) {
 }
 
 // LYRICS FUNCTIONS
-
 async function fetchLyrics(songId) {
     console.log('🎵 Fetching lyrics for song:', songId);
     const data = await fetchAPI('/song/lyrics/', { id: songId });
@@ -90,15 +87,13 @@ async function fetchLyrics(songId) {
 }
 
 // NAVIGATION FUNCTIONS
-
 function navigateToArtist(artistId) {
     window.location.href = `details-artist.html?id=${artistId}`;
 }
 
 // RENDER FUNCTIONS
-
 function renderSongHeader(song) {
-    const imgUrl = song.song_art_image_url || song.header_image_url || 'assets/images/placeholder.png';
+    const imgUrl = song.song_art_image_url || song.header_image_url;
     const duration = song.duration || song.duration_ms ? formatDuration(song.duration || Math.floor(song.duration_ms / 1000)) : null;
     
     let statsHTML = '<div class="song-detail-stats">';
@@ -142,7 +137,7 @@ function renderSongHeader(song) {
     
     return `
         <div class="song-detail-header animate-slide-up">
-            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image" onerror="this.src='assets/images/placeholder.png'">
+            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image">
             <h2 class="song-detail-title">${song.full_title || song.title || 'Chưa rõ tên'}</h2>
             <p class="song-detail-artist" onclick="navigateToArtist(${song.primary_artist?.id})" style="cursor: pointer;">
                 <i class="fas fa-user"></i> ${song.primary_artist?.name || 'Nghệ sĩ chưa rõ'}
@@ -153,7 +148,6 @@ function renderSongHeader(song) {
 }
 
 function renderLyrics(lyricsData) {
-    // fetchLyrics trả về data.lyrics, nên cấu trúc là lyricsData.body (không phải lyricsData.lyrics.body)
     const lyricsBody = lyricsData?.body || lyricsData?.lyrics?.body || null;
     if (!lyricsData || !lyricsBody) {
         return '';
@@ -265,7 +259,6 @@ function renderCredits(song) {
 }
 
 // MAIN LOAD FUNCTION
-
 async function loadSongDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');
@@ -318,12 +311,9 @@ async function loadSongDetails() {
 }
 
 // INITIALIZATION
-
 document.addEventListener('DOMContentLoaded', loadSongDetails);
 
-// ========================================
-// MOBILE NAVBAR — tự đóng sau khi click
-// ========================================
+// MOBILE NAVBAR
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
         link.addEventListener("click", () => {
