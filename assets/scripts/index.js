@@ -1,5 +1,4 @@
 // API CONFIGURATION
-
 const API_CONFIG = {
     host: 'genius-song-lyrics1.p.rapidapi.com',
     key: '753fcf1226mshb230d54dc0cadb6p11f1e9jsn4c1781788720',
@@ -7,12 +6,10 @@ const API_CONFIG = {
 };
 
 // STATE MANAGEMENT
-
 let currentSearchMode = 'song';
 let searchDebounceTimer = null;
 
 // UTILITY FUNCTIONS
-
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -42,7 +39,6 @@ function formatNumber(num) {
 }
 
 // MODE SWITCHING
-
 window.setSearchMode = function(mode) {
     currentSearchMode = mode;
     
@@ -60,9 +56,7 @@ window.setSearchMode = function(mode) {
 };
 
 // SEARCH LOGIC
-
 window.performSearch = async function() {
-    // Debounce: huỷ lần gọi cũ nếu spam submit
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(async () => {
     const query = document.getElementById('searchInput').value.trim();
@@ -87,11 +81,10 @@ window.performSearch = async function() {
             container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
         }
     }
-    }, 400); // 400ms debounce
+    }, 400);
 };
 
 // DISPLAY FUNCTIONS
-
 function createChartItem(type, id, title, subtitle, img, stats = {}) {
     const navFunc = type === 'song' ? 'navigateToSong' : (type === 'artist' ? 'navigateToArtist' : 'navigateToAlbum');
     const imgClass = type === 'artist' ? 'chart-image artist' : 'chart-image';
@@ -188,18 +181,15 @@ function displayMultiResults(sections, container) {
 }
 
 // TAB SWITCHING
-
 window.switchResultTab = function(type) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`[data-tab-id="${type}"]`)?.classList.add('active');
-    
     document.querySelectorAll('.tab-content-item').forEach(c => c.style.display = 'none');
     const target = document.querySelector(`[data-tab-content="${type}"]`);
     if (target) target.style.display = 'block';
 };
 
 // NAVIGATION FUNCTIONS
-
 window.navigateToSong = (id) => { 
     window.location.href = `details-song.html?id=${id}`; 
 };
@@ -211,9 +201,8 @@ window.navigateToArtist = (id) => {
 window.navigateToAlbum = (id) => { 
     window.location.href = `details-album.html?id=${id}`; 
 };
-// ========================================
-// MOBILE NAVBAR — tự đóng sau khi click
-// ========================================
+
+// MOBILE NAVBAR
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
         link.addEventListener('click', () => {
