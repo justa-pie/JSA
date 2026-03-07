@@ -76,7 +76,6 @@ function navigateToAlbum(albumId) {
 
 // TAB SWITCHING
 function switchArtistTab(tab) {
-    // Update button states dựa vào tham số tab, không dùng event.target
     document.querySelectorAll('.artist-tabs button').forEach(btn => {
         btn.classList.remove('active');
         if (btn.getAttribute('onclick')?.includes(`'${tab}'`)) {
@@ -97,13 +96,13 @@ function switchArtistTab(tab) {
 
 // RENDER FUNCTIONS
 function renderArtistHeader(artist) {
-    const bannerImg = artist.header_image_url || 'assets/images/placeholder.png';
-    const avatarImg = artist.image_url || 'assets/images/placeholder.png';
+    const bannerImg = artist.header_image_url;
+    const avatarImg = artist.image_url;
     
     return `
         <div class="artist-detail-header animate-slide-up">
-            <img src="${bannerImg}" alt="${artist.name}" class="artist-banner" onerror="this.src='assets/images/placeholder.png'">
-            <img src="${avatarImg}" alt="${artist.name}" class="artist-avatar" onerror="this.src='assets/images/placeholder.png'">
+            <img src="${bannerImg}" alt="${artist.name}" class="artist-banner">
+            <img src="${avatarImg}" alt="${artist.name}" class="artist-avatar">
             <h2 class="artist-name">${artist.name || 'Nghệ sĩ chưa rõ'}</h2>
             
             <div class="social-links">
@@ -157,7 +156,7 @@ function renderSongsList(songs) {
     let html = '<div class="chart-list">';
     
     songs.forEach((song, index) => {
-        const songImg = song.song_art_image_thumbnail_url || song.song_art_image_url || 'assets/images/placeholder.png';
+        const songImg = song.song_art_image_thumbnail_url || song.song_art_image_url;
         const position = index + 1;
         let positionClass = '';
         
@@ -168,7 +167,7 @@ function renderSongsList(songs) {
         html += `
             <div class="chart-item" onclick="navigateToSong(${song.id})">
                 <div class="chart-position ${positionClass}">${position}</div>
-                <img src="${songImg}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
+                <img src="${songImg}" class="chart-image">
                 <div class="chart-info">
                     <div class="chart-title">${song.title || 'Chưa rõ tên'}</div>
                     <div class="chart-subtitle">${song.artist_names || ''}</div>
@@ -200,7 +199,7 @@ function renderAlbumsList(albums) {
         html += `
             <div class="chart-item" onclick="navigateToAlbum(${album.id})">
                 <div class="chart-position" style="min-width: 40px; font-size: 1.2rem;">${position}</div>
-                <img src="${albumImg}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
+                <img src="${albumImg}" class="chart-image">
                 <div class="chart-info">
                     <div class="chart-title">${album.name || 'Chưa rõ tên'}</div>
                     <div class="chart-subtitle">${album.release_date_components?.year || ''}</div>
@@ -286,9 +285,7 @@ async function loadArtistDetails() {
 // INITIALIZATION
 document.addEventListener('DOMContentLoaded', loadArtistDetails);
 
-// ========================================
-// MOBILE NAVBAR — tự đóng sau khi click
-// ========================================
+// MOBILE NAVBAR
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
         link.addEventListener("click", () => {
