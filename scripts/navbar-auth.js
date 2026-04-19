@@ -1,7 +1,7 @@
 // =============================================
-// navbar-auth.js — Lyrix (Firebase v12 Modular)
-// Nhúng vào TẤT CẢ các trang — cuối <body>
-// KHÔNG dùng type="module" trong HTML nữa
+// navbar-auth.js — Lyrix
+// Dùng Firebase Compat SDK 9.22.2
+// (load qua thẻ <script> trong HTML)
 // =============================================
 
 (function () {
@@ -19,43 +19,9 @@
         appId:             "1:586165994873:web:7a48b5181409abfe459ba8"
     };
 
-    // ==========================================
-    // LOAD FIREBASE v12 MODULAR qua ESM CDN
-    // ==========================================
-    const MOD_URL = 'https://www.gstatic.com/firebasejs/12.0.0';
-
-    let _auth = null;   // firebase auth instance
-    let _GoogleProvider = null;
-
-    async function loadFirebase() {
-        const { initializeApp, getApps } = await import(`${MOD_URL}/firebase-app.js`);
-        const {
-            getAuth,
-            onAuthStateChanged,
-            signInWithEmailAndPassword,
-            createUserWithEmailAndPassword,
-            signInWithPopup,
-            GoogleAuthProvider,
-            signOut
-        } = await import(`${MOD_URL}/firebase-auth.js`);
-
-        // Tránh init nhiều lần nếu đã có app
-        const app = getApps().length ? getApps()[0] : initializeApp(FB_CFG);
-        _auth = getAuth(app);
-        _GoogleProvider = new GoogleAuthProvider();
-
-        // Expose các hàm auth cần dùng vào closure
-        window._lxFB = {
-            signInWithEmailAndPassword: (e, p) => signInWithEmailAndPassword(_auth, e, p),
-            createUserWithEmailAndPassword: (e, p) => createUserWithEmailAndPassword(_auth, e, p),
-            signInWithPopup: () => signInWithPopup(_auth, _GoogleProvider),
-            signOut: () => signOut(_auth),
-            onAuthStateChanged: (cb) => onAuthStateChanged(_auth, cb)
-        };
-
-        // Bắt đầu lắng nghe auth state
-        onAuthStateChanged(_auth, (user) => lxUpdateNav(user));
-    }
+    // Tránh init nhiều lần
+    if (!firebase.apps.length) firebase.initializeApp(FB_CFG);
+    const _auth = firebase.auth();
 
     // =============================================
     // STYLES
@@ -233,7 +199,7 @@
               <div class="lx-spin"></div><span class="lx-bt"><i class="fas fa-sign-in-alt"></i> Đăng nhập</span>
             </button>
             <div class="lx-div">hoặc</div>
-            <button class="lx-btn lx-btn-google" id="lxBG1" onclick="lxGoogle()">
+            <button class="lx-btn lx-btn-google" onclick="lxGoogle()">
               <div class="lx-spin"></div><span class="lx-bt"><img src="https://www.google.com/favicon.ico" alt="G"> Tiếp tục với Google</span>
             </button>
           </div>
@@ -276,7 +242,7 @@
               <div class="lx-spin"></div><span class="lx-bt"><i class="fas fa-user-plus"></i> Đăng ký</span>
             </button>
             <div class="lx-div">hoặc</div>
-            <button class="lx-btn lx-btn-google" id="lxBG2" onclick="lxGoogle()">
+            <button class="lx-btn lx-btn-google" onclick="lxGoogle()">
               <div class="lx-spin"></div><span class="lx-bt"><img src="https://www.google.com/favicon.ico" alt="G"> Tiếp tục với Google</span>
             </button>
           </div>
@@ -339,7 +305,7 @@
     window.lxEye = (id, btn) => {
         const inp = g(id), ico = btn.querySelector('i');
         inp.type = inp.type === 'password' ? 'text' : 'password';
-        ico.classList.toggle('fa-eye',      inp.type === 'password');
+        ico.classList.toggle('fa-eye',       inp.type === 'password');
         ico.classList.toggle('fa-eye-slash', inp.type === 'text');
     };
 
@@ -371,10 +337,10 @@
     function lxValEmail(e) { return e.includes('@') && e.includes('.'); }
     function lxValPw(pw) {
         const f = [];
-        if (pw.length < 6)        f.push('ít nhất 6 ký tự');
-        if (!/[A-Z]/.test(pw))   f.push('1 chữ HOA');
-        if (!/[a-z]/.test(pw))   f.push('1 chữ thường');
-        if (!/[0-9]/.test(pw))   f.push('1 chữ số');
+        if (pw.length < 6)       f.push('ít nhất 6 ký tự');
+        if (!/[A-Z]/.test(pw))  f.push('1 chữ HOA');
+        if (!/[a-z]/.test(pw))  f.push('1 chữ thường');
+        if (!/[0-9]/.test(pw))  f.push('1 chữ số');
         return { valid: f.length === 0, failed: f };
     }
 
@@ -390,57 +356,54 @@
         if (/[0-9]/.test(pw))        sc++;
         if (/[^A-Za-z0-9]/.test(pw)) sc++;
         const ls = [
-            { p: '16%',  c: '#f87171', t: '🔴 Rất yếu' },
-            { p: '32%',  c: '#fb923c', t: '🟠 Yếu' },
-            { p: '50%',  c: '#fbbf24', t: '🟡 Trung bình' },
-            { p: '66%',  c: '#a3e635', t: '🟢 Khá mạnh' },
-            { p: '82%',  c: '#34d399', t: '💪 Mạnh' },
-            { p: '100%', c: '#a78bfa', t: '🔥 Rất mạnh' },
+            { p:'16%',  c:'#f87171', t:'🔴 Rất yếu' },
+            { p:'32%',  c:'#fb923c', t:'🟠 Yếu' },
+            { p:'50%',  c:'#fbbf24', t:'🟡 Trung bình' },
+            { p:'66%',  c:'#a3e635', t:'🟢 Khá mạnh' },
+            { p:'82%',  c:'#34d399', t:'💪 Mạnh' },
+            { p:'100%', c:'#a78bfa', t:'🔥 Rất mạnh' },
         ];
         const l = ls[Math.min(sc, 5)];
         fill.style.width = l.p; fill.style.background = l.c; lbl.textContent = l.t;
     };
 
-    // =============================================
-    // FIREBASE ERROR MESSAGES
-    // =============================================
     function lxErrMsg(code) {
         const m = {
-            'auth/email-already-in-use':   'Email này đã được đăng ký rồi.',
-            'auth/invalid-email':          'Địa chỉ email không hợp lệ.',
-            'auth/weak-password':          'Mật khẩu quá yếu (Firebase yêu cầu ít nhất 6 ký tự).',
-            'auth/user-not-found':         'Không tìm thấy tài khoản với email này.',
-            'auth/wrong-password':         'Mật khẩu không đúng.',
-            'auth/invalid-credential':     'Email hoặc mật khẩu không đúng.',
-            'auth/too-many-requests':      'Quá nhiều lần thử. Đợi vài phút rồi thử lại.',
-            'auth/network-request-failed': 'Lỗi mạng. Kiểm tra kết nối internet.',
-            'auth/popup-closed-by-user':   '',
-            'auth/cancelled-popup-request':'',
-            'auth/popup-blocked':          'Popup bị chặn. Hãy cho phép popup từ trang này.',
-            'auth/operation-not-allowed':  'Phương thức đăng nhập này chưa được bật trong Firebase Console.',
+            'auth/email-already-in-use':    'Email này đã được đăng ký rồi.',
+            'auth/invalid-email':           'Địa chỉ email không hợp lệ.',
+            'auth/weak-password':           'Mật khẩu quá yếu.',
+            'auth/user-not-found':          'Không tìm thấy tài khoản với email này.',
+            'auth/wrong-password':          'Mật khẩu không đúng.',
+            'auth/invalid-credential':      'Email hoặc mật khẩu không đúng.',
+            'auth/too-many-requests':       'Quá nhiều lần thử. Đợi vài phút rồi thử lại.',
+            'auth/network-request-failed':  'Lỗi mạng. Kiểm tra kết nối internet.',
+            'auth/popup-closed-by-user':    '',
+            'auth/cancelled-popup-request': '',
+            'auth/popup-blocked':           'Popup bị chặn. Hãy cho phép popup từ trang này.',
+            'auth/operation-not-allowed':   'Phương thức này chưa được bật trong Firebase Console.',
+            'auth/unauthorized-domain':     'Domain chưa được xác thực. Vào Firebase Console → Authentication → Settings → Authorized domains để thêm domain.',
         };
-        return m[code] ?? `Lỗi Firebase: ${code}`;
+        return m[code] ?? `Lỗi: ${code}`;
     }
 
     // =============================================
     // LOGIN
     // =============================================
     window.lxLogin = async () => {
-        if (!window._lxFB) { lxShowMsg('error', 'Firebase chưa sẵn sàng, thử lại!'); return; }
         lxHideMsg();
         const email = g('lxLE').value.trim(), pw = g('lxLP').value;
         let err = false;
-        if (!email)              { lxSE('lxLE', 'lxLEE', 'Vui lòng nhập email.'); err = true; }
-        else if (!lxValEmail(email)) { lxSE('lxLE', 'lxLEE', "Email phải chứa ký tự '@'."); err = true; }
-        if (!pw)                 { lxSE('lxLP', 'lxLPE', 'Vui lòng nhập mật khẩu.'); err = true; }
+        if (!email)               { lxSE('lxLE','lxLEE','Vui lòng nhập email.'); err = true; }
+        else if (!lxValEmail(email)) { lxSE('lxLE','lxLEE',"Email phải chứa ký tự '@'."); err = true; }
+        if (!pw)                  { lxSE('lxLP','lxLPE','Vui lòng nhập mật khẩu.'); err = true; }
         if (err) return;
         lxLoad('lxBL', true);
         try {
-            await _lxFB.signInWithEmailAndPassword(email, pw);
+            await _auth.signInWithEmailAndPassword(email, pw);
             lxShowMsg('success', '✅ Đăng nhập thành công!');
             setTimeout(lxClose, 1200);
         } catch (e) {
-            console.error('Login error:', e.code, e.message);
+            console.error('Login:', e.code, e.message);
             const msg = lxErrMsg(e.code);
             if (msg) lxShowMsg('error', msg);
             lxLoad('lxBL', false);
@@ -451,26 +414,25 @@
     // SIGNUP
     // =============================================
     window.lxSignup = async () => {
-        if (!window._lxFB) { lxShowMsg('error', 'Firebase chưa sẵn sàng, thử lại!'); return; }
         lxHideMsg();
         const email = g('lxSE').value.trim(), pw = g('lxSP').value, cf = g('lxSC').value;
         let err = false;
-        if (!email)               { lxSE('lxSE', 'lxSEE', 'Vui lòng nhập email.'); err = true; }
-        else if (!lxValEmail(email)) { lxSE('lxSE', 'lxSEE', "Email phải chứa ký tự '@'."); err = true; }
-        if (!pw)                  { lxSE('lxSP', 'lxSPE', 'Vui lòng nhập mật khẩu.'); err = true; }
+        if (!email)               { lxSE('lxSE','lxSEE','Vui lòng nhập email.'); err = true; }
+        else if (!lxValEmail(email)) { lxSE('lxSE','lxSEE',"Email phải chứa ký tự '@'."); err = true; }
+        if (!pw)                  { lxSE('lxSP','lxSPE','Vui lòng nhập mật khẩu.'); err = true; }
         else {
             const { valid, failed } = lxValPw(pw);
-            if (!valid) { lxSE('lxSP', 'lxSPE', `Cần có: ${failed.join(', ')}.`); err = true; }
+            if (!valid) { lxSE('lxSP','lxSPE',`Cần có: ${failed.join(', ')}.`); err = true; }
         }
-        if (pw && cf !== pw)      { lxSE('lxSC', 'lxSCE', 'Mật khẩu xác nhận không khớp.'); err = true; }
+        if (pw && cf !== pw)      { lxSE('lxSC','lxSCE','Mật khẩu xác nhận không khớp.'); err = true; }
         if (err) return;
         lxLoad('lxBS', true);
         try {
-            await _lxFB.createUserWithEmailAndPassword(email, pw);
+            await _auth.createUserWithEmailAndPassword(email, pw);
             lxShowMsg('success', '🎉 Đăng ký thành công! Chào mừng bạn!');
             setTimeout(lxClose, 1200);
         } catch (e) {
-            console.error('Signup error:', e.code, e.message);
+            console.error('Signup:', e.code, e.message);
             const msg = lxErrMsg(e.code);
             if (msg) lxShowMsg('error', msg);
             lxLoad('lxBS', false);
@@ -481,14 +443,14 @@
     // GOOGLE LOGIN
     // =============================================
     window.lxGoogle = async () => {
-        if (!window._lxFB) { lxShowMsg('error', 'Firebase chưa sẵn sàng, thử lại!'); return; }
         lxHideMsg();
+        const provider = new firebase.auth.GoogleAuthProvider();
         try {
-            await _lxFB.signInWithPopup();
+            await _auth.signInWithPopup(provider);
             lxShowMsg('success', '✅ Đăng nhập Google thành công!');
             setTimeout(lxClose, 1200);
         } catch (e) {
-            console.error('Google error:', e.code, e.message);
+            console.error('Google:', e.code, e.message);
             const msg = lxErrMsg(e.code);
             if (msg) lxShowMsg('error', msg);
         }
@@ -497,9 +459,7 @@
     // =============================================
     // LOGOUT
     // =============================================
-    window.lxLogout = async () => {
-        if (window._lxFB) await _lxFB.signOut();
-    };
+    window.lxLogout = () => _auth.signOut();
 
     // =============================================
     // BOOT
@@ -513,7 +473,7 @@
         lxInjectNavButton();
     }
 
-    // Load Firebase async — không block render
-    loadFirebase().catch(e => console.error('Firebase load error:', e));
+    // Lắng nghe auth state
+    _auth.onAuthStateChanged((user) => lxUpdateNav(user));
 
 })();
