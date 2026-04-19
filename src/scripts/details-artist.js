@@ -67,11 +67,11 @@ function showError(message) {
 
 // NAVIGATION FUNCTIONS
 function navigateToSong(songId) {
-    window.location.href = `details-song.html?id=${songId}`;
+    window.location.href = `../pages/details-song.html?id=${songId}`;
 }
 
 function navigateToAlbum(albumId) {
-    window.location.href = `details-album.html?id=${albumId}`;
+    window.location.href = `../pages/details-album.html?id=${albumId}`;
 }
 
 // TAB SWITCHING

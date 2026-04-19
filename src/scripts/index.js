@@ -191,15 +191,15 @@ window.switchResultTab = function(type) {
 
 // NAVIGATION FUNCTIONS
 window.navigateToSong = (id) => { 
-    window.location.href = `details-song.html?id=${id}`; 
+    window.location.href = `../pages/details-song.html?id=${id}`; 
 };
 
 window.navigateToArtist = (id) => { 
-    window.location.href = `details-artist.html?id=${id}`; 
+    window.location.href = `../pages/details-artist.html?id=${id}`; 
 };
 
 window.navigateToAlbum = (id) => { 
-    window.location.href = `details-album.html?id=${id}`; 
+    window.location.href = `../pages/details-album.html?id=${id}`; 
 };
 
 // MOBILE NAVBAR

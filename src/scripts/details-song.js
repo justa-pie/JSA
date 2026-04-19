@@ -88,7 +88,7 @@ async function fetchLyrics(songId) {
 
 // NAVIGATION FUNCTIONS
 function navigateToArtist(artistId) {
-    window.location.href = `details-artist.html?id=${artistId}`;
+    window.location.href = `../pages/details-artist.html?id=${artistId}`;
 }
 
 // RENDER FUNCTIONS

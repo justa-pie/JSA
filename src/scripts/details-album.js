@@ -62,11 +62,11 @@ function showError(message) {
 
 // NAVIGATION FUNCTIONS
 function navigateToSong(songId) {
-    window.location.href = `details-song.html?id=${songId}`;
+    window.location.href = `../pages/details-song.html?id=${songId}`;
 }
 
 function navigateToArtist(artistId) {
-    window.location.href = `details-artist.html?id=${artistId}`;
+    window.location.href = `../pages/details-artist.html?id=${artistId}`;
 }
 
 // RENDER FUNCTIONS
