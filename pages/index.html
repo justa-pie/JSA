@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <style>html,body{background-color:#0d0b14 !important;}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrix - Discover Your Music</title>
+    <link rel="shortcut icon" type="image/x-icon" href="assets/images/pngtree-song-lyrics-icon-3d-png-image_16634818-2.webp">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/styles/style.css">
+
+    <style>
+    /* ============================================================
+       SEARCH BAR — "Poda" style, Lyrix-branded
+       ============================================================ */
+    #search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 64px;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Layered glow / border pseudo-elements */
+    .sb-glow,
+    .sb-dark,
+    .sb-white,
+    .sb-border {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .sb-glow {
+        filter: blur(28px);
+        opacity: 0.35;
+        background: transparent;
+        overflow: hidden;
+    }
+    .sb-glow::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%) rotate(60deg);
+        width: 800px; height: 800px;
+        background: conic-gradient(
+            #0d0b14,
+            #5b34d4 5%,
+            #0d0b14 38%,
+            #0d0b14 50%,
+            #9d5cff 60%,
+            #0d0b14 87%
+        );
+        transition: transform 2s;
+    }
+
+    .sb-dark {
+        filter: blur(0px);
+        overflow: hidden;
+    }
+    .sb-dark::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%) rotate(82deg);
+        width: 800px; height: 800px;
+        background: conic-gradient(
+            rgba(0,0,0,0),
+            #18116a,
+            rgba(0,0,0,0) 10%,
+            rgba(0,0,0,0) 50%,
+            #6e1b60,
+            rgba(0,0,0,0) 60%
+        );
+        transition: transform 2s;
+    }
+
+    .sb-white {
+        inset: 3px;
+        filter: blur(2px);
+        overflow: hidden;
+        border-radius: 12px;
+    }
+    .sb-white::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%) rotate(83deg);
+        width: 800px; height: 800px;
+        background: conic-gradient(
+            rgba(0,0,0,0) 0%,
+            #baa8fb,
+            rgba(0,0,0,0) 8%,
+            rgba(0,0,0,0) 50%,
+            #c484f5,
+            rgba(0,0,0,0) 58%
+        );
+        filter: brightness(1.3);
+        transition: transform 2s;
+    }
+
+    .sb-border {
+        inset: 2px;
+        filter: blur(0.5px);
+        overflow: hidden;
+        border-radius: 13px;
+    }
+    .sb-border::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%) rotate(70deg);
+        width: 800px; height: 800px;
+        background: conic-gradient(
+            #0d0b14,
+            #5b34d4 5%,
+            #0d0b14 14%,
+            #0d0b14 50%,
+            #9d5cff 60%,
+            #0d0b14 64%
+        );
+        filter: brightness(1.2);
+        transition: transform 2s;
+    }
+
+    /* Hover: rotate conic */
+    #search-wrapper:hover .sb-dark::before  { transform: translate(-50%,-50%) rotate(-98deg); }
+    #search-wrapper:hover .sb-glow::before  { transform: translate(-50%,-50%) rotate(-120deg); }
+    #search-wrapper:hover .sb-white::before { transform: translate(-50%,-50%) rotate(-97deg); }
+    #search-wrapper:hover .sb-border::before{ transform: translate(-50%,-50%) rotate(-110deg); }
+
+    /* Focus: full spin */
+    #search-wrapper:focus-within .sb-dark::before  { transform: translate(-50%,-50%) rotate(442deg); transition: transform 4s; }
+    #search-wrapper:focus-within .sb-glow::before  { transform: translate(-50%,-50%) rotate(420deg); transition: transform 4s; }
+    #search-wrapper:focus-within .sb-white::before { transform: translate(-50%,-50%) rotate(443deg); transition: transform 4s; }
+    #search-wrapper:focus-within .sb-border::before{ transform: translate(-50%,-50%) rotate(430deg); transition: transform 4s; }
+
+    /* Actual input */
+    #searchInput {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 56px;
+        background: rgba(10, 8, 20, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: none;
+        border-radius: 12px;
+        color: #f0eeff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1rem;
+        padding: 0 110px 0 54px;
+        outline: none;
+        transition: background 0.2s;
+    }
+
+    #searchInput::placeholder { color: #7a728f; }
+    #searchInput:focus { background: rgba(14, 11, 28, 0.97); }
+
+    /* Search icon left */
+    #sb-search-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Pink accent mask (fades on hover/focus) */
+    #sb-pink-mask {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 28px;
+        height: 18px;
+        background: #7c5ce8;
+        filter: blur(18px);
+        opacity: 0.6;
+        z-index: 1;
+        pointer-events: none;
+        transition: opacity 2s;
+    }
+    #search-wrapper:hover #sb-pink-mask,
+    #search-wrapper:focus-within #sb-pink-mask { opacity: 0; }
+
+    /* ── FILTER BUTTON (phểu) ── */
+    #sb-filter-btn {
+        position: absolute;
+        right: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 4;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: linear-gradient(160deg, #1a1630, #0d0b20, #1c1a40);
+        border: 1px solid rgba(157,130,245,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: border-color .2s, background .2s, transform .2s;
+        overflow: hidden;
+    }
+
+    /* Spinning border ring behind filter btn */
+    #sb-filter-ring {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        overflow: hidden;
+        z-index: 3;
+        pointer-events: none;
+    }
+    #sb-filter-ring::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%) rotate(90deg);
+        width: 600px; height: 600px;
+        background: conic-gradient(
+            rgba(0,0,0,0),
+            #5b34d4,
+            rgba(0,0,0,0) 50%,
+            rgba(0,0,0,0) 50%,
+            #9d5cff,
+            rgba(0,0,0,0) 100%
+        );
+        animation: sbRotate 4s linear infinite;
+    }
+
+    #sb-filter-btn:hover {
+        border-color: rgba(157,130,245,0.5);
+        background: linear-gradient(160deg, #231e45, #161234, #2a264e);
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    #sb-filter-btn svg path { transition: stroke .2s; }
+    #sb-filter-btn:hover svg path { stroke: #baa8fb; }
+
+    /* Active state when dropdown open */
+    #sb-filter-btn.active {
+        border-color: rgba(157,130,245,0.6);
+        background: linear-gradient(160deg, #2e2560, #1a1545, #332870);
+        box-shadow: 0 0 20px rgba(124,92,232,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    @keyframes sbRotate {
+        100% { transform: translate(-50%,-50%) rotate(450deg); }
+    }
+
+    /* ── FILTER DROPDOWN ── */
+    #filter-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 280px;
+        background: rgba(14, 11, 26, 0.92);
+        backdrop-filter: blur(28px) saturate(180%);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
+        border: 1px solid rgba(157,130,245,0.2);
+        border-radius: 16px;
+        padding: 16px;
+        z-index: 100;
+        box-shadow:
+            0 20px 60px rgba(0,0,0,0.6),
+            0 0 0 1px rgba(157,130,245,0.06),
+            inset 0 1px 0 rgba(255,255,255,0.06);
+        display: none;
+        animation: dropIn .2s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    #filter-dropdown.open { display: block; }
+
+    @keyframes dropIn {
+        from { opacity: 0; transform: translateY(-8px) scale(.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .fd-label {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: #7a728f;
+        margin-bottom: 8px;
+        padding: 0 2px;
+    }
+
+    .fd-section { margin-bottom: 14px; }
+    .fd-section:last-child { margin-bottom: 0; }
+
+    .fd-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.05);
+        margin: 12px 0;
+    }
+
+    .fd-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Filter option pill */
+    .fd-pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(157,130,245,0.18);
+        background: rgba(255,255,255,0.03);
+        color: #b8b0d8;
+        font-size: .8rem;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all .18s;
+        user-select: none;
+    }
+
+    .fd-pill i { font-size: .75rem; opacity: .8; }
+
+    .fd-pill:hover {
+        background: rgba(124,92,232,0.14);
+        border-color: rgba(157,130,245,0.32);
+        color: #f0eeff;
+    }
+
+    .fd-pill.selected {
+        background: linear-gradient(135deg, rgba(91,52,212,0.6), rgba(124,92,232,0.5));
+        border-color: rgba(186,168,251,0.4);
+        color: #fff;
+        box-shadow: 0 2px 12px rgba(124,92,232,0.3), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    /* Sort select */
+    .fd-select {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(157,130,245,0.15);
+        border-radius: 10px;
+        color: #b8b0d8;
+        font-family: 'DM Sans', sans-serif;
+        font-size: .83rem;
+        outline: none;
+        cursor: pointer;
+        transition: border-color .2s;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a728f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px;
+    }
+
+    .fd-select:focus { border-color: rgba(157,130,245,0.35); }
+    .fd-select option { background: #110f1c; }
+
+    /* Apply button */
+    #fd-apply {
+        width: 100%;
+        margin-top: 14px;
+        padding: 9px;
+        background: linear-gradient(135deg, #5b34d4, #7c5ce8);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: .88rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s;
+        box-shadow: 0 4px 16px rgba(124,92,232,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
+        letter-spacing: .02em;
+    }
+
+    #fd-apply:hover {
+        background: linear-gradient(135deg, #7c5ce8, #9d82f5);
+        box-shadow: 0 6px 24px rgba(124,92,232,0.55);
+        transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       3D FEATURE CARDS — ultra-glass, near-transparent
+       ============================================================ */
+    #featureCards.hidden { display: none; }
+
+    .feature-cards-row {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-top: 72px;
+        padding-bottom: 80px;
+    }
+
+    .fc-parent {
+        width: 255px;
+        height: 290px;
+        perspective: 1200px;
+        cursor: pointer;
+        flex-shrink: 0;
+        animation: fadeUp .6s both;
+    }
+    .fc-parent:nth-child(1) { animation-delay: .15s; }
+    .fc-parent:nth-child(2) { animation-delay: .28s; }
+    .fc-parent:nth-child(3) { animation-delay: .41s; }
+
+    .fc-card {
+        height: 100%;
+        border-radius: 28px;
+        position: relative;
+        transition: transform .55s cubic-bezier(.22,.68,0,1.2), box-shadow .55s ease;
+        transform-style: preserve-3d;
+        overflow: hidden;
+
+        /* ULTRA GLASS — nearly transparent */
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    /* Per-card tint — very subtle, just a colour whisper */
+    .fc-card--songs {
+        border: 1px solid rgba(186,168,251,0.2);
+        box-shadow:
+            0 16px 48px rgba(91,52,212,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            inset 0 -1px 0 rgba(91,52,212,0.15);
+        background: linear-gradient(145deg, rgba(91,52,212,0.12) 0%, rgba(124,92,232,0.05) 100%);
+    }
+
+    .fc-card--artists {
+        border: 1px solid rgba(100,160,255,0.18);
+        box-shadow:
+            0 16px 48px rgba(30,58,95,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.09),
+            inset 0 -1px 0 rgba(30,58,95,0.2);
+        background: linear-gradient(145deg, rgba(30,80,160,0.12) 0%, rgba(59,125,216,0.05) 100%);
+    }
+
+    .fc-card--albums {
+        border: 1px solid rgba(210,130,255,0.18);
+        box-shadow:
+            0 16px 48px rgba(74,16,96,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.09),
+            inset 0 -1px 0 rgba(74,16,96,0.18);
+        background: linear-gradient(145deg, rgba(120,20,160,0.12) 0%, rgba(180,80,220,0.05) 100%);
+    }
+
+    /* Glass highlight overlay */
+    .fc-glass {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+            135deg,
+            rgba(255,255,255,0.1) 0%,
+            rgba(255,255,255,0.03) 35%,
+            transparent 65%
+        );
+        border-top: 1px solid rgba(255,255,255,0.18);
+        border-left: 1px solid rgba(255,255,255,0.12);
+        transform: translate3d(0,0,20px);
+        pointer-events: none;
+    }
+
+    /* Depth ring stack */
+    .fc-logo {
+        position: absolute;
+        right: 0; top: 0;
+        transform-style: preserve-3d;
+        pointer-events: none;
+    }
+
+    .fc-circle {
+        display: block;
+        position: absolute;
+        border-radius: 50%;
+        top: 0; right: 0;
+        transition: transform .55s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    /* Songs rings — violet haze */
+    .fc-card--songs .fc-c1 { background: rgba(186,168,251,0.08); }
+    .fc-card--songs .fc-c2 { background: rgba(186,168,251,0.07); backdrop-filter: blur(3px); }
+    .fc-card--songs .fc-c3 { background: rgba(186,168,251,0.09); }
+    .fc-card--songs .fc-c4 { background: rgba(186,168,251,0.11); }
+
+    /* Artists rings — blue haze */
+    .fc-card--artists .fc-c1 { background: rgba(100,180,255,0.07); }
+    .fc-card--artists .fc-c2 { background: rgba(100,180,255,0.06); backdrop-filter: blur(3px); }
+    .fc-card--artists .fc-c3 { background: rgba(100,180,255,0.08); }
+    .fc-card--artists .fc-c4 { background: rgba(100,180,255,0.10); }
+
+    /* Albums rings — pink haze */
+    .fc-card--albums .fc-c1 { background: rgba(210,130,255,0.07); }
+    .fc-card--albums .fc-c2 { background: rgba(210,130,255,0.06); backdrop-filter: blur(3px); }
+    .fc-card--albums .fc-c3 { background: rgba(210,130,255,0.08); }
+    .fc-card--albums .fc-c4 { background: rgba(210,130,255,0.10); }
+
+    .fc-c1 { width: 148px; aspect-ratio:1; transform: translate3d(0,0,14px); top: 4px;  right: 4px; }
+    .fc-c2 { width: 118px; aspect-ratio:1; transform: translate3d(0,0,28px); top: 8px;  right: 8px;  transition-delay: .07s; }
+    .fc-c3 { width: 90px;  aspect-ratio:1; transform: translate3d(0,0,42px); top: 13px; right: 13px; transition-delay: .14s; }
+    .fc-c4 { width: 65px;  aspect-ratio:1; transform: translate3d(0,0,56px); top: 19px; right: 19px; transition-delay: .21s; }
+
+    /* Icon orb — the purest glass element */
+    .fc-c5 {
+        width: 44px;
+        aspect-ratio: 1;
+        transform: translate3d(0,0,72px);
+        top: 26px; right: 26px;
+        display: grid;
+        place-content: center;
+        transition: transform .55s cubic-bezier(.22,.68,0,1.2);
+        transition-delay: .28s;
+        background: rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(16px) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(200%) !important;
+        border: 1px solid rgba(255,255,255,0.22) !important;
+        box-shadow:
+            0 4px 16px rgba(0,0,0,0.25),
+            inset 0 1px 0 rgba(255,255,255,0.35),
+            inset 0 -1px 0 rgba(0,0,0,0.15) !important;
+    }
+
+    .fc-c5 i {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.9);
+        filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+    }
+
+    /* Card body */
+    .fc-content {
+        position: relative;
+        z-index: 2;
+        padding: 102px 48px 0 22px;
+        transform: translate3d(0,0,22px);
+    }
+
+    /* Large icon watermark behind text — glass style */
+    .fc-watermark {
+        position: absolute;
+        bottom: 52px;
+        left: 20px;
+        font-size: 5rem;
+        opacity: 0.05;
+        transform: translate3d(0,0,10px);
+        color: #fff;
+        pointer-events: none;
+        line-height: 1;
+    }
+
+    .fc-title {
+        display: block;
+        color: rgba(255,255,255,0.92);
+        font-family: 'Black Ops One', cursive;
+        font-size: 1.12rem;
+        letter-spacing: .02em;
+        margin-bottom: 7px;
+        text-shadow: 0 1px 12px rgba(0,0,0,0.5);
+    }
+
+    .fc-text {
+        display: block;
+        color: rgba(255,255,255,0.52);
+        font-size: .78rem;
+        line-height: 1.5;
+    }
+
+    /* Bottom bar */
+    .fc-bottom {
+        position: absolute;
+        bottom: 14px;
+        left: 14px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transform: translate3d(0,0,22px);
+        transform-style: preserve-3d;
+        z-index: 2;
+    }
+
+    .fc-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    .fc-tag {
+        font-size: .66rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.07);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.12);
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: .04em;
+        transition: transform .2s, background .2s;
+    }
+
+    .fc-cta {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: .73rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        white-space: nowrap;
+        transition: all .2s;
+    }
+    .fc-cta svg {
+        width: 12px; height: 12px;
+        stroke: rgba(255,255,255,0.7);
+        transition: transform .2s;
+    }
+
+    /* Hover 3D tilt */
+    .fc-parent:hover .fc-card--songs {
+        transform: rotate3d(1,1,0,22deg);
+        box-shadow:
+            18px 28px 40px rgba(91,52,212,0.25),
+            0 0 60px rgba(124,92,232,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+    .fc-parent:hover .fc-card--artists {
+        transform: rotate3d(1,1,0,22deg);
+        box-shadow:
+            18px 28px 40px rgba(30,58,95,0.25),
+            0 0 60px rgba(59,125,216,0.08),
+            inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .fc-parent:hover .fc-card--albums {
+        transform: rotate3d(1,1,0,22deg);
+        box-shadow:
+            18px 28px 40px rgba(74,16,96,0.25),
+            0 0 60px rgba(180,80,220,0.08),
+            inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .fc-parent:hover .fc-c2 { transform: translate3d(0,0,50px); }
+    .fc-parent:hover .fc-c3 { transform: translate3d(0,0,68px); }
+    .fc-parent:hover .fc-c4 { transform: translate3d(0,0,86px); }
+    .fc-parent:hover .fc-c5 { transform: translate3d(0,0,106px); }
+    .fc-parent:hover .fc-cta svg { transform: translateX(3px); }
+    .fc-parent:hover .fc-tag { transform: translate3d(0,0,8px); background: rgba(255,255,255,0.12); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .feature-cards-row { gap: 16px; }
+        .fc-parent { width: 225px; height: 262px; }
+        .fc-content { padding: 88px 40px 0 18px; }
+    }
+    @media (max-width: 600px) {
+        .feature-cards-row { flex-direction: column; align-items: center; gap: 16px; margin-top: 44px; }
+        .fc-parent { width: 270px; height: 250px; }
+    }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="assets/images/pngtree-song-lyrics-icon-3d-png-image_16634818-2.webp" alt="Lyrix Logo" class="navbar-logo">
+                Lyrix
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pages/charts.html"><i class="fas fa-chart-line"></i> Charts</a>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="nav-link btn-back" href="javascript:history.back()">
+                            <i class="fas fa-chevron-left"></i> Back
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home" class="section active">
+        <div class="container">
+
+            <!-- Hero Headline -->
+            <div class="hero-headline">
+                <div class="hero-tag">
+                    <i class="fas fa-music"></i>
+                    Powered by Genius
+                </div>
+                <h1>
+                    Tìm lời bài hát
+                    <span class="accent">bất kỳ lúc nào</span>
+                </h1>
+                <p>Khám phá lyrics, nghệ sĩ và album từ kho nhạc khổng lồ. Tất cả miễn phí, không giới hạn.</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form onsubmit="event.preventDefault(); performSearch();">
+                    <div id="search-wrapper">
+                        <!-- Layered glow elements -->
+                        <div class="sb-glow"></div>
+                        <div class="sb-dark"></div>
+                        <div class="sb-white"></div>
+                        <div class="sb-border"></div>
+
+                        <!-- Pink accent -->
+                        <div id="sb-pink-mask"></div>
+
+                        <!-- Search icon -->
+                        <div id="sb-search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none">
+                                <circle stroke="url(#sg1)" r="8" cy="11" cx="11"/>
+                                <line stroke="url(#sg2)" y2="16.65" y1="22" x2="16.65" x1="22"/>
+                                <defs>
+                                    <linearGradient gradientTransform="rotate(50)" id="sg1">
+                                        <stop stop-color="#baa8fb" offset="0%"/>
+                                        <stop stop-color="#7a728f" offset="50%"/>
+                                    </linearGradient>
+                                    <linearGradient id="sg2">
+                                        <stop stop-color="#7a728f" offset="0%"/>
+                                        <stop stop-color="#4a4560" offset="50%"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <!-- Input -->
+                        <input type="text" id="searchInput" placeholder="Tìm bài hát, nghệ sĩ, album..." autocomplete="off">
+
+                        <!-- Filter ring -->
+                        <div id="sb-filter-ring"></div>
+
+                        <!-- Filter button (phểu) -->
+                        <button type="button" id="sb-filter-btn" onclick="toggleFilterDropdown()" title="Bộ lọc tìm kiếm">
+                            <svg preserveAspectRatio="none" height="22" width="22" viewBox="4.8 4.56 14.832 15.408" fill="none">
+                                <path d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z"
+                                    stroke="#9d82f5" stroke-width="1.2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <!-- Filter dropdown -->
+                        <div id="filter-dropdown">
+                            <!-- Search type -->
+                            <div class="fd-section">
+                                <div class="fd-label">Tìm kiếm theo</div>
+                                <div class="fd-options" id="fd-type-options">
+                                    <span class="fd-pill selected" data-type="all" onclick="selectFilterType(this)">
+                                        <i class="fas fa-layer-group"></i> Tất cả
+                                    </span>
+                                    <span class="fd-pill" data-type="song" onclick="selectFilterType(this)">
+                                        <i class="fas fa-music"></i> Bài hát
+                                    </span>
+                                    <span class="fd-pill" data-type="artist" onclick="selectFilterType(this)">
+                                        <i class="fas fa-microphone"></i> Nghệ sĩ
+                                    </span>
+                                    <span class="fd-pill" data-type="album" onclick="selectFilterType(this)">
+                                        <i class="fas fa-compact-disc"></i> Album
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="fd-divider"></div>
+
+                            <!-- Sort by -->
+                            <div class="fd-section">
+                                <div class="fd-label">Sắp xếp</div>
+                                <select class="fd-select" id="fd-sort">
+                                    <option value="relevance">Liên quan nhất</option>
+                                    <option value="popularity">Phổ biến nhất</option>
+                                    <option value="hot">Đang hot 🔥</option>
+                                </select>
+                            </div>
+
+                            <div class="fd-divider"></div>
+
+                            <!-- Language filter -->
+                            <div class="fd-section">
+                                <div class="fd-label">Ngôn ngữ ưu tiên</div>
+                                <div class="fd-options" id="fd-lang-options">
+                                    <span class="fd-pill selected" data-lang="all" onclick="selectFilterLang(this)">
+                                        🌐 Tất cả
+                                    </span>
+                                    <span class="fd-pill" data-lang="vi" onclick="selectFilterLang(this)">
+                                        🇻🇳 Tiếng Việt
+                                    </span>
+                                    <span class="fd-pill" data-lang="en" onclick="selectFilterLang(this)">
+                                        🇺🇸 English
+                                    </span>
+                                    <span class="fd-pill" data-lang="kr" onclick="selectFilterLang(this)">
+                                        🇰🇷 Korean
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button id="fd-apply" onclick="applyFilterAndSearch()">
+                                <i class="fas fa-search"></i> Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="searchResults"></div>
+            </div>
+
+            <!-- 3D Glass Feature Cards -->
+            <div class="feature-cards-row" id="featureCards">
+
+                <!-- Top Songs -->
+                <div class="fc-parent" onclick="window.location.href='pages/charts.html'">
+                    <div class="fc-card fc-card--songs">
+                        <div class="fc-logo">
+                            <span class="fc-circle fc-c1"></span>
+                            <span class="fc-circle fc-c2"></span>
+                            <span class="fc-circle fc-c3"></span>
+                            <span class="fc-circle fc-c4"></span>
+                            <span class="fc-circle fc-c5"><i class="fas fa-music"></i></span>
+                        </div>
+                        <div class="fc-glass"></div>
+                        <i class="fas fa-music fc-watermark"></i>
+                        <div class="fc-content">
+                            <span class="fc-title">Top Songs</span>
+                            <span class="fc-text">Bảng xếp hạng bài hát hot nhất hôm nay</span>
+                        </div>
+                        <div class="fc-bottom">
+                            <div class="fc-tags">
+                                <span class="fc-tag">#Hot</span>
+                                <span class="fc-tag">#Trending</span>
+                            </div>
+                            <div class="fc-cta">Xem ngay
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Artists -->
+                <div class="fc-parent" onclick="window.location.href='pages/charts.html'">
+                    <div class="fc-card fc-card--artists">
+                        <div class="fc-logo">
+                            <span class="fc-circle fc-c1"></span>
+                            <span class="fc-circle fc-c2"></span>
+                            <span class="fc-circle fc-c3"></span>
+                            <span class="fc-circle fc-c4"></span>
+                            <span class="fc-circle fc-c5"><i class="fas fa-microphone"></i></span>
+                        </div>
+                        <div class="fc-glass"></div>
+                        <i class="fas fa-microphone fc-watermark"></i>
+                        <div class="fc-content">
+                            <span class="fc-title">Top Artists</span>
+                            <span class="fc-text">Nghệ sĩ được nghe nhiều nhất tuần này</span>
+                        </div>
+                        <div class="fc-bottom">
+                            <div class="fc-tags">
+                                <span class="fc-tag">#Artists</span>
+                                <span class="fc-tag">#Popular</span>
+                            </div>
+                            <div class="fc-cta">Xem ngay
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Albums -->
+                <div class="fc-parent" onclick="window.location.href='pages/charts.html'">
+                    <div class="fc-card fc-card--albums">
+                        <div class="fc-logo">
+                            <span class="fc-circle fc-c1"></span>
+                            <span class="fc-circle fc-c2"></span>
+                            <span class="fc-circle fc-c3"></span>
+                            <span class="fc-circle fc-c4"></span>
+                            <span class="fc-circle fc-c5"><i class="fas fa-compact-disc"></i></span>
+                        </div>
+                        <div class="fc-glass"></div>
+                        <i class="fas fa-compact-disc fc-watermark"></i>
+                        <div class="fc-content">
+                            <span class="fc-title">Top Albums</span>
+                            <span class="fc-text">Album được yêu thích nhất mọi thời đại</span>
+                        </div>
+                        <div class="fc-bottom">
+                            <div class="fc-tags">
+                                <span class="fc-tag">#Albums</span>
+                                <span class="fc-tag">#Classic</span>
+                            </div>
+                            <div class="fc-cta">Xem ngay
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="assets/js/index.js"></script>
+
+    <script>
+        /* ── Filter dropdown toggle ── */
+        function toggleFilterDropdown() {
+            const dd = document.getElementById('filter-dropdown');
+            const btn = document.getElementById('sb-filter-btn');
+            const isOpen = dd.classList.contains('open');
+            dd.classList.toggle('open', !isOpen);
+            btn.classList.toggle('active', !isOpen);
+        }
+
+        /* ── Close dropdown when clicking outside ── */
+        document.addEventListener('click', function(e) {
+            const dd = document.getElementById('filter-dropdown');
+            const btn = document.getElementById('sb-filter-btn');
+            if (!dd.contains(e.target) && !btn.contains(e.target)) {
+                dd.classList.remove('open');
+                btn.classList.remove('active');
+            }
+        });
+
+        /* ── Type pill selection ── */
+        window.selectFilterType = function(el) {
+            document.querySelectorAll('#fd-type-options .fd-pill').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+        };
+
+        /* ── Lang pill selection ── */
+        window.selectFilterLang = function(el) {
+            document.querySelectorAll('#fd-lang-options .fd-pill').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+        };
+
+        /* ── Apply filter + trigger search ── */
+        window.applyFilterAndSearch = function() {
+            document.getElementById('filter-dropdown').classList.remove('open');
+            document.getElementById('sb-filter-btn').classList.remove('active');
+            performSearch();
+        };
+
+        /* ── Hide cards on input ── */
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('searchInput');
+            const cards = document.getElementById('featureCards');
+            const results = document.getElementById('searchResults');
+
+            if (input && cards) {
+                input.addEventListener('input', function () {
+                    if (this.value.trim().length > 0) {
+                        cards.classList.add('hidden');
+                    } else {
+                        cards.classList.remove('hidden');
+                        results.innerHTML = '';
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="assets/js/navbar-auth.js"></script>
+</body>
+</html>
