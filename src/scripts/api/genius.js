@@ -1,52 +1,77 @@
-// ============================================================
-//  GENIUS API — Centralized config & fetch helper
-//  Dùng chung cho tất cả các page script
-// ============================================================
-
+// ─── Lyrix — API Config ───────────────────────────────────────────────────────
 const API_CONFIG = {
-    host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
-    baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
+    host: "genius-song-lyrics1.p.rapidapi.com",
+    key: "d8b5ad0bfamsh1a6737bb873d9ffp15e9c7jsn4978c505d48a",
+    baseURL: "https://genius-song-lyrics1.p.rapidapi.com",
 };
 
+// ─── Core fetch ───────────────────────────────────────────────────────────────
 async function fetchAPI(endpoint, params = {}) {
-    const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    const url = new URL(API_CONFIG.baseURL + endpoint);
+    Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "")
+            url.searchParams.append(k, v);
+    });
 
-    const options = {
-        method: 'GET',
+    const res = await fetch(url.toString(), {
+        method: "GET",
         headers: {
-            'X-RapidAPI-Host': API_CONFIG.host,
-            'X-RapidAPI-Key': API_CONFIG.key
-        }
-    };
+            "x-rapidapi-host": API_CONFIG.host,
+            "x-rapidapi-key": API_CONFIG.key,
+        },
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+        if (res.status === 429) throw new Error("Vượt quota API. Thử lại sau.");
+        if (res.status === 401 || res.status === 403)
+            throw new Error("API key sai hoặc hết hạn.");
+        throw new Error(`HTTP ${res.status}`);
+    }
 
     try {
-        console.log('🔗 Fetching:', url.toString());
-        const response = await fetch(url, options);
-        console.log('📥 Response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ API Error Response:', errorText);
-
-            if (response.status === 429) throw new Error('API quota exceeded. Please upgrade your plan or wait for reset.');
-            if (response.status === 401 || response.status === 403) throw new Error('API authentication failed. Please check your API key.');
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ API Data received');
-        return data;
-    } catch (error) {
-        console.error('❌ API Error:', error);
-        return null;
+        return JSON.parse(text);
+    } catch {
+        throw new Error("Response không hợp lệ.");
     }
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatNumber(num) {
-    if (!num) return '0';
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    if (!num || isNaN(num)) return "—";
+    num = parseInt(num, 10);
+    if (num >= 1_000_000)
+        return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
     return num.toString();
+}
+
+function safeImg(src) {
+    if (src && src.startsWith("http")) return src;
+    // SVG placeholder
+    return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52'><rect width='52' height='52' fill='%23242429'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2371717a'>♪</text></svg>`;
+}
+
+function showError(msg) {
+    const el = document.createElement("div");
+    el.className = "error-toast";
+    el.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:#f87171;margin-right:8px"></i>${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+}
+
+function stripHtml(html) {
+    if (!html) return "";
+    return html
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, " ")
+        .trim();
 }

@@ -1,16 +1,43 @@
-// ============================================================
-//  NAVBAR — Mobile collapse handler + Auth
-// ============================================================
+// ─── Navbar: scroll effect + mobile toggle ─────────────────────────────────────
+(function () {
+    const navbar = document.getElementById("navbar");
+    const toggle = document.getElementById("navToggle");
+    const collapse = document.getElementById("navCollapse");
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Đóng navbar mobile sau khi click link
-    document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            const navCollapse = document.getElementById('navbarNav');
-            if (navCollapse && navCollapse.classList.contains('show')) {
-                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
-                if (bsCollapse) bsCollapse.hide();
+    // Scroll → add .scrolled class
+    if (navbar) {
+        window.addEventListener(
+            "scroll",
+            () => {
+                navbar.classList.toggle("scrolled", window.scrollY > 20);
+            },
+            { passive: true },
+        );
+    }
+
+    // Mobile toggle
+    if (toggle && collapse) {
+        toggle.addEventListener("click", () => {
+            const open = collapse.classList.toggle("open");
+            toggle.querySelector("i").className = open
+                ? "fa-solid fa-xmark"
+                : "fa-solid fa-bars";
+        });
+
+        // Close on link click
+        collapse.querySelectorAll("a").forEach((a) => {
+            a.addEventListener("click", () => {
+                collapse.classList.remove("open");
+                toggle.querySelector("i").className = "fa-solid fa-bars";
+            });
+        });
+
+        // Close on outside click
+        document.addEventListener("click", (e) => {
+            if (!navbar.contains(e.target)) {
+                collapse.classList.remove("open");
+                toggle.querySelector("i").className = "fa-solid fa-bars";
             }
         });
-    });
-});
+    }
+})();

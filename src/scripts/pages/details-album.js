@@ -1,79 +1,124 @@
-// ============================================================
-//  DETAILS — Album
-//  Requires: ../api/genius.js (fetchAPI, formatNumber)
-// ============================================================
+// ─── details-album.js ────────────────────────────────────────────────────────
 
-const PLACEHOLDER_IMG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2NjdlZWEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM3NjRiYTIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNjAiPvCfjrU8L3RleHQ+PC9zdmc+';
+const params = new URLSearchParams(window.location.search);
+const albumId = params.get("id");
+const container = document.getElementById("albumDetailContent");
 
-function showError(message) {
-    return `
-        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:40px;margin:40px 0;text-align:center;">
-            <i class="fas fa-exclamation-triangle" style="font-size:4rem;color:#ef4444;margin-bottom:20px;"></i>
-            <h2 style="color:#fca5a5;font-weight:700;margin-bottom:15px;">Lỗi tải thông tin album</h2>
-            <p style="color:#fca5a5;font-size:1.1rem;">${message}</p>
-            <a href="index.html" class="btn-gradient" style="display:inline-block;margin-top:20px;text-decoration:none;">
-                <i class="fas fa-home"></i> Về trang chủ
-            </a>
-        </div>`;
+if (!albumId) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID album</h3><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
+} else {
+    loadAlbum();
 }
 
-// NAVIGATION
-function navigateToArtist(artistId) { window.location.href = `details-artist.html?id=${artistId}`; }
+async function loadAlbum() {
+    try {
+        const data = await fetchAPI("/album/details/", { id: albumId });
+        const al = data?.album;
+        if (!al) throw new Error("Không tìm thấy album.");
 
-// RENDER
-function renderAlbumHeader(album) {
-    const coverImg = album.cover_art_url || PLACEHOLDER_IMG;
-    return `
-        <div class="album-detail-header animate-slide-up">
-            <img src="${coverImg}" alt="${album.name}" class="album-cover" onerror="this.src='${PLACEHOLDER_IMG}'">
-            <div class="album-info">
-                <h2>${album.name || 'Album chưa rõ'}</h2>
-                <p style="font-size:1.2rem;margin-bottom:10px;cursor:pointer;color:var(--text-secondary);" onclick="navigateToArtist(${album.artist?.id})">
-                    <i class="fas fa-user"></i> ${album.artist?.name || 'Nghệ sĩ chưa rõ'}
-                </p>
-                ${album.release_date_components ? `<p style="color:var(--text-secondary);"><i class="fas fa-calendar"></i> ${album.release_date_components.day}/${album.release_date_components.month}/${album.release_date_components.year}</p>` : ''}
+        document.title = `${al.name} — ${al.artist?.name || ""} | Lyrix`;
+
+        // tracks: mảng { number_in_album, song: { id, title, ... } }
+        const tracks = al.tracks || [];
+        const desc = stripHtml(al.description?.html || "");
+
+        // Năm phát hành từ release_date_components
+        const releaseYear = al.release_date_components
+            ? `${al.release_date_components.year || ""}`
+            : al.release_date_for_display || "";
+
+        container.innerHTML = `
+      <div class="song-detail-header animate-slide-up">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.07),transparent);pointer-events:none"></div>
+        <img class="detail-cover" src="${safeImg(al.cover_art_url)}" alt="${al.name}" onerror="this.src='${safeImg()}'"/>
+        <div class="detail-info" style="flex:1;min-width:0">
+          <div style="margin-bottom:6px"><span class="badge badge-brand"><i class="fa-solid fa-compact-disc"></i> Album</span></div>
+          <h1>${al.name}</h1>
+          <div class="artist-name" style="cursor:pointer;margin-top:4px"
+               onclick="window.location.href='details-artist.html?id=${al.artist?.id}'">
+            ${al.artist?.name || "Unknown Artist"}
+          </div>
+          <div class="detail-meta">
+            ${releaseYear ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${releaseYear}</div>` : ""}
+            ${tracks.length ? `<div class="meta-chip"><i class="fa-solid fa-list-ol"></i> ${tracks.length} tracks</div>` : ""}
+          </div>
+          <div class="detail-actions">
+            ${al.url ? `<a href="${al.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
+            ${al.artist?.id ? `<button class="btn btn-outline btn-sm" onclick="window.location.href='details-artist.html?id=${al.artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
+        <div class="stats-bar">
+          <div class="stat-item"><div class="stat-value">${tracks.length || "—"}</div><div class="stat-label">Tracks</div></div>
+          <div class="stat-item"><div class="stat-value">${releaseYear || "—"}</div><div class="stat-label">Phát hành</div></div>
+          <div class="stat-item"><div class="stat-value">${al.artist?.name || "—"}</div><div class="stat-label">Nghệ sĩ</div></div>
+        </div>
+      </div>
+
+      <!-- Layout -->
+      <div class="two-column-layout animate-slide-up stagger-2">
+        <div class="left-column">
+          ${
+              desc
+                  ? `
+          <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
+          <div class="lyrics-container" style="font-size:.875rem;line-height:1.8;color:var(--text-2)">${desc}</div>`
+                  : ""
+          }
+
+          ${
+              al.artist
+                  ? `
+          <div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-artist.html?id=${al.artist.id}'">
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Nghệ sĩ</div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <img src="${safeImg(al.artist.image_url)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.src='${safeImg()}'"/>
+              <div>
+                <div style="font-weight:600;font-size:.9rem">${al.artist.name}</div>
+                ${al.artist.is_verified ? '<div style="font-size:.72rem;color:var(--brand-light);margin-top:2px"><i class="fa-solid fa-circle-check"></i> Verified</div>' : ""}
+              </div>
             </div>
-        </div>`;
-}
+          </div>`
+                  : ""
+          }
+        </div>
 
-function renderAlbumDescription(album) {
-    const descText = album.description_preview || album.description || null;
-    if (!descText?.trim()) {
-        return album.url ? `
-            <div class="lyrics-container animate-slide-up" style="margin-top:30px;text-align:center;">
-                <a href="${album.url}" target="_blank" class="btn-gradient" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;">
-                    <i class="fas fa-external-link-alt"></i> Xem đầy đủ album trên Genius
-                </a>
-            </div>` : '';
+        <!-- Track list -->
+        <div class="right-column">
+          <h3 style="margin-bottom:1rem">
+            <i class="fa-solid fa-list-ol" style="color:var(--brand-light);margin-right:6px"></i>Danh sách track
+          </h3>
+          ${
+              tracks.length
+                  ? `
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            ${tracks
+                .map((t, i) => {
+                    const s = t.song;
+                    if (!s) return "";
+                    const num = t.number_in_album || i + 1;
+                    return `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 15) * 0.04}s;cursor:pointer"
+                onclick="window.location.href='details-song.html?id=${s.id}'">
+                <span class="chart-position">${num}</span>
+                <img class="chart-image" src="${safeImg(s.song_art_image_url || al.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+                <div class="chart-info">
+                  <div class="chart-title">${s.title}</div>
+                  <div class="chart-sub">${s.primary_artist?.name || al.artist?.name || ""}${s.featured_artists?.length ? " ft. " + s.featured_artists.map((a) => a.name).join(", ") : ""}</div>
+                </div>
+                <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(s.stats?.pageviews)}</span>
+              </div>`;
+                })
+                .join("")}
+          </div>`
+                  : `<div class="empty-state"><i class="fa-solid fa-compact-disc"></i><p>Không có thông tin track.</p></div>`
+          }
+        </div>
+      </div>`;
+    } catch (err) {
+        showError(err.message);
+        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
     }
-    return `
-        <div class="lyrics-container animate-slide-up" style="margin-top:30px;">
-            <h3><i class="fas fa-info-circle"></i> Về album</h3>
-            <p style="line-height:1.8;text-align:left;white-space:pre-wrap;">${descText}</p>
-            ${album.url ? `
-                <div style="text-align:center;margin-top:25px;">
-                    <a href="${album.url}" target="_blank" class="btn-gradient" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;">
-                        <i class="fas fa-external-link-alt"></i> Xem đầy đủ album trên Genius
-                    </a>
-                </div>` : ''}
-        </div>`;
 }
-
-// MAIN
-async function loadAlbumDetails() {
-    const albumId = new URLSearchParams(window.location.search).get('id');
-    const container = document.getElementById('albumContent');
-
-    if (!albumId) { container.innerHTML = showError('ID album không hợp lệ.'); return; }
-
-    container.innerHTML = `<div class="loading"><div class="spinner-border text-light" role="status"></div><p style="color:var(--text-secondary);margin-top:20px;">Đang tải thông tin album...</p></div>`;
-
-    const albumData = await fetchAPI('/album/details/', { id: albumId });
-
-    if (!albumData?.album) { container.innerHTML = showError('Không thể tải thông tin album.'); return; }
-
-    const album = albumData.album;
-    container.innerHTML = renderAlbumHeader(album) + renderAlbumDescription(album);
-}
-
-document.addEventListener('DOMContentLoaded', loadAlbumDetails);

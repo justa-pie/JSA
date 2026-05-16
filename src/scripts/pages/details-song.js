@@ -1,139 +1,241 @@
-// ============================================================
-//  DETAILS — Song
-//  Requires: ../api/genius.js (fetchAPI, formatNumber)
-// ============================================================
+// ─── details-song.js ─────────────────────────────────────────────────────────
 
-function formatDuration(seconds) {
-    if (!seconds) return null;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+const params = new URLSearchParams(window.location.search);
+const songId = params.get("id");
+const container = document.getElementById("songDetailContent");
+
+if (!songId) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID bài hát</h3><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
+} else {
+    loadSong();
 }
 
-function showError(message) {
-    return `
-        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:40px;margin:40px 0;text-align:center;">
-            <i class="fas fa-exclamation-triangle" style="font-size:4rem;color:#ef4444;margin-bottom:20px;"></i>
-            <h2 style="color:#fca5a5;font-weight:700;margin-bottom:15px;">Lỗi tải thông tin bài hát</h2>
-            <p style="color:#fca5a5;font-size:1.1rem;">${message}</p>
-            <a href="index.html" class="btn-gradient" style="display:inline-block;margin-top:20px;text-decoration:none;">
-                <i class="fas fa-home"></i> Về trang chủ
-            </a>
-        </div>`;
-}
+async function loadSong() {
+    try {
+        // Gọi song details và lyrics song song
+        const [detailData, lyricsData] = await Promise.all([
+            fetchAPI("/song/details/", { id: songId }),
+            fetchAPI("/song/lyrics/", { id: songId }),
+        ]);
 
-// NAVIGATION
-function navigateToArtist(artistId) { window.location.href = `details-artist.html?id=${artistId}`; }
+        // Song Details: response.song
+        const s = detailData?.song;
+        if (!s) throw new Error("Không tìm thấy bài hát.");
 
-// LYRICS
-async function fetchLyrics(songId) {
-    const data = await fetchAPI('/song/lyrics/', { id: songId });
-    return data?.lyrics || null;
-}
+        document.title = `${s.title} — ${s.primary_artist?.name || ""} | Lyrix`;
 
-// RENDER
-function renderSongHeader(song) {
-    const imgUrl = song.song_art_image_url || song.header_image_url;
-    const duration = song.duration ? formatDuration(song.duration) : song.duration_ms ? formatDuration(Math.floor(song.duration_ms / 1000)) : null;
+        // Lyrics: lyrics.lyrics.body.plain hoặc .html
+        const lyricsRaw = lyricsData?.lyrics?.lyrics?.body?.html || "";
+        const lyricsText = stripHtml(lyricsRaw) || "Lời bài hát chưa có sẵn.";
 
-    let statsHTML = '<div class="song-detail-stats">';
-    if (song.release_date_for_display) statsHTML += `<div class="stat-item"><div class="stat-value"><i class="fas fa-calendar"></i></div><div class="stat-label">${song.release_date_for_display}</div></div>`;
-    if (duration) statsHTML += `<div class="stat-item"><div class="stat-value"><i class="fas fa-clock"></i></div><div class="stat-label">${duration}</div></div>`;
-    if (song.stats?.pageviews) statsHTML += `<div class="stat-item"><div class="stat-value">${formatNumber(song.stats.pageviews)}</div><div class="stat-label">Lượt xem</div></div>`;
-    if (song.stats?.hot) statsHTML += `<div class="stat-item"><span class="badge-hot"><i class="fas fa-fire"></i> TRENDING</span></div>`;
-    statsHTML += '</div>';
+        // Credits từ song details
+        const writers = s.writer_artists || [];
+        const producers = s.producer_artists || [];
+        const featured = s.featured_artists || [];
 
-    return `
-        <div class="song-detail-header animate-slide-up">
-            <img src="${imgUrl}" alt="${song.title}" class="song-detail-image">
-            <h2 class="song-detail-title">${song.full_title || song.title || 'Chưa rõ tên'}</h2>
-            <p class="song-detail-artist" onclick="navigateToArtist(${song.primary_artist?.id})" style="cursor:pointer;">
-                <i class="fas fa-user"></i> ${song.primary_artist?.name || 'Nghệ sĩ chưa rõ'}
-            </p>
-            ${statsHTML}
-        </div>`;
-}
+        container.innerHTML = `
+      <div class="song-detail-header animate-slide-up" id="songHeader">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent);pointer-events:none"></div>
+        <img class="detail-cover" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="${s.title}" onerror="this.src='${safeImg()}'"/>
+        <div class="detail-info" style="flex:1;min-width:0">
+          <div style="margin-bottom:6px">
+            ${s.featured_video ? '<span class="badge badge-hot" style="margin-right:6px"><i class="fa-solid fa-video"></i> Video</span>' : ""}
+            ${s.lyrics_state === "complete" ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Full lyrics</span>' : ""}
+            ${s.stats?.hot ? '<span class="badge badge-hot" style="margin-left:4px"><i class="fa-solid fa-fire"></i> Hot</span>' : ""}
+          </div>
+          <h1 style="margin-bottom:4px">${s.title}</h1>
+          <div class="artist-name" style="cursor:pointer"
+               onclick="window.location.href='details-artist.html?id=${s.primary_artist?.id}'">
+            ${s.primary_artist?.name || "Unknown Artist"}
+          </div>
+          <div class="detail-meta">
+            ${s.release_date_for_display ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${s.release_date_for_display}</div>` : ""}
+            ${s.album ? `<div class="meta-chip" style="cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'"><i class="fa-solid fa-compact-disc"></i> ${s.album.name}</div>` : ""}
+            ${s.stats?.pageviews ? `<div class="meta-chip"><i class="fa-solid fa-eye"></i> ${formatNumber(s.stats.pageviews)} views</div>` : ""}
+          </div>
+          <div class="detail-actions">
+            ${s.url ? `<a href="${s.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
+            <button class="btn btn-outline btn-sm" onclick="copyLyrics()"><i class="fa-solid fa-copy"></i> Sao chép lời</button>
+            ${s.primary_artist?.id ? `<button class="btn btn-ghost btn-sm" onclick="window.location.href='details-artist.html?id=${s.primary_artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
+          </div>
+        </div>
+      </div>
 
-function renderLyrics(lyricsData) {
-    const lyricsBody = lyricsData?.body || lyricsData?.lyrics?.body || null;
-    if (!lyricsBody) return '';
+      <!-- Stats -->
+      <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-value">${formatNumber(s.stats?.pageviews)}</div>
+            <div class="stat-label">Lượt xem</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">${s.annotation_count ?? "—"}</div>
+            <div class="stat-label">Annotations</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">${s.pyongs_count ?? "—"}</div>
+            <div class="stat-label">Pyongs</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">${s.contributors_count ?? "—"}</div>
+            <div class="stat-label">Contributors</div>
+          </div>
+        </div>
+        ${
+            s.stats?.pageviews
+                ? `
+        <div style="margin-top:1rem">
+          <div style="font-size:.72rem;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Popularity</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, Math.round((s.stats.pageviews / 10000000) * 100))}%"></div></div>
+        </div>`
+                : ""
+        }
+      </div>
 
-    let cleanLyrics = lyricsBody.html || lyricsBody.plain || '';
-    if (cleanLyrics.includes('<')) {
-        cleanLyrics = cleanLyrics
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<\/p>/gi, '\n\n')
-            .replace(/<[^>]*>/g, '')
-            .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+      <!-- Layout -->
+      <div class="two-column-layout animate-slide-up stagger-2">
+        <div class="left-column">
+
+          <!-- Credits -->
+          ${
+              featured.length || writers.length || producers.length
+                  ? `
+          <div class="credits-section">
+            ${
+                featured.length
+                    ? `
+            <div style="margin-bottom:1rem">
+              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Featured</div>
+              <div class="credits-grid">
+                ${featured
+                    .map(
+                        (
+                            a,
+                        ) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'">
+                  <div class="credit-role">Featured</div><div class="credit-name">${a.name}</div>
+                </div>`,
+                    )
+                    .join("")}
+              </div>
+            </div>`
+                    : ""
+            }
+            ${
+                writers.length
+                    ? `
+            <div style="margin-bottom:1rem">
+              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Nhạc sĩ</div>
+              <div class="credits-grid">
+                ${writers
+                    .map(
+                        (
+                            a,
+                        ) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'">
+                  <div class="credit-role">Writer</div><div class="credit-name">${a.name}</div>
+                </div>`,
+                    )
+                    .join("")}
+              </div>
+            </div>`
+                    : ""
+            }
+            ${
+                producers.length
+                    ? `
+            <div>
+              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Producer</div>
+              <div class="credits-grid">
+                ${producers
+                    .map(
+                        (
+                            a,
+                        ) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'">
+                  <div class="credit-role">Producer</div><div class="credit-name">${a.name}</div>
+                </div>`,
+                    )
+                    .join("")}
+              </div>
+            </div>`
+                    : ""
+            }
+          </div>`
+                  : ""
+          }
+
+          <!-- Album -->
+          ${
+              s.album
+                  ? `
+          <div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'">
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Album</div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <img src="${safeImg(s.album.cover_art_url)}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.src='${safeImg()}'"/>
+              <div>
+                <div style="font-weight:600;font-size:.875rem">${s.album.name}</div>
+                <div style="font-size:.75rem;color:var(--text-3);margin-top:2px">${s.album.release_date_for_display || ""}</div>
+              </div>
+            </div>
+          </div>`
+                  : ""
+          }
+
+        </div>
+
+        <!-- Lyrics -->
+        <div class="right-column">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <h3 style="display:flex;align-items:center;gap:.5rem">
+              <div class="waveform"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
+              Lời bài hát
+            </h3>
+            <button class="btn btn-ghost btn-sm" onclick="toggleLyricsSize()" id="lyricsToggle">
+              <i class="fa-solid fa-expand"></i> Phóng to
+            </button>
+          </div>
+          <div class="lyrics-container" id="lyricsBox" style="max-height:600px;overflow-y:auto">${lyricsText}</div>
+
+          ${
+              s.description?.html
+                  ? `
+          <div style="margin-top:1.5rem">
+            <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
+            <div class="lyrics-container" style="font-size:.875rem;line-height:1.75;color:var(--text-2)">${stripHtml(s.description.html)}</div>
+          </div>`
+                  : ""
+          }
+        </div>
+      </div>`;
+    } catch (err) {
+        showError(err.message);
+        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
     }
-
-    return `
-        <div class="lyrics-container animate-slide-up">
-            <h3><i class="fas fa-music"></i> Lời bài hát</h3>
-            <div class="lyrics-text" style="white-space:pre-wrap;line-height:1.8;color:var(--text-primary);">${cleanLyrics.trim()}</div>
-        </div>`;
 }
 
-function renderSongDescription(song) {
-    let descText = song.description?.plain || (song.description?.html ? song.description.html.replace(/<[^>]*>/g, '') : null) || (typeof song.description === 'string' ? song.description : null);
-    if (!descText?.trim()) return '';
-    return `
-        <div class="lyrics-container animate-slide-up">
-            <h3><i class="fas fa-info-circle"></i> Về bài hát</h3>
-            <p style="line-height:1.8;text-align:left;white-space:pre-wrap;">${descText}</p>
-        </div>`;
-}
+window.copyLyrics = function () {
+    const box = document.getElementById("lyricsBox");
+    if (!box) return;
+    navigator.clipboard.writeText(box.innerText).then(() => {
+        const btn = document.querySelector('[onclick="copyLyrics()"]');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép';
+            setTimeout(
+                () =>
+                    (btn.innerHTML =
+                        '<i class="fa-solid fa-copy"></i> Sao chép lời'),
+                2000,
+            );
+        }
+    });
+};
 
-function renderCredits(song) {
-    const hasWriters   = song.writer_artists?.length > 0;
-    const hasProducers = song.producer_artists?.length > 0;
-    const hasFeatured  = song.featured_artists?.length > 0;
-    if (!hasWriters && !hasProducers && !hasFeatured) return '';
-
-    const renderGroup = (label, icon, artists) => {
-        let h = `<h4 style="margin-top:20px;"><i class="${icon}"></i> ${label}</h4><div class="credits-grid">`;
-        artists.forEach(a => {
-            h += `<div class="credit-item" onclick="navigateToArtist(${a.id})" style="cursor:pointer;">
-                <img src="${a.image_url || '../../assets/public/images/logo.webp'}" alt="${a.name}" onerror="this.src='../../assets/public/images/logo.webp'">
-                <div class="credit-name">${a.name}</div>
-            </div>`;
-        });
-        return h + '</div>';
-    };
-
-    let html = '<div class="credits-section animate-slide-up">';
-    if (hasWriters)   html += renderGroup('Nhạc sĩ', 'fas fa-pen', song.writer_artists);
-    if (hasProducers) html += renderGroup('Producer', 'fas fa-sliders-h', song.producer_artists);
-    if (hasFeatured)  html += renderGroup('Featured Artists', 'fas fa-star', song.featured_artists);
-    return html + '</div>';
-}
-
-// MAIN
-async function loadSongDetails() {
-    const songId = new URLSearchParams(window.location.search).get('id');
-    const container = document.getElementById('songContent');
-
-    if (!songId) { container.innerHTML = showError('ID bài hát không hợp lệ.'); return; }
-
-    container.innerHTML = `<div class="loading"><div class="spinner-border text-light" role="status"></div><p style="color:var(--text-secondary);margin-top:20px;">Đang tải thông tin bài hát...</p></div>`;
-
-    const [details, lyricsData] = await Promise.all([
-        fetchAPI('/song/details/', { id: songId }),
-        fetchLyrics(songId)
-    ]);
-
-    if (!details?.song) { container.innerHTML = showError('Không thể tải thông tin bài hát.'); return; }
-
-    const song = details.song;
-    let html = renderSongHeader(song);
-    html += '<div class="two-column-layout">';
-    html += '<div class="left-column">' + renderSongDescription(song) + renderCredits(song) + '</div>';
-    html += '<div class="right-column">' + (lyricsData ? renderLyrics(lyricsData) : '') + '</div>';
-    html += '</div>';
-
-    container.innerHTML = html;
-}
-
-document.addEventListener('DOMContentLoaded', loadSongDetails);
+let expanded = false;
+window.toggleLyricsSize = function () {
+    const box = document.getElementById("lyricsBox");
+    const btn = document.getElementById("lyricsToggle");
+    if (!box) return;
+    expanded = !expanded;
+    box.style.maxHeight = expanded ? "none" : "600px";
+    btn.innerHTML = expanded
+        ? '<i class="fa-solid fa-compress"></i> Thu gọn'
+        : '<i class="fa-solid fa-expand"></i> Phóng to';
+};

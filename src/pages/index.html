@@ -1,84 +1,509 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <style>html,body{background-color:#0d0b14 !important;}</style>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lyrix - Tra cứu lời bài hát</title>
-    <link rel="shortcut icon" type="image/x-icon" href="../../assets/public/images/logo.webp">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../styles/main.css">
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Lyrix — Lyrics & Music Discovery</title>
+        <meta
+            name="description"
+            content="Tra cứu lời bài hát, thông tin nghệ sĩ và album hàng đầu thế giới. Powered by Genius."
+        />
+        <link rel="icon" href="../../assets/public/images/logo.webp" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="../styles/main.css" />
+    </head>
+    <body>
+        <!-- Ambient orbs -->
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+
+        <!-- ─── Navbar ─── -->
+        <nav class="navbar" id="navbar">
             <a class="navbar-brand" href="index.html">
-                <img src="../../assets/public/images/logo.webp" alt="Lyrix Logo" class="navbar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-music"></i></div>
                 Lyrix
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <div class="navbar-links">
+                <a href="index.html" class="active">Khám phá</a>
+                <a href="charts.html">Charts</a>
+            </div>
+            <div class="navbar-actions">
+                <button
+                    class="btn-nav btn-nav-ghost"
+                    onclick="window.location.href = 'charts.html'"
+                >
+                    Top Charts
+                </button>
+                <button class="btn-nav btn-nav-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                </button>
+            </div>
+            <button class="navbar-toggler" id="navToggle" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="charts.html"><i class="fas fa-chart-line"></i> Charts</a>
-                    </li>
-                </ul>
+            <div class="navbar-collapse" id="navCollapse">
+                <a href="index.html">Khám phá</a>
+                <a href="charts.html">Charts</a>
+            </div>
+        </nav>
+
+        <!-- ─── Ticker ─── -->
+        <div class="ticker-wrapper" id="tickerWrapper">
+            <div class="ticker-inner" id="tickerInner">
+                <span class="ticker-item"
+                    ><i class="fa-solid fa-fire" style="color: #f87171"></i>
+                    <strong>Trending Now</strong></span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Blinding Lights</strong> — The Weeknd</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Flowers</strong> — Miley Cyrus</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>As It Was</strong> — Harry Styles</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Anti-Hero</strong> — Taylor Swift</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Unholy</strong> — Sam Smith</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Bad Habit</strong> — Steve Lacy</span
+                >
+                <span class="ticker-sep">·</span>
+                <!-- duplicate for seamless loop -->
+                <span class="ticker-item"
+                    ><i class="fa-solid fa-fire" style="color: #f87171"></i>
+                    <strong>Trending Now</strong></span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Blinding Lights</strong> — The Weeknd</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Flowers</strong> — Miley Cyrus</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>As It Was</strong> — Harry Styles</span
+                >
+                <span class="ticker-sep">·</span>
+                <span class="ticker-item"
+                    ><i
+                        class="fa-solid fa-music"
+                        style="color: var(--brand-light)"
+                    ></i>
+                    <strong>Anti-Hero</strong> — Taylor Swift</span
+                >
             </div>
         </div>
-    </nav>
 
-    <!-- Hero / Search Section -->
-    <section id="home" class="section active">
-        <div class="container">
-            <div class="hero-section">
-                <h1 class="hero-title">🎵 Lyrix</h1>
-                <p class="hero-subtitle">Khám phá lời bài hát, nghệ sĩ và album yêu thích</p>
-
-                <!-- Search Mode Pills -->
-                <div class="search-pills">
-                    <div class="pill-item active" onclick="setSearchMode('song')">
-                        <i class="fas fa-music"></i> Bài hát
+        <!-- ─── Main ─── -->
+        <main>
+            <div class="container">
+                <!-- Hero -->
+                <section class="hero animate-slide-up">
+                    <div class="hero-eyebrow">
+                        <span class="badge badge-brand"
+                            ><i class="fa-solid fa-bolt"></i> Powered by
+                            Genius</span
+                        >
                     </div>
-                    <div class="pill-item" onclick="setSearchMode('multi')">
-                        <i class="fas fa-search"></i> Tất cả
-                    </div>
-                </div>
+                    <h1 class="hero-title">
+                        Khám phá lời bài hát<br />
+                        <span class="gradient-text">yêu thích của bạn</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Tra cứu lời nhạc, thông tin nghệ sĩ và album từ hàng
+                        triệu bài hát trên toàn thế giới.
+                    </p>
 
-                <!-- Search Input -->
-                <div class="search-container">
-                    <input
-                        type="text"
-                        id="searchInput"
-                        class="search-input"
-                        placeholder="Nhập tên bài hát..."
-                        oninput="performSearch()"
-                        onkeydown="if(event.key==='Enter') performSearch()"
-                    >
-                    <button class="search-btn" onclick="performSearch()">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <!-- Search -->
+                    <div class="hero-search-wrap">
+                        <div class="search-wrapper" id="searchWrapper">
+                            <i
+                                class="fa-solid fa-magnifying-glass search-icon"
+                            ></i>
+                            <input
+                                type="search"
+                                class="search-input"
+                                id="searchInput"
+                                placeholder="Tìm bài hát, nghệ sĩ hoặc album…"
+                                autocomplete="off"
+                            />
+                            <button
+                                class="search-clear"
+                                id="searchClear"
+                                aria-label="Xóa"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div
+                                class="search-dropdown"
+                                id="searchDropdown"
+                                style="display: none"
+                            ></div>
+                        </div>
+
+                        <!-- Quick tags -->
+                        <div class="hero-tags" id="heroTags">
+                            <span class="hero-tag" data-q="Taylor Swift"
+                                >Taylor Swift</span
+                            >
+                            <span class="hero-tag" data-q="The Weeknd"
+                                >The Weeknd</span
+                            >
+                            <span class="hero-tag" data-q="Billie Eilish"
+                                >Billie Eilish</span
+                            >
+                            <span class="hero-tag" data-q="BTS">BTS</span>
+                            <span class="hero-tag" data-q="Sơn Tùng MTP"
+                                >Sơn Tùng MTP</span
+                            >
+                            <span class="hero-tag" data-q="Ed Sheeran"
+                                >Ed Sheeran</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Feature chips -->
+                    <div class="feature-chips">
+                        <div class="feature-chip">
+                            <i class="fa-solid fa-microphone"></i> Lời bài hát
+                            HD
+                        </div>
+                        <div class="feature-chip">
+                            <i class="fa-solid fa-users"></i> Credits đầy đủ
+                        </div>
+                        <div class="feature-chip">
+                            <i class="fa-solid fa-chart-line"></i> Top Charts
+                            real-time
+                        </div>
+                        <div class="feature-chip">
+                            <i class="fa-solid fa-compact-disc"></i> Album &
+                            discography
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Full search results (multi-type) -->
+                <section
+                    id="searchResultsSection"
+                    style="display: none"
+                    class="section-gap animate-slide-up"
+                >
+                    <div class="section-title">
+                        <div class="section-label">
+                            <div class="dot"></div>
+                            <h2 id="searchResultsTitle">Kết quả tìm kiếm</h2>
+                        </div>
+                        <div class="tab-group" id="searchTabs">
+                            <button class="tab-btn active" data-tab="songs">
+                                Bài hát
+                            </button>
+                            <button class="tab-btn" data-tab="artists">
+                                Nghệ sĩ
+                            </button>
+                            <button class="tab-btn" data-tab="albums">
+                                Album
+                            </button>
+                        </div>
+                    </div>
+                    <div id="searchResultsContent"></div>
+                </section>
+
+                <!-- Categories -->
+                <section
+                    class="section-gap animate-slide-up stagger-1"
+                    id="categoriesSection"
+                >
+                    <div class="section-title">
+                        <div class="section-label">
+                            <div class="dot"></div>
+                            <h2>Thể loại nổi bật</h2>
+                        </div>
+                    </div>
+                    <div class="category-grid">
+                        <div class="category-card" onclick="searchByTag('Pop')">
+                            <i
+                                class="fa-solid fa-star"
+                                style="color: #a78bfa"
+                            ></i>
+                            <span>Pop</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="searchByTag('Hip Hop')"
+                        >
+                            <i
+                                class="fa-solid fa-headphones"
+                                style="color: #fbbf24"
+                            ></i>
+                            <span>Hip-Hop</span>
+                        </div>
+                        <div class="category-card" onclick="searchByTag('R&B')">
+                            <i
+                                class="fa-solid fa-heart"
+                                style="color: #f472b6"
+                            ></i>
+                            <span>R&amp;B</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="searchByTag('K-Pop')"
+                        >
+                            <i
+                                class="fa-solid fa-wand-magic-sparkles"
+                                style="color: #67e8f9"
+                            ></i>
+                            <span>K-Pop</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="searchByTag('Rock')"
+                        >
+                            <i
+                                class="fa-solid fa-guitar"
+                                style="color: #ef4444"
+                            ></i>
+                            <span>Rock</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="searchByTag('Electronic')"
+                        >
+                            <i
+                                class="fa-solid fa-sliders"
+                                style="color: #34d399"
+                            ></i>
+                            <span>Electronic</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="searchByTag('V-Pop')"
+                        >
+                            <i
+                                class="fa-solid fa-music"
+                                style="color: #fbbf24"
+                            ></i>
+                            <span>V-Pop</span>
+                        </div>
+                        <div
+                            class="category-card"
+                            onclick="window.location.href = 'charts.html'"
+                        >
+                            <i
+                                class="fa-solid fa-chart-simple"
+                                style="color: #a78bfa"
+                            ></i>
+                            <span>Charts</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Trending Today -->
+                <section
+                    class="section-gap animate-slide-up stagger-2"
+                    id="trendingSection"
+                >
+                    <div class="section-title">
+                        <div class="section-label">
+                            <div class="dot"></div>
+                            <h2>
+                                <i
+                                    class="fa-solid fa-fire"
+                                    style="color: #f87171; margin-right: 6px"
+                                ></i
+                                >Trending hôm nay
+                            </h2>
+                        </div>
+                        <a href="charts.html" class="btn btn-sm btn-outline"
+                            >Xem tất cả <i class="fa-solid fa-arrow-right"></i
+                        ></a>
+                    </div>
+                    <div id="trendingList">
+                        <!-- Skeleton -->
+                        <div
+                            style="
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.5rem;
+                            "
+                        >
+                            ${Array(5).fill('
+                            <div class="chart-item">
+                                <div
+                                    class="skeleton"
+                                    style="
+                                        width: 52px;
+                                        height: 52px;
+                                        border-radius: 8px;
+                                        flex-shrink: 0;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        flex: 1;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 6px;
+                                    "
+                                >
+                                    <div
+                                        class="skeleton"
+                                        style="height: 14px; width: 60%"
+                                    ></div>
+                                    <div
+                                        class="skeleton"
+                                        style="height: 12px; width: 40%"
+                                    ></div>
+                                </div>
+                            </div>
+                            ').join('')}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Top Artists -->
+                <section
+                    class="section-gap animate-slide-up stagger-3"
+                    id="artistsSection"
+                >
+                    <div class="section-title">
+                        <div class="section-label">
+                            <div class="dot"></div>
+                            <h2>
+                                <i
+                                    class="fa-solid fa-star"
+                                    style="color: #fbbf24; margin-right: 6px"
+                                ></i
+                                >Top nghệ sĩ
+                            </h2>
+                        </div>
+                        <a href="charts.html" class="btn btn-sm btn-outline"
+                            >Xem thêm <i class="fa-solid fa-arrow-right"></i
+                        ></a>
+                    </div>
+                    <div id="artistsList">
+                        <div
+                            style="
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.5rem;
+                            "
+                        >
+                            ${Array(5).fill('
+                            <div class="chart-item">
+                                <div
+                                    class="skeleton"
+                                    style="
+                                        width: 52px;
+                                        height: 52px;
+                                        border-radius: 50%;
+                                        flex-shrink: 0;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        flex: 1;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 6px;
+                                    "
+                                >
+                                    <div
+                                        class="skeleton"
+                                        style="height: 14px; width: 50%"
+                                    ></div>
+                                    <div
+                                        class="skeleton"
+                                        style="height: 12px; width: 35%"
+                                    ></div>
+                                </div>
+                            </div>
+                            ').join('')}
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- /container -->
+        </main>
+
+        <!-- ─── Footer ─── -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-inner">
+                    <div class="footer-brand">
+                        <i class="fa-solid fa-music"></i> Lyrix
+                    </div>
+                    <div class="footer-links">
+                        <a href="charts.html">Charts</a>
+                        <a href="#" target="_blank">Genius API</a>
+                    </div>
+                    <div class="footer-copy">
+                        © 2025 Lyrix. Powered by Genius.
+                    </div>
                 </div>
             </div>
+        </footer>
 
-            <!-- Search Results -->
-            <div id="searchResults"></div>
-        </div>
-    </section>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <script src="../scripts/api/genius.js"></script>
-    <script src="../scripts/pages/index.js"></script>
-    <script src="../scripts/components/navbar.js"></script>
-</body>
+        <script src="../scripts/api/genius.js"></script>
+        <script src="../scripts/pages/index.js"></script>
+        <script src="../scripts/components/navbar.js"></script>
+    </body>
 </html>

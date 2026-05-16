@@ -1,202 +1,147 @@
-// API CONFIGURATION
-const API_CONFIG = {
-    host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
-    baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
+// ─── charts.js ───────────────────────────────────────────────────────────────
+
+let chartType = "songs";
+let timePeriod = "day";
+
+const chartList = document.getElementById("chartList");
+const statTotal = document.getElementById("statTotal");
+const statTop = document.getElementById("statTop");
+const statPeriod = document.getElementById("statPeriod");
+const periodLabels = {
+    day: "Hôm nay",
+    week: "Tuần này",
+    month: "Tháng này",
+    all_time: "Mọi thời đại",
 };
 
-// STATE MANAGEMENT
-let currentChart = 'songs';
-let currentTimePeriod = 'day';
+document.querySelectorAll("#chartTypeTabs .tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        chartType = btn.dataset.type;
+        document
+            .querySelectorAll("#chartTypeTabs .tab-btn")
+            .forEach((b) => b.classList.toggle("active", b === btn));
+        loadChart();
+    });
+});
+document.querySelectorAll("#timePeriodTabs .tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        timePeriod = btn.dataset.period;
+        document
+            .querySelectorAll("#timePeriodTabs .tab-btn")
+            .forEach((b) => b.classList.toggle("active", b === btn));
+        statPeriod.textContent = periodLabels[timePeriod];
+        loadChart();
+    });
+});
 
-// UTILITY FUNCTIONS
-async function fetchAPI(endpoint, params = {}) {
-    const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-    
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Host': API_CONFIG.host,
-            'X-RapidAPI-Key': API_CONFIG.key
-        }
+function showSkeleton() {
+    chartList.innerHTML = Array(15)
+        .fill(0)
+        .map(
+            (_, i) => `
+    <div class="chart-item">
+      <span class="chart-position" style="color:var(--text-3)">${i + 1}</span>
+      <div class="skeleton chart-image" style="border-radius:${chartType === "artists" ? "50%" : "8px"}"></div>
+      <div class="chart-info">
+        <div class="skeleton" style="height:14px;width:58%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:12px;width:38%"></div>
+      </div>
+    </div>`,
+        )
+        .join("");
+}
+
+async function loadChart() {
+    showSkeleton();
+
+    // Đúng endpoint theo docs
+    const endpointMap = {
+        songs: "/chart/songs/",
+        artists: "/chart/artists/",
+        albums: "/chart/albums/",
     };
-    
+
     try {
-        const response = await fetch(url, options);
-        if (!response.ok) throw new Error('API request failed');
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        return null;
-    }
-}
+        const params = { per_page: 20, page: 1 };
+        // songs & albums có time_period; artists chỉ có per_page
+        if (chartType !== "artists") params.time_period = timePeriod;
+        if (chartType === "songs") params.type = "all";
 
-function formatNumber(num) {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num;
-}
+        const data = await fetchAPI(endpointMap[chartType], params);
+        const items = data?.chart_items || [];
 
-function showLoading(elementId) {
-    const element = document.getElementById(elementId);
-    element.innerHTML = `
-        <div class="loading">
-            <div class="spinner-border text-light" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-}
+        statTotal.textContent = items.length;
+        statPeriod.textContent = periodLabels[timePeriod];
 
-// NAVIGATION FUNCTIONS
-
-function navigateToSong(songId) {
-    window.location.href = `details-song.html?id=${songId}`;
-}
-
-function navigateToArtist(artistId) {
-    window.location.href = `details-artist.html?id=${artistId}`;
-}
-
-function navigateToAlbum(albumId) {
-    window.location.href = `details-album.html?id=${albumId}`;
-}
-
-// FILTER FUNCTIONS
-function switchTimePeriod(period) {
-    currentTimePeriod = period;
-    document.querySelectorAll('.time-period-filter button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-period="${period}"]`).classList.add('active');
-    loadChart(currentChart);
-}
-
-function switchChart(chart) {
-    currentChart = chart;
-    
-    document.querySelectorAll('.chart-tabs button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-chart="${chart}"]`).classList.add('active');
-    
-    loadChart(chart);
-}
-
-// CHART LOADING
-async function loadChart(type) {
-    const container = document.getElementById('chartContent');
-    showLoading('chartContent');
-    
-    let endpoint = '';
-    if (type === 'songs') endpoint = '/chart/songs/';
-    else if (type === 'artists') endpoint = '/chart/artists/';
-    else if (type === 'albums') endpoint = '/chart/albums/';
-    
-    let timeType = 'all';
-    if (currentTimePeriod === 'day') timeType = 'day';
-    else if (currentTimePeriod === 'week') timeType = 'week';
-    else if (currentTimePeriod === 'month') timeType = 'month';
-    else if (currentTimePeriod === 'all') timeType = 'all_time';
-    
-    const params = type === 'songs' 
-        ? { per_page: 20, page: 1, time_period: timeType } 
-        : { per_page: 10, time_period: timeType };
-    
-    const data = await fetchAPI(endpoint, params);
-    
-    if (!data || !data.chart_items || data.chart_items.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center;">Không có dữ liệu</p>';
-        return;
-    }
-    
-    renderChart(data.chart_items, type, container);
-}
-
-// CHART RENDERING
-function renderChart(chartItems, type, container) {
-    let html = '<div class="chart-list">';
-    
-    chartItems.forEach((chartItem, index) => {
-        const item = chartItem.item;
-        
-        const position = chartItem.chart_position || chartItem.position || (index + 1);
-        
-        let positionClass = '';
-        if (position === 1) positionClass = 'top-1';
-        else if (position === 2) positionClass = 'top-2';
-        else if (position === 3) positionClass = 'top-3';
-        
-        if (type === 'songs') {
-            html += renderSongItem(item, position, positionClass);
-        } else if (type === 'artists') {
-            html += renderArtistItem(item, position, positionClass);
-        } else if (type === 'albums') {
-            html += renderAlbumItem(item, position, positionClass);
+        if (!items.length) {
+            chartList.innerHTML = `<div class="empty-state"><i class="fa-solid fa-music"></i><h3>Không có dữ liệu</h3></div>`;
+            return;
         }
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
+
+        chartList.innerHTML = items
+            .map((c, i) => {
+                const r = c.item;
+                if (!r) return "";
+                const pos = c.chart_position || i + 1;
+                const cls = pos <= 3 ? `top-${pos}` : "";
+                const trophy =
+                    pos === 1
+                        ? '<i class="fa-solid fa-trophy" style="color:#fbbf24;font-size:13px"></i>'
+                        : pos === 2
+                          ? '<i class="fa-solid fa-trophy" style="color:#94a3b8;font-size:13px"></i>'
+                          : pos === 3
+                            ? '<i class="fa-solid fa-trophy" style="color:#cd7c2f;font-size:13px"></i>'
+                            : pos;
+
+                if (chartType === "songs") {
+                    if (i === 0) statTop.textContent = r.title || "—";
+                    return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
+          onclick="window.location.href='details-song.html?id=${r.id}'">
+          <span class="chart-position">${trophy}</span>
+          <img class="chart-image" src="${safeImg(r.song_art_image_url || r.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+          <div class="chart-info">
+            <div class="chart-title">${r.title}</div>
+            <div class="chart-sub">${r.primary_artist?.name || ""}${r.release_date_for_display ? " · " + r.release_date_for_display : ""}</div>
+          </div>
+          <div class="chart-stats">
+            <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(r.stats?.pageviews)}</span>
+            ${r.stats?.hot ? '<span class="badge badge-hot" style="font-size:.65rem;padding:2px 6px">HOT</span>' : ""}
+          </div>
+        </div>`;
+                }
+
+                if (chartType === "artists") {
+                    if (i === 0) statTop.textContent = r.name || "—";
+                    return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
+          onclick="window.location.href='details-artist.html?id=${r.id}'">
+          <span class="chart-position">${trophy}</span>
+          <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+          <div class="chart-info">
+            <div class="chart-title">${r.name}</div>
+            <div class="chart-sub">${r.is_verified ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified' : "Nghệ sĩ"}</div>
+          </div>
+          ${r.is_verified ? '<span class="badge badge-brand" style="flex-shrink:0"><i class="fa-solid fa-check"></i></span>' : ""}
+        </div>`;
+                }
+
+                if (chartType === "albums") {
+                    if (i === 0) statTop.textContent = r.name || "—";
+                    return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
+          onclick="window.location.href='details-album.html?id=${r.id}'">
+          <span class="chart-position">${trophy}</span>
+          <img class="chart-image" src="${safeImg(r.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+          <div class="chart-info">
+            <div class="chart-title">${r.name}</div>
+            <div class="chart-sub">${r.artist?.name || ""}${r.release_date_components?.year ? " · " + r.release_date_components.year : ""}</div>
+          </div>
+        </div>`;
+                }
+            })
+            .join("");
+    } catch (err) {
+        showError(err.message);
+        chartList.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p></div>`;
+    }
 }
 
-function renderSongItem(item, position, positionClass) {
-    return `
-        <div class="chart-item" onclick="navigateToSong(${item.id})">
-            <div class="chart-position ${positionClass}">${position}</div>
-            <img src="${item.song_art_image_url || item.header_image_url}" alt="${item.title}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
-            <div class="chart-info">
-                <div class="chart-title">${item.title}</div>
-                <div class="chart-subtitle">${item.primary_artist?.name || ''}</div>
-            </div>
-            <div class="chart-stats">
-                <div class="chart-views"><i class="fas fa-eye"></i> ${formatNumber(item.stats?.pageviews || 0)}</div>
-                ${item.stats?.hot ? '<span class="badge-hot"><i class="fas fa-fire"></i> HOT</span>' : ''}
-            </div>
-        </div>
-    `;
-}
-
-function renderArtistItem(item, position, positionClass) {
-    return `
-        <div class="chart-item" onclick="navigateToArtist(${item.id})">
-            <div class="chart-position ${positionClass}">${position}</div>
-            <img src="${item.image_url}" alt="${item.name}" class="chart-image artist" onerror="this.src='assets/images/placeholder.png'">
-            <div class="chart-info">
-                <div class="chart-title">${item.name}</div>
-            </div>
-        </div>
-    `;
-}
-
-function renderAlbumItem(item, position, positionClass) {
-    return `
-        <div class="chart-item" onclick="navigateToAlbum(${item.id})">
-            <div class="chart-position ${positionClass}">${position}</div>
-            <img src="${item.cover_art_url}" alt="${item.name}" class="chart-image" onerror="this.src='assets/images/placeholder.png'">
-            <div class="chart-info">
-                <div class="chart-title">${item.name}</div>
-                <div class="chart-subtitle">${item.artist?.name || ''}</div>
-            </div>
-        </div>
-    `;
-}
-
-// INITIALIZATION
-document.addEventListener('DOMContentLoaded', function() {
-    loadChart('songs');
-});
-
-// MOBILE NAVBAR
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
-        link.addEventListener("click", () => {
-            const navCollapse = document.getElementById("navbarNav");
-            if (navCollapse && navCollapse.classList.contains("show")) {
-                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
-                if (bsCollapse) bsCollapse.hide();
-            }
-        });
-    });
-});
+loadChart();
