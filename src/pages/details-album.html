@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <style>html,body{background-color:#0d0b14 !important;}</style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lyrix</title>
-    <link rel="shortcut icon" type="image/x-icon" href="../assets/images/pngtree-song-lyrics-icon-3d-png-image_16634818-2.webp">
+    <title>Lyrix - Chi tiết album</title>
+    <link rel="shortcut icon" type="image/x-icon" href="../../assets/public/images/logo.webp">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/styles/style.css">
+    <link rel="stylesheet" href="../styles/main.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
-                <img src="../assets/images/pngtree-song-lyrics-icon-3d-png-image_16634818-2.webp" alt="Lyrix Logo" class="navbar-logo">
+            <a class="navbar-brand" href="index.html">
+                <img src="../../assets/public/images/logo.webp" alt="Lyrix Logo" class="navbar-logo">
                 Lyrix
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -23,7 +23,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home"></i> Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="charts.html"><i class="fas fa-chart-line"></i> Charts</a></li>
                     <li class="nav-item ms-lg-3">
                         <a class="nav-link btn-back" href="javascript:history.back()"><i class="fas fa-chevron-left"></i> Back</a>
@@ -32,12 +32,23 @@
             </div>
         </div>
     </nav>
-    <section id="album-details" class="section active detail-page"><div class="container"><div id="albumContent"><div class="loading"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></div></div></div></section>
+    <section id="album-details" class="section active detail-page">
+        <div class="container">
+            <div id="albumContent">
+                <div class="loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <script src="../assets/js/details-album.js"></script>
-    <script src="../assets/js/navbar-auth.js"></script>
+    <script src="../scripts/api/genius.js"></script>
+    <script src="../scripts/pages/details-album.js"></script>
+    <script src="../scripts/components/navbar.js"></script>
 </body>
 </html>

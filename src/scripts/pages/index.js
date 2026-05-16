@@ -1,86 +1,47 @@
-// API CONFIGURATION
-const API_CONFIG = {
-    host: 'genius-song-lyrics1.p.rapidapi.com',
-    key: 'f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4',
-    baseURL: 'https://genius-song-lyrics1.p.rapidapi.com'
-};
+// ============================================================
+//  INDEX PAGE — Search logic
+//  Requires: ../api/genius.js (fetchAPI, formatNumber)
+// ============================================================
 
-// STATE MANAGEMENT
 let currentSearchMode = 'song';
 let searchDebounceTimer = null;
 
-// UTILITY FUNCTIONS
-async function fetchAPI(endpoint, params = {}) {
-    const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-    
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Host': API_CONFIG.host,
-                'X-RapidAPI-Key': API_CONFIG.key
-            }
-        });
-        
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.error('❌ API Error:', error);
-        return null;
-    }
-}
-
-function formatNumber(num) {
-    if (!num) return '0';
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-}
-
 // MODE SWITCHING
-window.setSearchMode = function(mode) {
+window.setSearchMode = function (mode) {
     currentSearchMode = mode;
-    
     document.querySelectorAll('.pill-item').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${mode}'`)) {
-            btn.classList.add('active');
-        }
+        if (btn.getAttribute('onclick').includes(`'${mode}'`)) btn.classList.add('active');
     });
-    
     const input = document.getElementById('searchInput');
-    input.placeholder = mode === 'song' 
-        ? "Nhập tên bài hát..." 
-        : "Tìm bài hát, nghệ sĩ, album...";
+    input.placeholder = mode === 'song' ? 'Nhập tên bài hát...' : 'Tìm bài hát, nghệ sĩ, album...';
 };
 
-// SEARCH LOGIC
-window.performSearch = async function() {
+// SEARCH
+window.performSearch = async function () {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(async () => {
-    const query = document.getElementById('searchInput').value.trim();
-    const container = document.getElementById('searchResults');
-    
-    if (!query) return;
+        const query = document.getElementById('searchInput').value.trim();
+        const container = document.getElementById('searchResults');
+        if (!query) return;
 
-    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-light"></div></div>';
+        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-light"></div></div>';
 
-    if (currentSearchMode === 'song') {
-        const data = await fetchAPI('/search', { q: query });
-        if (data && data.hits) {
-            displayChartResults(data.hits.map(h => ({...h.result, type: 'song'})), container, 'Kết quả tìm kiếm');
+        if (currentSearchMode === 'song') {
+            const data = await fetchAPI('/search', { q: query });
+            if (data && data.hits) {
+                displayChartResults(data.hits.map(h => ({ ...h.result, type: 'song' })), container, 'Kết quả tìm kiếm');
+            } else {
+                container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
+            }
         } else {
-            container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
+            const data = await fetchAPI('/search/multi', { q: query });
+            if (data && data.sections) {
+                displayMultiResults(data.sections, container);
+            } else {
+                container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
+            }
         }
-    } else {
-        const data = await fetchAPI('/search/multi', { q: query });
-        if (data && data.sections) {
-            displayMultiResults(data.sections, container);
-        } else {
-            container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 40px;">Không tìm thấy kết quả.</p>';
-        }
-    }
     }, 400);
 };
 
@@ -88,10 +49,9 @@ window.performSearch = async function() {
 function createChartItem(type, id, title, subtitle, img, stats = {}) {
     const navFunc = type === 'song' ? 'navigateToSong' : (type === 'artist' ? 'navigateToArtist' : 'navigateToAlbum');
     const imgClass = type === 'artist' ? 'chart-image artist' : 'chart-image';
-    
     return `
         <div class="chart-item animate-slide-up" onclick="${navFunc}(${id})">
-            <img src="${img}" class="${imgClass}" onerror="this.src='assets/images/placeholder.png'">
+            <img src="${img}" class="${imgClass}" onerror="this.src='../../assets/public/images/logo.webp'">
             <div class="chart-info">
                 <div class="chart-title">${title}</div>
                 <div class="chart-subtitle">${subtitle}</div>
@@ -107,81 +67,57 @@ function createChartItem(type, id, title, subtitle, img, stats = {}) {
 
 function displayChartResults(results, container, title = '') {
     let html = '';
-    
-    if (title) {
-        html += `<h3 style="color: var(--accent-purple); margin: 30px 0 20px 0; font-size: 1.5rem;"><i class="fas fa-search"></i> ${title}</h3>`;
-    }
-    
+    if (title) html += `<h3 style="color: var(--accent-purple); margin: 30px 0 20px 0; font-size: 1.5rem;"><i class="fas fa-search"></i> ${title}</h3>`;
     html += '<div class="chart-list">';
     results.forEach(item => {
-        const stats = {
-            views: item.stats?.pageviews,
-            hot: item.stats?.hot
-        };
         html += createChartItem(
-            item.type, 
-            item.id, 
-            item.title || item.name, 
+            item.type, item.id,
+            item.title || item.name,
             item.artist_names || item.primary_artist?.name || (item.type === 'artist' ? 'Nghệ sĩ' : ''),
-            item.song_art_image_thumbnail_url || item.image_url || item.cover_art_url || 'assets/images/placeholder.png',
-            stats
+            item.song_art_image_thumbnail_url || item.image_url || item.cover_art_url || '../../assets/public/images/logo.webp',
+            { views: item.stats?.pageviews, hot: item.stats?.hot }
         );
     });
     html += '</div>';
-    
     container.innerHTML = html;
 }
 
 function displayMultiResults(sections, container) {
     let html = `
-        <div class="chart-tabs" style="display: flex; gap: 10px; overflow-x: auto; padding: 20px 0 10px 0; justify-content: center; flex-wrap: wrap;">
-            <button class="tab-btn active" data-tab-id="song" onclick="switchResultTab('song')">
-                <i class="fas fa-music"></i> Bài hát
-            </button>
-            <button class="tab-btn" data-tab-id="artist" onclick="switchResultTab('artist')">
-                <i class="fas fa-user-music"></i> Nghệ sĩ
-            </button>
-            <button class="tab-btn" data-tab-id="album" onclick="switchResultTab('album')">
-                <i class="fas fa-compact-disc"></i> Album
-            </button>
+        <div class="chart-tabs" style="display:flex;gap:10px;overflow-x:auto;padding:20px 0 10px 0;justify-content:center;flex-wrap:wrap;">
+            <button class="tab-btn active" data-tab-id="song" onclick="switchResultTab('song')"><i class="fas fa-music"></i> Bài hát</button>
+            <button class="tab-btn" data-tab-id="artist" onclick="switchResultTab('artist')"><i class="fas fa-user-music"></i> Nghệ sĩ</button>
+            <button class="tab-btn" data-tab-id="album" onclick="switchResultTab('album')"><i class="fas fa-compact-disc"></i> Album</button>
         </div>
         <div class="tab-content">
     `;
-
     ['song', 'artist', 'album'].forEach((type, index) => {
         const section = sections.find(s => s.type === type);
-        const activeClass = index === 0 ? 'active' : '';
-        const displayStyle = index === 0 ? 'block' : 'none';
-
-        html += `<div class="tab-content-item ${activeClass}" data-tab-content="${type}" style="display: ${displayStyle};">`;
-        
+        html += `<div class="tab-content-item ${index === 0 ? 'active' : ''}" data-tab-content="${type}" style="display:${index === 0 ? 'block' : 'none'};">`;
         if (section && section.hits.length > 0) {
             html += '<div class="chart-list">';
             section.hits.forEach(hit => {
                 const res = hit.result;
-                const title = res.title || res.name || res.full_title;
-                const subtitle = res.artist_names || (hit.type === 'artist' ? 'Nghệ sĩ' : '');
-                const img = res.song_art_image_thumbnail_url || res.image_url || res.cover_art_url || 'assets/images/placeholder.png';
-                const stats = {
-                    views: res.stats?.pageviews,
-                    hot: res.stats?.hot
-                };
-                html += createChartItem(hit.type, res.id, title, subtitle, img, stats);
+                html += createChartItem(
+                    hit.type, res.id,
+                    res.title || res.name || res.full_title,
+                    res.artist_names || (hit.type === 'artist' ? 'Nghệ sĩ' : ''),
+                    res.song_art_image_thumbnail_url || res.image_url || res.cover_art_url || '../../assets/public/images/logo.webp',
+                    { views: res.stats?.pageviews, hot: res.stats?.hot }
+                );
             });
             html += '</div>';
         } else {
-            html += '<p class="text-center py-5" style="color: var(--text-secondary);">Không có dữ liệu</p>';
+            html += '<p class="text-center py-5" style="color:var(--text-secondary);">Không có dữ liệu</p>';
         }
-        
         html += '</div>';
     });
-
     html += '</div>';
     container.innerHTML = html;
 }
 
 // TAB SWITCHING
-window.switchResultTab = function(type) {
+window.switchResultTab = function (type) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`[data-tab-id="${type}"]`)?.classList.add('active');
     document.querySelectorAll('.tab-content-item').forEach(c => c.style.display = 'none');
@@ -189,28 +125,7 @@ window.switchResultTab = function(type) {
     if (target) target.style.display = 'block';
 };
 
-// NAVIGATION FUNCTIONS
-window.navigateToSong = (id) => { 
-    window.location.href = `pages/details-song.html?id=${id}`; 
-};
-
-window.navigateToArtist = (id) => { 
-    window.location.href = `pages/details-artist.html?id=${id}`; 
-};
-
-window.navigateToAlbum = (id) => { 
-    window.location.href = `pages/details-album.html?id=${id}`; 
-};
-
-// MOBILE NAVBAR
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            const navCollapse = document.getElementById('navbarNav');
-            if (navCollapse && navCollapse.classList.contains('show')) {
-                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
-                if (bsCollapse) bsCollapse.hide();
-            }
-        });
-    });
-});
+// NAVIGATION — tất cả pages đều nằm trong src/pages/
+window.navigateToSong   = (id) => { window.location.href = `details-song.html?id=${id}`; };
+window.navigateToArtist = (id) => { window.location.href = `details-artist.html?id=${id}`; };
+window.navigateToAlbum  = (id) => { window.location.href = `details-album.html?id=${id}`; };
