@@ -181,6 +181,16 @@ window.triggerSearch = async function (q) {
             });
         }
 
+        // Fallback: nếu song vẫn rỗng → thử /search/ đơn
+        if (!lastResults.song.length) {
+            console.log("[DEBUG] song empty, fallback to /search/");
+            const fb = await fetchAPI("/search/", { q, per_page: 15 });
+            const fbHits = fb?.response?.hits || fb?.hits || [];
+            lastResults.song = fbHits.filter(
+                (h) => h.result?._type === "song" || h.type === "song",
+            );
+        }
+
         renderResults("songs");
     } catch (err) {
         showError(err.message);
@@ -293,12 +303,20 @@ function renderResults(tab) {
 // ─── Trending ─────────────────────────────────────────────────────────────────
 async function loadTrending() {
     try {
-        const data = await fetchAPI("/chart/songs/", {
-            per_page: 8,
-            page: 1,
-            type: "all",
-        });
-        const items = data?.chart_items || [];
+        // Lấy từ cache trước
+        const cached = sessionGet("lyrix_trending");
+        const items =
+            cached ||
+            (
+                await fetchAPI("/chart/songs/", {
+                    per_page: 8,
+                    page: 1,
+                    type: "all",
+                })
+            )?.chart_items ||
+            [];
+        if (!cached && items.length) sessionSet("lyrix_trending", items);
+
         if (!items.length) {
             trendingList.innerHTML =
                 '<div class="empty-state"><i class="fa-solid fa-music"></i><p>Không có dữ liệu</p></div>';
@@ -342,8 +360,13 @@ async function loadTrending() {
 // ─── Top Artists ──────────────────────────────────────────────────────────────
 async function loadArtists() {
     try {
-        const data = await fetchAPI("/chart/artists/", { per_page: 6 });
-        const items = data?.chart_items || [];
+        const cached = sessionGet("lyrix_artists");
+        const items =
+            cached ||
+            (await fetchAPI("/chart/artists/", { per_page: 6 }))?.chart_items ||
+            [];
+        if (!cached && items.length) sessionSet("lyrix_artists", items);
+
         if (!items.length) {
             artistsList.innerHTML =
                 '<div class="empty-state"><i class="fa-solid fa-user"></i><p>Không có dữ liệu</p></div>';

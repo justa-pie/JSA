@@ -1,7 +1,7 @@
 // ─── Lyrix — API Config ───────────────────────────────────────────────────────
 const API_CONFIG = {
     host: "genius-song-lyrics1.p.rapidapi.com",
-    key: "d8b5ad0bfamsh1a6737bb873d9ffp15e9c7jsn4978c505d48a",
+    key: "753fcf1226mshb230d54dc0cadb6p11f1e9jsn4c1781788720",
     baseURL: "https://genius-song-lyrics1.p.rapidapi.com",
 };
 
@@ -74,4 +74,42 @@ function stripHtml(html) {
         .replace(/&#39;/g, "'")
         .replace(/&nbsp;/g, " ")
         .trim();
+}
+
+// ─── Session Cache (tiết kiệm quota) ─────────────────────────────────────────
+// TTL mặc định: 30 phút
+const CACHE_TTL = 30 * 60 * 1000;
+
+function sessionSet(key, data) {
+    try {
+        sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+    } catch {}
+}
+
+function sessionGet(key) {
+    try {
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) {
+            sessionStorage.removeItem(key);
+            return null;
+        }
+        return data;
+    } catch {
+        return null;
+    }
+}
+
+// Wrapper có cache
+async function fetchCached(cacheKey, endpoint, params = {}) {
+    const cached = sessionGet(cacheKey);
+    if (cached) {
+        console.log("[Cache HIT]", cacheKey);
+        return cached;
+    }
+    console.log("[Cache MISS]", cacheKey, "→ fetching API");
+    const data = await fetchAPI(endpoint, params);
+    sessionSet(cacheKey, data);
+    return data;
 }

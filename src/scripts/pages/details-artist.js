@@ -15,13 +15,16 @@ let cachedAlbums = null;
 
 async function loadArtist() {
     try {
-        const data = await fetchAPI("/artist/details/", { id: artistId });
+        const data = await fetchCached(
+            `artist_detail_${artistId}`,
+            "/artist/details/",
+            { id: artistId },
+        );
         const a = data?.artist;
         if (!a) throw new Error("Không tìm thấy nghệ sĩ.");
 
         document.title = `${a.name} — Lyrix`;
 
-        // Banner
         if (a.header_image_url) {
             const bannerEl = document.getElementById("artistBannerImg");
             if (bannerEl) {
@@ -56,7 +59,6 @@ async function loadArtist() {
         </div>
       </div>
 
-      <!-- Stats -->
       <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
         <div class="stats-bar">
           <div class="stat-item"><div class="stat-value">${formatNumber(a.followers_count)}</div><div class="stat-label">Followers</div></div>
@@ -66,17 +68,14 @@ async function loadArtist() {
         </div>
       </div>
 
-      <!-- Two col -->
       <div class="two-column-layout animate-slide-up stagger-2">
         <div class="left-column">
           ${
               bio
-                  ? `
-          <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-user-pen" style="color:var(--brand-light);margin-right:6px"></i>Tiểu sử</h3>
+                  ? `<h3 style="margin-bottom:.75rem"><i class="fa-solid fa-user-pen" style="color:var(--brand-light);margin-right:6px"></i>Tiểu sử</h3>
           <div class="lyrics-container" style="font-size:.875rem;line-height:1.8;color:var(--text-2)">${bio}</div>`
                   : ""
           }
-
           ${
               a.instagram_name || a.twitter_name || a.facebook_name
                   ? `
@@ -91,16 +90,13 @@ async function loadArtist() {
                   : ""
           }
         </div>
-
         <div class="right-column">
           <div class="artist-tabs">
             <button class="artist-tab active" id="tabSongs"  onclick="showTab('songs')"><i class="fa-solid fa-music"></i> Bài hát</button>
             <button class="artist-tab"        id="tabAlbums" onclick="showTab('albums')"><i class="fa-solid fa-compact-disc"></i> Albums</button>
           </div>
           <div id="artistTabContent">
-            <div style="display:flex;flex-direction:column;gap:.5rem">
-              ${Array(6).fill('<div class="skeleton" style="height:68px;border-radius:12px"></div>').join("")}
-            </div>
+            <div style="display:flex;flex-direction:column;gap:.5rem">${Array(6).fill('<div class="skeleton" style="height:68px;border-radius:12px"></div>').join("")}</div>
           </div>
         </div>
       </div>`;
@@ -118,12 +114,11 @@ async function loadSongs() {
         return;
     }
     try {
-        // GET /artist/songs/ — sort: popularity, per_page: 20
-        const data = await fetchAPI("/artist/songs/", {
-            id: artistId,
-            sort: "popularity",
-            per_page: 20,
-        });
+        const data = await fetchCached(
+            `artist_songs_${artistId}`,
+            "/artist/songs/",
+            { id: artistId, sort: "popularity", per_page: 20 },
+        );
         cachedSongs = data?.songs || [];
         const stat = document.getElementById("songCountStat");
         if (stat) stat.textContent = cachedSongs.length;
@@ -140,11 +135,11 @@ async function loadAlbums() {
         return;
     }
     try {
-        // GET /artist/albums/ — per_page: 10
-        const data = await fetchAPI("/artist/albums/", {
-            id: artistId,
-            per_page: 10,
-        });
+        const data = await fetchCached(
+            `artist_albums_${artistId}`,
+            "/artist/albums/",
+            { id: artistId, per_page: 10 },
+        );
         cachedAlbums = data?.albums || [];
         const stat = document.getElementById("albumCountStat");
         if (stat) stat.textContent = cachedAlbums.length;
@@ -161,24 +156,22 @@ function renderSongs(songs) {
             `<div class="empty-state"><i class="fa-solid fa-music"></i><p>Chưa có bài hát</p></div>`;
         return;
     }
-    document.getElementById("artistTabContent").innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:.5rem">
-      ${songs
-          .map(
-              (s, i) => `
-      <div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
-           onclick="window.location.href='details-song.html?id=${s.id}'">
-        <span class="chart-position">${i + 1}</span>
-        <img class="chart-image" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-        <div class="chart-info">
-          <div class="chart-title">${s.title}</div>
-          <div class="chart-sub">${s.release_date_components ? [s.release_date_components.year].filter(Boolean).join(" · ") : ""}</div>
-        </div>
-        <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(s.stats?.pageviews)}</span>
-      </div>`,
-          )
-          .join("")}
-    </div>`;
+    document.getElementById("artistTabContent").innerHTML =
+        `<div style="display:flex;flex-direction:column;gap:.5rem">
+    ${songs
+        .map(
+            (
+                s,
+                i,
+            ) => `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer" onclick="window.location.href='details-song.html?id=${s.id}'">
+      <span class="chart-position">${i + 1}</span>
+      <img class="chart-image" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+      <div class="chart-info"><div class="chart-title">${s.title}</div><div class="chart-sub">${s.release_date_components?.year || ""}</div></div>
+      <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(s.stats?.pageviews)}</span>
+    </div>`,
+        )
+        .join("")}
+  </div>`;
 }
 
 function renderAlbums(albums) {
@@ -187,23 +180,21 @@ function renderAlbums(albums) {
             `<div class="empty-state"><i class="fa-solid fa-compact-disc"></i><p>Chưa có album</p></div>`;
         return;
     }
-    document.getElementById("artistTabContent").innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:.5rem">
-      ${albums
-          .map(
-              (al, i) => `
-      <div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
-           onclick="window.location.href='details-album.html?id=${al.id}'">
-        <span class="chart-position">${i + 1}</span>
-        <img class="chart-image" src="${safeImg(al.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-        <div class="chart-info">
-          <div class="chart-title">${al.name}</div>
-          <div class="chart-sub">${al.release_date_components?.year || ""}</div>
-        </div>
-      </div>`,
-          )
-          .join("")}
-    </div>`;
+    document.getElementById("artistTabContent").innerHTML =
+        `<div style="display:flex;flex-direction:column;gap:.5rem">
+    ${albums
+        .map(
+            (
+                al,
+                i,
+            ) => `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer" onclick="window.location.href='details-album.html?id=${al.id}'">
+      <span class="chart-position">${i + 1}</span>
+      <img class="chart-image" src="${safeImg(al.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+      <div class="chart-info"><div class="chart-title">${al.name}</div><div class="chart-sub">${al.release_date_components?.year || ""}</div></div>
+    </div>`,
+        )
+        .join("")}
+  </div>`;
 }
 
 window.showTab = function (tab) {
@@ -214,9 +205,7 @@ window.showTab = function (tab) {
         .getElementById("tabAlbums")
         .classList.toggle("active", tab === "albums");
     document.getElementById("artistTabContent").innerHTML =
-        `<div style="display:flex;flex-direction:column;gap:.5rem">
-    ${Array(4).fill('<div class="skeleton" style="height:68px;border-radius:12px"></div>').join("")}
-  </div>`;
+        `<div style="display:flex;flex-direction:column;gap:.5rem">${Array(4).fill('<div class="skeleton" style="height:68px;border-radius:12px"></div>').join("")}</div>`;
     if (tab === "songs") loadSongs();
     else loadAlbums();
 };
