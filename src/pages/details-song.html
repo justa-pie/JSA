@@ -15,6 +15,10 @@
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
         <link rel="stylesheet" href="../styles/main.css" />
+        <!-- Firebase -->
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     </head>
     <body>
         <div class="gradient-orb orb-1"></div>
@@ -33,15 +37,195 @@
                 <button class="btn-nav btn-nav-ghost" onclick="history.back()">
                     <i class="fa-solid fa-arrow-left"></i> Quay lại
                 </button>
+                <div style="position: relative" id="userMenuWrap">
+                    <button
+                        class="navbar-avatar"
+                        id="navUserBtn"
+                        onclick="toggleUserMenu()"
+                        style="display: none"
+                    >
+                        <span id="navUserInitial">U</span>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name" id="ddName">—</div>
+                            <div class="user-dropdown-email" id="ddEmail">
+                                —
+                            </div>
+                        </div>
+                        <button class="user-dropdown-item" onclick="signOut()">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng
+                            xuất
+                        </button>
+                    </div>
+                </div>
+                <button
+                    class="btn-nav btn-nav-primary"
+                    id="navLoginBtn"
+                    onclick="openAuthModal()"
+                >
+                    <i class="fa-solid fa-user"></i> Đăng nhập
+                </button>
             </div>
-            <button class="navbar-toggler" id="navToggle">
+            <button class="navbar-toggler" id="navToggle" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div class="navbar-collapse" id="navCollapse">
                 <a href="index.html">Khám phá</a>
                 <a href="charts.html">Charts</a>
+                <button
+                    class="user-dropdown-item"
+                    id="mobileLoginBtn"
+                    onclick="openAuthModal()"
+                    style="border-radius: 8px; margin-top: 4px; display: flex"
+                >
+                    <i class="fa-solid fa-user"></i> Đăng nhập
+                </button>
             </div>
         </nav>
+
+        <!-- Auth Modal -->
+        <div class="modal-overlay" id="authModalOverlay">
+            <div class="modal">
+                <button class="modal-close" onclick="closeAuthModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h2>Chào mừng</h2>
+                <p class="modal-subtitle">Đăng nhập để lưu bài hát yêu thích</p>
+                <div class="modal-tabs">
+                    <button
+                        class="modal-tab active"
+                        data-tab="login"
+                        onclick="switchTab('login')"
+                    >
+                        Đăng nhập
+                    </button>
+                    <button
+                        class="modal-tab"
+                        data-tab="register"
+                        onclick="switchTab('register')"
+                    >
+                        Đăng ký
+                    </button>
+                </div>
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input
+                            class="form-input"
+                            id="loginEmail"
+                            type="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <input
+                            class="form-input"
+                            id="loginPassword"
+                            type="password"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                        />
+                    </div>
+                    <div class="form-error" id="loginError"></div>
+                    <button
+                        class="btn btn-primary btn-full"
+                        id="loginBtn"
+                        data-label="Đăng nhập"
+                        onclick="handleLogin()"
+                    >
+                        Đăng nhập
+                    </button>
+                    <div class="divider">hoặc</div>
+                    <button class="btn-google" onclick="handleGoogle()">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path
+                                fill="#EA4335"
+                                d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6c1.8-5.4 6.8-9.8 13.6-9.8z"
+                            />
+                            <path
+                                fill="#4285F4"
+                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"
+                            />
+                            <path
+                                fill="#FBBC05"
+                                d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"
+                            />
+                            <path
+                                fill="#34A853"
+                                d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.7 0-12.4-4.5-14.4-10.6l-7.8 6C6.5 42.5 14.6 48 24 48z"
+                            />
+                        </svg>
+                        Tiếp tục với Google
+                    </button>
+                </div>
+                <div id="registerForm" style="display: none">
+                    <div class="form-group">
+                        <label class="form-label">Tên hiển thị</label>
+                        <input
+                            class="form-input"
+                            id="registerName"
+                            type="text"
+                            placeholder="Tên của bạn"
+                            autocomplete="name"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input
+                            class="form-input"
+                            id="registerEmail"
+                            type="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <input
+                            class="form-input"
+                            id="registerPassword"
+                            type="password"
+                            placeholder="Ít nhất 6 ký tự"
+                            autocomplete="new-password"
+                        />
+                    </div>
+                    <div class="form-error" id="registerError"></div>
+                    <button
+                        class="btn btn-primary btn-full"
+                        id="registerBtn"
+                        data-label="Đăng ký"
+                        onclick="handleRegister()"
+                    >
+                        Đăng ký
+                    </button>
+                    <div class="divider">hoặc</div>
+                    <button class="btn-google" onclick="handleGoogle()">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path
+                                fill="#EA4335"
+                                d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6c1.8-5.4 6.8-9.8 13.6-9.8z"
+                            />
+                            <path
+                                fill="#4285F4"
+                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"
+                            />
+                            <path
+                                fill="#FBBC05"
+                                d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"
+                            />
+                            <path
+                                fill="#34A853"
+                                d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.7 0-12.4-4.5-14.4-10.6l-7.8 6C6.5 42.5 14.6 48 24 48z"
+                            />
+                        </svg>
+                        Tiếp tục với Google
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <main>
             <div
@@ -141,6 +325,7 @@
 
         <script src="../scripts/api/genius.js"></script>
         <script src="../scripts/pages/details-song.js"></script>
+        <script src="../scripts/components/auth.js"></script>
         <script src="../scripts/components/navbar.js"></script>
     </body>
 </html>
