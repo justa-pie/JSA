@@ -14,7 +14,7 @@ let debounceTimer = null;
 let currentTab = "songs";
 let lastResults = { song: [], artist: [], album: [] };
 
-// ─── Dropdown helpers ──────────────────────────────────────────────────────────
+// ─── Dropdown helpers ─────────────────────────────────────────────────────────
 function openDropdown() {
     searchDropdown.classList.add("open");
 }
@@ -64,29 +64,30 @@ searchClear.addEventListener("click", () => {
     searchInput.focus();
 });
 
-// Click ngoài → đóng dropdown
 document.addEventListener("click", (e) => {
     if (!searchWrapper?.contains(e.target)) closeDropdown();
 });
 
-// ─── Dropdown preview ─────────────────────────────────────────────────────────
+// ─── Dropdown: cache key riêng, per_page nhỏ ─────────────────────────────────
 async function fetchDropdown(q) {
     try {
-        const data = await fetchAPI("/search/multi/", {
+        // Dùng chung cache key với full search để tiết kiệm quota
+        const data = await fetchCached(`search_${q}`, "/search/multi/", {
             q,
             per_page: 5,
             page: 1,
         });
-        const sections = data?.sections || data?.response?.sections || [];
+        const sections = data?.sections || [];
 
         const topHit = sections.find((s) => s.type === "top_hit");
         const songSec = sections.find((s) => s.type === "song");
+
         const hits = [...(topHit?.hits || []), ...(songSec?.hits || [])]
             .filter((h) => h.type === "song")
             .filter(
                 (h, i, arr) =>
                     arr.findIndex((x) => x.result?.id === h.result?.id) === i,
-            ) // dedupe
+            )
             .slice(0, 5);
 
         if (!hits.length) {
@@ -114,20 +115,17 @@ async function fetchDropdown(q) {
            onclick="triggerSearch('${q.replace(/'/g, "\\'")}')">
         Xem tất cả kết quả <i class="fa-solid fa-arrow-right" style="font-size:11px;margin-left:4px"></i>
       </div>`;
-
         openDropdown();
     } catch {
         closeDropdown();
     }
 }
 
-// ─── Full search ──────────────────────────────────────────────────────────────
+// ─── Full search: cache key riêng "_full", per_page: 15 ──────────────────────
 window.triggerSearch = async function (q) {
-    // 1. Đóng dropdown ngay lập tức
     closeDropdown();
     searchInput.blur();
 
-    // 2. Hiện results skeleton
     searchResultsSection.style.display = "block";
     searchResultsTitle.textContent = `Kết quả cho "${q}"`;
     currentTab = "songs";
@@ -135,7 +133,6 @@ window.triggerSearch = async function (q) {
     showSkeletonResults();
     lastResults = { song: [], artist: [], album: [] };
 
-    // 3. Scroll xuống results
     requestAnimationFrame(() => {
         searchResultsSection.scrollIntoView({
             behavior: "smooth",
@@ -144,51 +141,31 @@ window.triggerSearch = async function (q) {
     });
 
     try {
-        const data = await fetchAPI("/search/multi/", {
+        // Dùng chung cache key — cùng per_page: 5
+        const data = await fetchCached(`search_${q}`, "/search/multi/", {
             q,
-            per_page: 15,
+            per_page: 5,
             page: 1,
         });
+        const sections = data?.sections || [];
 
-        // API có thể trả về 2 shape:
-        // Shape 1 (mới): { sections: [...] }
-        // Shape 2 (cũ):  { response: { sections: [...] } }
-        const sections = data?.sections || data?.response?.sections || [];
-
-        console.log(
-            "[DEBUG] sections:",
-            sections.length,
-            sections.map((s) => s.type + ":" + s.hits?.length),
-        );
-
-        // Map các section chính
+        // Map từng section type vào đúng bucket
         sections.forEach((sec) => {
             if (sec.type === "song") lastResults.song = sec.hits || [];
-            if (sec.type === "artist") lastResults.artist = sec.hits || [];
-            if (sec.type === "album") lastResults.album = sec.hits || [];
+            else if (sec.type === "artist") lastResults.artist = sec.hits || [];
+            else if (sec.type === "album") lastResults.album = sec.hits || [];
         });
 
-        // Bổ sung từ top_hit (dedupe theo id)
-        const topHitSec = sections.find((s) => s.type === "top_hit");
-        if (topHitSec?.hits?.length) {
-            topHitSec.hits.forEach((h) => {
-                const key = h.type; // 'song' | 'artist' | 'album'
-                if (!lastResults[key]) return;
-                const exists = lastResults[key].some(
-                    (x) => x.result?.id === h.result?.id,
-                );
-                if (!exists) lastResults[key].unshift(h);
+        // top_hit: bổ sung vào bucket tương ứng (dedupe theo id)
+        const topSec = sections.find((s) => s.type === "top_hit");
+        if (topSec?.hits) {
+            topSec.hits.forEach((h) => {
+                // h.type = 'song' | 'artist' | 'album'
+                const bucket = lastResults[h.type];
+                if (!bucket) return;
+                if (!bucket.some((x) => x.result?.id === h.result?.id))
+                    bucket.unshift(h);
             });
-        }
-
-        // Fallback: nếu song vẫn rỗng → thử /search/ đơn
-        if (!lastResults.song.length) {
-            console.log("[DEBUG] song empty, fallback to /search/");
-            const fb = await fetchAPI("/search/", { q, per_page: 15 });
-            const fbHits = fb?.response?.hits || fb?.hits || [];
-            lastResults.song = fbHits.filter(
-                (h) => h.result?._type === "song" || h.type === "song",
-            );
         }
 
         renderResults("songs");
@@ -222,6 +199,8 @@ function showSkeletonResults() {
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
+const TAB_KEY = { songs: "song", artists: "artist", albums: "album" };
+
 document.querySelectorAll("#searchTabs .tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
         currentTab = btn.dataset.tab;
@@ -238,8 +217,6 @@ function updateTabUI() {
         );
 }
 
-const TAB_KEY = { songs: "song", artists: "artist", albums: "album" };
-
 function renderResults(tab) {
     const hits = lastResults[TAB_KEY[tab]] || [];
 
@@ -252,58 +229,63 @@ function renderResults(tab) {
         return;
     }
 
-    searchResultsContent.innerHTML = `<div style="display:flex;flex-direction:column;gap:.5rem">
-    ${hits
+    const rows = hits
         .map((h, i) => {
             const r = h.result;
             if (!r) return "";
+            const delay = `animation-delay:${Math.min(i, 10) * 0.04}s`;
 
             if (tab === "songs") {
-                return `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
-          onclick="window.location.href='details-song.html?id=${r.id}'">
-          <span class="chart-position">${i + 1}</span>
-          <img class="chart-image" src="${safeImg(r.song_art_image_url || r.song_art_image_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info">
-            <div class="chart-title">${r.title}</div>
-            <div class="chart-sub">${r.primary_artist?.name || r.artist_names || ""}</div>
-          </div>
-          <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(r.stats?.pageviews)}</span>
-        </div>`;
+                return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
+        onclick="window.location.href='details-song.html?id=${r.id}'">
+        <span class="chart-position">${i + 1}</span>
+        <img class="chart-image" src="${safeImg(r.song_art_image_url || r.song_art_image_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+        <div class="chart-info">
+          <div class="chart-title">${r.title}</div>
+          <div class="chart-sub">${r.primary_artist?.name || r.artist_names || ""}</div>
+        </div>
+        <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(r.stats?.pageviews)}</span>
+      </div>`;
             }
 
             if (tab === "artists") {
-                return `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
-          onclick="window.location.href='details-artist.html?id=${r.id}'">
-          <span class="chart-position">${i + 1}</span>
-          <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info">
-            <div class="chart-title">${r.name}</div>
-            <div class="chart-sub">${r.is_verified ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified Artist' : "Nghệ sĩ"}</div>
-          </div>
-          ${r.is_verified ? '<span class="badge badge-brand" style="flex-shrink:0"><i class="fa-solid fa-check"></i></span>' : ""}
-        </div>`;
+                return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
+        onclick="window.location.href='details-artist.html?id=${r.id}'">
+        <span class="chart-position">${i + 1}</span>
+        <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+        <div class="chart-info">
+          <div class="chart-title">${r.name}</div>
+          <div class="chart-sub">${
+              r.is_verified
+                  ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified Artist'
+                  : "Nghệ sĩ"
+          }</div>
+        </div>
+        ${r.is_verified ? '<span class="badge badge-brand" style="flex-shrink:0"><i class="fa-solid fa-check"></i></span>' : ""}
+      </div>`;
             }
 
             if (tab === "albums") {
-                return `<div class="chart-item animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer"
-          onclick="window.location.href='details-album.html?id=${r.id}'">
-          <span class="chart-position">${i + 1}</span>
-          <img class="chart-image" src="${safeImg(r.cover_art_url || r.cover_art_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info">
-            <div class="chart-title">${r.name}</div>
-            <div class="chart-sub">${r.artist?.name || ""}${r.release_date_components?.year ? " · " + r.release_date_components.year : ""}</div>
-          </div>
-        </div>`;
+                return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
+        onclick="window.location.href='details-album.html?id=${r.id}'">
+        <span class="chart-position">${i + 1}</span>
+        <img class="chart-image" src="${safeImg(r.cover_art_url || r.cover_art_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+        <div class="chart-info">
+          <div class="chart-title">${r.name}</div>
+          <div class="chart-sub">${r.artist?.name || ""}${r.release_date_components?.year ? " · " + r.release_date_components.year : ""}</div>
+        </div>
+      </div>`;
             }
+            return "";
         })
-        .join("")}
-  </div>`;
+        .join("");
+
+    searchResultsContent.innerHTML = `<div style="display:flex;flex-direction:column;gap:.5rem">${rows}</div>`;
 }
 
 // ─── Trending ─────────────────────────────────────────────────────────────────
 async function loadTrending() {
     try {
-        // Lấy từ cache trước
         const cached = sessionGet("lyrix_trending");
         const items =
             cached ||
@@ -383,7 +365,11 @@ async function loadArtists() {
           <img class="chart-image artist" src="${safeImg(a.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
           <div class="chart-info">
             <div class="chart-title">${a.name}</div>
-            <div class="chart-sub">${a.is_verified ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified' : "Nghệ sĩ"}</div>
+            <div class="chart-sub">${
+                a.is_verified
+                    ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified'
+                    : "Nghệ sĩ"
+            }</div>
           </div>
         </div>`;
           })
