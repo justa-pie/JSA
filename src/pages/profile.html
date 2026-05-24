@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Trang cá nhân — Lyrix</title>
+    <link rel="icon" href="../../assets/public/images/logo.webp"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="../styles/main.css"/>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div class="gradient-orb orb-1"></div>
+<div class="gradient-orb orb-2"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <a class="navbar-brand" href="index.html">
+        <div class="logo-icon"><i class="fa-solid fa-music"></i></div>Lyrix
+    </a>
+    <div class="navbar-links">
+        <a href="index.html">Khám phá</a>
+        <a href="charts.html">Charts</a>
+    </div>
+    <div class="navbar-actions">
+        <button class="btn-nav btn-nav-ghost" onclick="history.back()">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại
+        </button>
+        <div style="position:relative" id="userMenuWrap">
+            <button class="navbar-avatar" id="navUserBtn" onclick="toggleUserMenu()" style="display:none">
+                <span id="navUserInitial">U</span>
+            </button>
+            <div class="user-dropdown" id="userDropdown">
+                <div class="user-dropdown-header">
+                    <div class="user-dropdown-name" id="ddName">—</div>
+                    <div class="user-dropdown-email" id="ddEmail">—</div>
+                </div>
+                <button class="user-dropdown-item" onclick="window.location.href='profile.html'">
+                    <i class="fa-solid fa-user-circle"></i> Trang cá nhân
+                </button>
+                <button class="user-dropdown-item" onclick="signOut()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+        <button class="btn-nav btn-nav-primary" id="navLoginBtn" onclick="openAuthModal()">
+            <i class="fa-solid fa-user"></i> Đăng nhập
+        </button>
+    </div>
+    <button class="navbar-toggler" id="navToggle" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="navbar-collapse" id="navCollapse">
+        <a href="index.html">Khám phá</a>
+        <a href="charts.html">Charts</a>
+        <button class="user-dropdown-item" id="mobileLoginBtn" onclick="openAuthModal()"
+            style="border-radius:8px;margin-top:4px;display:flex">
+            <i class="fa-solid fa-user"></i> Đăng nhập
+        </button>
+    </div>
+</nav>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModalOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h2>Chào mừng</h2>
+        <p class="modal-subtitle">Đăng nhập để lưu bài hát yêu thích</p>
+        <div class="modal-tabs">
+            <button class="modal-tab active" data-tab="login" onclick="switchTab('login')">Đăng nhập</button>
+            <button class="modal-tab" data-tab="register" onclick="switchTab('register')">Đăng ký</button>
+        </div>
+        <div id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+            </div>
+            <div class="form-error" id="loginError"></div>
+            <button class="btn btn-primary btn-full" id="loginBtn" data-label="Đăng nhập" onclick="handleLogin()">Đăng nhập</button>
+            <div class="divider">hoặc</div>
+            <button class="btn-google" onclick="handleGoogle()">
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6c1.8-5.4 6.8-9.8 13.6-9.8z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.7 0-12.4-4.5-14.4-10.6l-7.8 6C6.5 42.5 14.6 48 24 48z"/></svg>
+                Tiếp tục với Google
+            </button>
+        </div>
+        <div id="registerForm" style="display:none">
+            <div class="form-group">
+                <label class="form-label">Tên hiển thị</label>
+                <input class="form-input" id="registerName" type="text" placeholder="Tên của bạn" autocomplete="name"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="registerEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-input" id="registerPassword" type="password" placeholder="Ít nhất 6 ký tự" autocomplete="new-password"/>
+            </div>
+            <div class="form-error" id="registerError"></div>
+            <button class="btn btn-primary btn-full" id="registerBtn" data-label="Đăng ký" onclick="handleRegister()">Đăng ký</button>
+            <div class="divider">hoặc</div>
+            <button class="btn-google" onclick="handleGoogle()">
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6c1.8-5.4 6.8-9.8 13.6-9.8z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.7 0-12.4-4.5-14.4-10.6l-7.8 6C6.5 42.5 14.6 48 24 48z"/></svg>
+                Tiếp tục với Google
+            </button>
+        </div>
+    </div>
+</div>
+
+<main>
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+
+    <!-- ── HERO SECTION ── -->
+    <div class="profile-hero animate-slide-up">
+        <div class="profile-hero-bg" id="profileHeroBg"></div>
+        <div class="profile-hero-inner">
+            <!-- Avatar -->
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar" id="profileAvatar">U</div>
+                <label class="profile-avatar-edit" title="Đổi ảnh đại diện">
+                    <i class="fa-solid fa-camera"></i>
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)"/>
+                </label>
+            </div>
+            <!-- Info -->
+            <div class="profile-hero-info">
+                <div class="profile-name-row">
+                    <h1 id="profileName">—</h1>
+                    <button class="btn btn-outline btn-sm" onclick="openEditModal()">
+                        <i class="fa-solid fa-pen"></i> Chỉnh sửa
+                    </button>
+                </div>
+                <div id="profileRole" style="color:var(--brand-light);font-size:.9rem;font-weight:500;margin-top:2px"></div>
+                <div id="profileEmail" style="color:var(--text-3);font-size:.85rem;margin-top:4px"></div>
+                <div id="profileBio" style="color:var(--text-2);font-size:.875rem;line-height:1.6;margin-top:.6rem;max-width:480px"></div>
+                <!-- Stats -->
+                <div class="profile-stats">
+                    <div class="profile-stat"><span id="statFavorites">0</span><span>Yêu thích</span></div>
+                    <div class="profile-stat-sep"></div>
+                    <div class="profile-stat"><span id="statHistory">0</span><span>Đã xem</span></div>
+                    <div class="profile-stat-sep"></div>
+                    <div class="profile-stat"><span id="statPlaylists">0</span><span>Playlist</span></div>
+                    <div class="profile-stat-sep"></div>
+                    <div class="profile-stat"><span id="statJoined">—</span><span>Tham gia</span></div>
+                </div>
+                <!-- Info chips -->
+                <div class="profile-info-chips" id="profileInfoChips"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TABS ── -->
+    <div class="profile-tabs animate-slide-up stagger-1">
+        <button class="profile-tab active" onclick="switchProfileTab('favorites')" id="tab_favorites">
+            <i class="fa-solid fa-heart"></i> Yêu thích
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('history')" id="tab_history">
+            <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('playlists')" id="tab_playlists">
+            <i class="fa-solid fa-list-music"></i> Playlist
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('photos')" id="tab_photos">
+            <i class="fa-solid fa-images"></i> Ảnh
+        </button>
+    </div>
+
+    <!-- ── TAB CONTENT ── -->
+    <div id="profileTabContent" class="animate-slide-up stagger-2">
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+            ${[1,2,3,4].map(()=>'<div class="skeleton" style="height:72px;border-radius:12px"></div>').join('')}
+        </div>
+    </div>
+
+</div>
+</main>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editModalOverlay">
+    <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h2 style="font-size:1.25rem;margin-bottom:1.25rem">Chỉnh sửa hồ sơ</h2>
+        <div class="form-group">
+            <label class="form-label">Tên hiển thị</label>
+            <input class="form-input" id="editName" type="text" placeholder="Tên của bạn"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Chức danh / Vai trò</label>
+            <input class="form-input" id="editRole" type="text" placeholder="VD: Sinh viên CNTT, Music lover…"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Giới thiệu bản thân</label>
+            <textarea class="form-input" id="editBio" rows="3" placeholder="Viết vài dòng về bạn…" style="resize:vertical"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Ngày sinh</label>
+            <input class="form-input" id="editDob" type="date"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input class="form-input" id="editPhone" type="tel" placeholder="+84 xxx xxx xxx"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Địa điểm</label>
+            <input class="form-input" id="editLocation" type="text" placeholder="Thành phố, Quốc gia"/>
+        </div>
+        <div class="form-error" id="editError"></div>
+        <div style="display:flex;gap:.75rem;margin-top:.5rem">
+            <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="closeEditModal()">Huỷ</button>
+            <button class="btn btn-primary" style="flex:1;justify-content:center" id="saveEditBtn" data-label="Lưu thay đổi" onclick="saveProfile()">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- PLAYLIST MODAL -->
+<div class="modal-overlay" id="plModalOverlay">
+    <div class="modal" style="max-width:400px">
+        <button class="modal-close" onclick="closePlModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h2 id="plModalTitle" style="font-size:1.25rem;margin-bottom:1.25rem">Tạo playlist</h2>
+        <!-- Cover -->
+        <div style="display:flex;justify-content:center;margin-bottom:1.25rem">
+            <label style="cursor:pointer;position:relative" title="Chọn ảnh bìa">
+                <div class="pl-cover-preview" id="plCoverWrap">
+                    <img id="plCoverPreview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:12px"/>
+                    <div id="plCoverPlaceholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:var(--text-3)">
+                        <i class="fa-solid fa-image" style="font-size:2rem"></i>
+                        <span style="font-size:.8rem">Chọn ảnh bìa</span>
+                    </div>
+                </div>
+                <input type="file" accept="image/*" style="display:none" onchange="handlePlCoverChange(event)"/>
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Tên playlist</label>
+            <input class="form-input" id="plName" type="text" placeholder="Tên playlist của bạn…"/>
+        </div>
+        <div class="form-error" id="plError"></div>
+        <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
+            <button class="btn btn-outline" style="flex:1;justify-content:center;min-width:80px" onclick="closePlModal()">Huỷ</button>
+            <button class="btn btn-danger btn-sm" id="deletePlBtn" style="display:none" onclick="deletePlaylist(document.getElementById('savePlBtn').dataset.plId)">
+                <i class="fa-solid fa-trash"></i> Xoá
+            </button>
+            <button class="btn btn-primary" style="flex:1;justify-content:center;min-width:80px" id="savePlBtn" data-label="Lưu" data-mode="create" data-pl-id="" onclick="savePlaylist()">Lưu</button>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-inner">
+            <div class="footer-brand"><i class="fa-solid fa-music"></i> Lyrix</div>
+            <div class="footer-links"><a href="index.html">Trang chủ</a><a href="charts.html">Charts</a></div>
+            <div class="footer-copy">© 2025 Lyrix.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="../scripts/api/genius.js"></script>
+<script src="../scripts/pages/profile.js"></script>
+<script src="../scripts/components/auth.js"></script>
+<script src="../scripts/components/navbar.js"></script>
+</body>
+</html>

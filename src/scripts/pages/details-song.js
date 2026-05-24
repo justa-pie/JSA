@@ -10,9 +10,9 @@ if (!songId) {
     loadSong();
 }
 
+// ─── Load song ────────────────────────────────────────────────────────────────
 async function loadSong() {
     try {
-        // Cache theo song ID — tránh gọi lại khi back/forward
         const [detailData, lyricsData] = await Promise.all([
             fetchCached(`song_detail_${songId}`, "/song/details/", {
                 id: songId,
@@ -33,6 +33,20 @@ async function loadSong() {
         const writers = s.writer_artists || [];
         const producers = s.producer_artists || [];
         const featured = s.featured_artists || [];
+
+        // Ghi lịch sử xem (chỉ khi đã đăng nhập — auth.js expose addToHistory)
+        const songMeta = {
+            songId: s.id,
+            title: s.title,
+            artist: s.primary_artist?.name || "",
+            artUrl: s.song_art_image_url || s.header_image_url || "",
+        };
+        // Chờ auth state thật sự ready
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user && typeof addToHistory === "function") {
+                addToHistory(songMeta);
+            }
+        });
 
         container.innerHTML = `
       <div class="song-detail-header animate-slide-up" id="songHeader">
@@ -56,6 +70,9 @@ async function loadSong() {
           </div>
           <div class="detail-actions">
             ${s.url ? `<a href="${s.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
+            <button class="btn btn-fav btn-sm" id="favBtn" onclick="handleFavorite()">
+              <i class="fa-regular fa-heart"></i> Yêu thích
+            </button>
             <button class="btn btn-outline btn-sm" onclick="copyLyrics()"><i class="fa-solid fa-copy"></i> Sao chép lời</button>
             ${s.primary_artist?.id ? `<button class="btn btn-ghost btn-sm" onclick="window.location.href='details-artist.html?id=${s.primary_artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
           </div>
@@ -71,8 +88,7 @@ async function loadSong() {
         </div>
         ${
             s.stats?.pageviews
-                ? `
-        <div style="margin-top:1rem">
+                ? `<div style="margin-top:1rem">
           <div style="font-size:.72rem;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Popularity</div>
           <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, Math.round((s.stats.pageviews / 10000000) * 100))}%"></div></div>
         </div>`
@@ -84,8 +100,7 @@ async function loadSong() {
         <div class="left-column">
           ${
               featured.length || writers.length || producers.length
-                  ? `
-          <div class="credits-section">
+                  ? `<div class="credits-section">
             ${
                 featured.length
                     ? `<div style="margin-bottom:1rem">
@@ -116,8 +131,7 @@ async function loadSong() {
 
           ${
               s.album
-                  ? `
-          <div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'">
+                  ? `<div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'">
             <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Album</div>
             <div style="display:flex;align-items:center;gap:.75rem">
               <img src="${safeImg(s.album.cover_art_url)}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.src='${safeImg()}'"/>
@@ -141,8 +155,7 @@ async function loadSong() {
           <div class="lyrics-container" id="lyricsBox" style="max-height:600px;overflow-y:auto">${lyricsText}</div>
           ${
               s.description?.html
-                  ? `
-          <div style="margin-top:1.5rem">
+                  ? `<div style="margin-top:1.5rem">
             <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
             <div class="lyrics-container" style="font-size:.875rem;line-height:1.75;color:var(--text-2)">${stripHtml(s.description.html)}</div>
           </div>`
@@ -150,12 +163,69 @@ async function loadSong() {
           }
         </div>
       </div>`;
+
+        // Kiểm tra trạng thái yêu thích sau khi render
+        setTimeout(async () => {
+            if (typeof checkFavorite === "function") {
+                const isFav = await checkFavorite(s.id);
+                updateFavBtn(isFav);
+            }
+        }, 600);
+
+        // Lưu songMeta để dùng trong handleFavorite
+        window._currentSongMeta = songMeta;
     } catch (err) {
         showError(err.message);
         container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
     }
 }
 
+// ─── Favorite button ──────────────────────────────────────────────────────────
+function updateFavBtn(isFav) {
+    const btn = document.getElementById("favBtn");
+    if (!btn) return;
+    if (isFav) {
+        btn.innerHTML =
+            '<i class="fa-solid fa-heart" style="color:#f87171"></i> Đã yêu thích';
+        btn.classList.add("btn-fav-active");
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-heart"></i> Yêu thích';
+        btn.classList.remove("btn-fav-active");
+    }
+}
+
+window.handleFavorite = async function () {
+    const btn = document.getElementById("favBtn");
+    if (!btn || !window._currentSongMeta) return;
+
+    if (typeof firebase === "undefined" || !firebase.auth().currentUser) {
+        openAuthModal("login");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+
+    try {
+        const added = await toggleFavorite(window._currentSongMeta);
+        updateFavBtn(added);
+        // Toast nhẹ
+        const toast = document.createElement("div");
+        toast.className = "error-toast";
+        toast.style.cssText = `border-left:3px solid ${added ? "#f87171" : "var(--border)"}`;
+        toast.innerHTML = added
+            ? '<i class="fa-solid fa-heart" style="color:#f87171;margin-right:8px"></i>Đã thêm vào yêu thích'
+            : '<i class="fa-regular fa-heart" style="margin-right:8px"></i>Đã bỏ khỏi yêu thích';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    } catch {
+        btn.innerHTML = '<i class="fa-regular fa-heart"></i> Yêu thích';
+    } finally {
+        btn.disabled = false;
+    }
+};
+
+// ─── Copy lyrics ──────────────────────────────────────────────────────────────
 window.copyLyrics = function () {
     const box = document.getElementById("lyricsBox");
     if (!box) return;
@@ -173,6 +243,7 @@ window.copyLyrics = function () {
     });
 };
 
+// ─── Toggle lyrics expand ─────────────────────────────────────────────────────
 let expanded = false;
 window.toggleLyricsSize = function () {
     const box = document.getElementById("lyricsBox");
