@@ -35,13 +35,13 @@ function fileToBase64(file, maxPx, quality = 0.82) {
 
 // ─── Auth gate ────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-    const timeout   = setTimeout(() => { window.location.href = "index.html"; }, 3500);
+    const timeout   = setTimeout(() => { window.location.href = "../../index.html"; }, 3500);
     const checkAuth = setInterval(() => {
         if (typeof firebase === "undefined") return;
         clearInterval(checkAuth);
         clearTimeout(timeout);
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) { window.location.href = "index.html"; return; }
+            if (!user) { window.location.href = "../../index.html"; return; }
             currentUser = user;
             initProfile(user);
         });
@@ -515,7 +515,7 @@ function renderEmpty(type) {
             <i class="fa-solid ${m.icon}" style="color:var(--text-3);font-size:2rem;margin-bottom:.75rem"></i>
             <h3>${m.text}</h3>
             <p style="color:var(--text-3);font-size:.85rem;margin-top:.5rem">${m.sub}</p>
-            <a href="index.html" class="btn btn-outline btn-sm" style="margin-top:1.25rem">Khám phá nhạc</a>
+            <a href="../../index.html" class="btn btn-outline btn-sm" style="margin-top:1.25rem">Khám phá nhạc</a>
         </div>`;
 }
 function renderError(msg) {

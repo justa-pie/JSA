@@ -5,7 +5,7 @@ const albumId = params.get("id");
 const container = document.getElementById("albumDetailContent");
 
 if (!albumId) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID album</h3><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID album</h3><a href="../../index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
 } else {
     loadAlbum();
 }
@@ -104,6 +104,6 @@ async function loadAlbum() {
       </div>`;
     } catch (err) {
         showError(err.message);
-        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
+        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="../../index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
     }
 }

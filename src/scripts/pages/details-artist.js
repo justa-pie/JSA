@@ -5,7 +5,7 @@ const artistId = params.get("id");
 const container = document.getElementById("artistDetailContent");
 
 if (!artistId) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID nghệ sĩ</h3><a href="index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Thiếu ID nghệ sĩ</h3><a href="../../index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;
 } else {
     loadArtist();
 }

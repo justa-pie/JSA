@@ -14,9 +14,9 @@ if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 
 // ─── UI Elements ──────────────────────────────────────────────────────────────
-const modalOverlay   = document.getElementById("authModalOverlay");
-const navLoginBtn    = document.getElementById("navLoginBtn");
-const navUserBtn     = document.getElementById("navUserBtn");
+const modalOverlay = document.getElementById("authModalOverlay");
+const navLoginBtn = document.getElementById("navLoginBtn");
+const navUserBtn = document.getElementById("navUserBtn");
 const mobileLoginBtn = document.getElementById("mobileLoginBtn");
 
 // ─── Open / Close auth modal ──────────────────────────────────────────────────
@@ -35,11 +35,13 @@ modalOverlay?.addEventListener("click", (e) => {
 
 // ─── Tab switching ────────────────────────────────────────────────────────────
 window.switchTab = function (tab) {
-    document.querySelectorAll(".modal-tab").forEach((b) =>
-        b.classList.toggle("active", b.dataset.tab === tab)
-    );
-    document.getElementById("loginForm").style.display    = tab === "login"    ? "block" : "none";
-    document.getElementById("registerForm").style.display = tab === "register" ? "block" : "none";
+    document
+        .querySelectorAll(".modal-tab")
+        .forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+    document.getElementById("loginForm").style.display =
+        tab === "login" ? "block" : "none";
+    document.getElementById("registerForm").style.display =
+        tab === "register" ? "block" : "none";
     clearErrors();
 };
 
@@ -57,14 +59,14 @@ document.addEventListener("click", (e) => {
 // ─── Auth state ───────────────────────────────────────────────────────────────
 auth.onAuthStateChanged((user) => {
     if (user) {
-        if (navLoginBtn)    navLoginBtn.style.display    = "none";
+        if (navLoginBtn) navLoginBtn.style.display = "none";
         if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
         if (navUserBtn) {
             navUserBtn.style.display = "flex";
 
             // Ưu tiên: local avatar → Google photoURL → initial
             const localAvatar = localStorage.getItem(`avatar_${user.uid}`);
-            const navInitial  = document.getElementById("navUserInitial");
+            const navInitial = document.getElementById("navUserInitial");
             if (navInitial) {
                 if (localAvatar) {
                     navInitial.innerHTML = `<img src="${localAvatar}"
@@ -74,15 +76,17 @@ auth.onAuthStateChanged((user) => {
                         style="width:100%;height:100%;object-fit:cover;border-radius:50%"
                         referrerpolicy="no-referrer" />`;
                 } else {
-                    navInitial.textContent = (user.displayName || user.email || "U")[0].toUpperCase();
+                    navInitial.textContent = (user.displayName ||
+                        user.email ||
+                        "U")[0].toUpperCase();
                 }
             }
         }
 
         // Dropdown header
-        const ddName  = document.getElementById("ddName");
+        const ddName = document.getElementById("ddName");
         const ddEmail = document.getElementById("ddEmail");
-        if (ddName)  ddName.textContent  = user.displayName || "Người dùng";
+        if (ddName) ddName.textContent = user.displayName || "Người dùng";
         if (ddEmail) ddEmail.textContent = user.email || "";
 
         // Inject "Trang cá nhân" vào dropdown nếu chưa có
@@ -90,8 +94,15 @@ auth.onAuthStateChanged((user) => {
         if (dropdown && !dropdown.querySelector(".dd-profile-link")) {
             const profileBtn = document.createElement("button");
             profileBtn.className = "user-dropdown-item dd-profile-link";
-            profileBtn.innerHTML = '<i class="fa-solid fa-user-circle"></i> Trang cá nhân';
-            profileBtn.onclick   = () => (window.location.href = "profile.html");
+            profileBtn.innerHTML =
+                '<i class="fa-solid fa-user-circle"></i> Trang cá nhân';
+            profileBtn.onclick = () => {
+                const inPages =
+                    window.location.pathname.includes("/src/pages/");
+                window.location.href = inPages
+                    ? "profile.html"
+                    : "src/pages/profile.html";
+            };
             // Insert trước nút đăng xuất
             const signOutBtn = dropdown.querySelector('[onclick="signOut()"]');
             if (signOutBtn) {
@@ -103,17 +114,17 @@ auth.onAuthStateChanged((user) => {
 
         closeAuthModal();
     } else {
-        if (navLoginBtn)    navLoginBtn.style.display    = "flex";
+        if (navLoginBtn) navLoginBtn.style.display = "flex";
         if (mobileLoginBtn) mobileLoginBtn.style.display = "flex";
-        if (navUserBtn)     navUserBtn.style.display     = "none";
+        if (navUserBtn) navUserBtn.style.display = "none";
     }
 });
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 window.handleLogin = async function () {
-    const email    = document.getElementById("loginEmail").value.trim();
+    const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
-    const errEl    = document.getElementById("loginError");
+    const errEl = document.getElementById("loginError");
 
     if (!email || !password) {
         showError(errEl, "Vui lòng điền đầy đủ thông tin.");
@@ -131,10 +142,10 @@ window.handleLogin = async function () {
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 window.handleRegister = async function () {
-    const name     = document.getElementById("registerName").value.trim();
-    const email    = document.getElementById("registerEmail").value.trim();
+    const name = document.getElementById("registerName").value.trim();
+    const email = document.getElementById("registerEmail").value.trim();
     const password = document.getElementById("registerPassword").value;
-    const errEl    = document.getElementById("registerError");
+    const errEl = document.getElementById("registerError");
 
     if (!name || !email || !password) {
         showError(errEl, "Vui lòng điền đầy đủ thông tin.");
@@ -160,7 +171,7 @@ window.handleRegister = async function () {
 window.handleGoogle = async function () {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
-        const cred     = await auth.signInWithPopup(provider);
+        const cred = await auth.signInWithPopup(provider);
         await saveUserToFirestore(cred.user, cred.user.displayName);
     } catch (err) {
         const errEl =
@@ -185,14 +196,14 @@ async function saveUserToFirestore(user, displayName) {
         .doc(user.uid)
         .set(
             {
-                uid:         user.uid,
+                uid: user.uid,
                 displayName: displayName || user.displayName || "",
-                email:       user.email,
-                photoURL:    user.photoURL || "",
-                createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin:   firebase.firestore.FieldValue.serverTimestamp(),
+                email: user.email,
+                photoURL: user.photoURL || "",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
             },
-            { merge: true }
+            { merge: true },
         );
 }
 
@@ -203,9 +214,13 @@ window.toggleFavorite = async function (songData) {
         openAuthModal("login");
         return false;
     }
-    const db      = firebase.firestore();
-    const ref     = db.collection("users").doc(user.uid).collection("favorites").doc(String(songData.songId));
-    const snap    = await ref.get();
+    const db = firebase.firestore();
+    const ref = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("favorites")
+        .doc(String(songData.songId));
+    const snap = await ref.get();
     if (snap.exists) {
         await ref.delete();
         return false; // đã bỏ
@@ -221,7 +236,7 @@ window.toggleFavorite = async function (songData) {
 window.checkFavorite = async function (songId) {
     const user = auth.currentUser;
     if (!user) return false;
-    const db   = firebase.firestore();
+    const db = firebase.firestore();
     const snap = await db
         .collection("users")
         .doc(user.uid)
@@ -246,7 +261,7 @@ window.addToHistory = async function (songData) {
                 ...songData,
                 viewedAt: firebase.firestore.FieldValue.serverTimestamp(),
             },
-            { merge: true }
+            { merge: true },
         );
 };
 
@@ -257,27 +272,29 @@ function showError(el, msg) {
     el.classList.add("show");
 }
 function clearErrors() {
-    document.querySelectorAll(".form-error").forEach((e) => e.classList.remove("show"));
+    document
+        .querySelectorAll(".form-error")
+        .forEach((e) => e.classList.remove("show"));
 }
 function setLoading(btnId, loading) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
-    btn.disabled  = loading;
+    btn.disabled = loading;
     btn.innerHTML = loading
         ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...'
         : btn.dataset.label;
 }
 function parseFirebaseError(code) {
     const map = {
-        "auth/user-not-found":        "Email không tồn tại.",
-        "auth/wrong-password":        "Mật khẩu không đúng.",
-        "auth/email-already-in-use":  "Email này đã được sử dụng.",
-        "auth/invalid-email":         "Email không hợp lệ.",
-        "auth/weak-password":         "Mật khẩu quá yếu.",
-        "auth/too-many-requests":     "Quá nhiều lần thử. Vui lòng thử lại sau.",
-        "auth/popup-closed-by-user":  "Đã hủy đăng nhập Google.",
-        "auth/network-request-failed":"Lỗi kết nối mạng.",
-        "auth/invalid-credential":    "Email hoặc mật khẩu không đúng.",
+        "auth/user-not-found": "Email không tồn tại.",
+        "auth/wrong-password": "Mật khẩu không đúng.",
+        "auth/email-already-in-use": "Email này đã được sử dụng.",
+        "auth/invalid-email": "Email không hợp lệ.",
+        "auth/weak-password": "Mật khẩu quá yếu.",
+        "auth/too-many-requests": "Quá nhiều lần thử. Vui lòng thử lại sau.",
+        "auth/popup-closed-by-user": "Đã hủy đăng nhập Google.",
+        "auth/network-request-failed": "Lỗi kết nối mạng.",
+        "auth/invalid-credential": "Email hoặc mật khẩu không đúng.",
     };
     return map[code] || "Có lỗi xảy ra. Vui lòng thử lại.";
 }
@@ -285,6 +302,8 @@ function parseFirebaseError(code) {
 document.getElementById("loginPassword")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
 });
-document.getElementById("registerPassword")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleRegister();
-});
+document
+    .getElementById("registerPassword")
+    ?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleRegister();
+    });
