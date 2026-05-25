@@ -35,13 +35,13 @@ function fileToBase64(file, maxPx, quality = 0.82) {
 
 // ─── Auth gate ────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-    const timeout   = setTimeout(() => { window.location.href = "../../index.html"; }, 3500);
+    const timeout   = setTimeout(() => { window.location.href = "index.html"; }, 3500);
     const checkAuth = setInterval(() => {
         if (typeof firebase === "undefined") return;
         clearInterval(checkAuth);
         clearTimeout(timeout);
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) { window.location.href = "../../index.html"; return; }
+            if (!user) { window.location.href = "index.html"; return; }
             currentUser = user;
             initProfile(user);
         });
@@ -515,7 +515,7 @@ function renderEmpty(type) {
             <i class="fa-solid ${m.icon}" style="color:var(--text-3);font-size:2rem;margin-bottom:.75rem"></i>
             <h3>${m.text}</h3>
             <p style="color:var(--text-3);font-size:.85rem;margin-top:.5rem">${m.sub}</p>
-            <a href="../../index.html" class="btn btn-outline btn-sm" style="margin-top:1.25rem">Khám phá nhạc</a>
+            <a href="index.html" class="btn btn-outline btn-sm" style="margin-top:1.25rem">Khám phá nhạc</a>
         </div>`;
 }
 function renderError(msg) {
@@ -548,4 +548,96 @@ function showToast(msg, type="success") {
         style="color:${type==="success"?"#4ade80":"#f87171"};margin-right:8px"></i>${msg}`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 3000);
+}
+
+// ─── Override switchProfileTab để sync stat boxes và tab buttons mới ─────────
+window.switchProfileTab = function (tab) {
+    currentTab = tab;
+
+    // Tab buttons
+    ["favorites","history","playlists","photos"].forEach(t => {
+        document.getElementById("tab_" + t)?.classList.toggle("active", t === tab);
+    });
+
+    // Stat boxes
+    ["favorites","history","playlists","photos"].forEach(t => {
+        document.getElementById("statBox_" + t)?.classList.toggle("active", t === tab);
+    });
+
+    document.getElementById("profileTabContent").innerHTML =
+        `<div style="display:flex;flex-direction:column;gap:.5rem">
+            ${Array(4).fill('<div class="skeleton" style="height:72px;border-radius:12px"></div>').join("")}
+        </div>`;
+
+    if      (tab === "favorites")  loadFavorites();
+    else if (tab === "history")    loadHistory();
+    else if (tab === "playlists")  loadPlaylists();
+    else if (tab === "photos")     loadPhotos();
+};
+
+// ─── Cover image ──────────────────────────────────────────────────────────────
+window.handleCoverChange = async function (e) {
+    const file = e.target.files[0];
+    if (!file || !currentUser) return;
+    if (file.size > 3 * 1024 * 1024) { showToast("Ảnh tối đa 3MB", "error"); return; }
+    showToast("Đang xử lý ảnh bìa…");
+    try {
+        const base64 = await fileToBase64(file, 1200, 0.82);
+        await firebase.firestore().collection("users").doc(currentUser.uid)
+            .set({ coverUrl: base64 }, { merge: true });
+        profileData.coverUrl = base64;
+        const cover = document.getElementById("profileCover");
+        if (cover) {
+            cover.style.backgroundImage = `url('${base64}')`;
+            cover.style.backgroundSize  = "cover";
+            cover.style.backgroundPosition = "center";
+        }
+        showToast("Đã cập nhật ảnh bìa", "success");
+    } catch { showToast("Lỗi cập nhật ảnh bìa", "error"); }
+};
+
+// ─── Patch renderHero để dùng class mới ──────────────────────────────────────
+const _origRenderHero = typeof renderHero === "function" ? renderHero : null;
+function renderHero() {
+    const el = document.getElementById("profileAvatar");
+    if (el) {
+        const src = profileData.avatarUrl || currentUser?.photoURL || "";
+        if (src) el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" referrerpolicy="no-referrer"/>`;
+        else el.textContent = (profileData.displayName || currentUser?.displayName || "U")[0].toUpperCase();
+        const navEl = document.getElementById("navUserInitial");
+        if (navEl) {
+            if (src) navEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" referrerpolicy="no-referrer"/>`;
+            else navEl.textContent = (profileData.displayName || "U")[0].toUpperCase();
+        }
+    }
+
+    // Cover
+    if (profileData.coverUrl) {
+        const cover = document.getElementById("profileCover");
+        if (cover) { cover.style.backgroundImage = `url('${profileData.coverUrl}')`; cover.style.backgroundSize = "cover"; cover.style.backgroundPosition = "center"; }
+    }
+
+    const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val || ""; };
+    setEl("profileName",  profileData.displayName || currentUser?.displayName || "Người dùng");
+    setEl("profileRole",  profileData.role || "");
+    setEl("profileEmail", profileData.email || currentUser?.email || "");
+    setEl("profileBio",   profileData.bio  || "");
+    document.title = `${profileData.displayName || "Hồ sơ"} — Lyrix`;
+
+    // Joined date
+    const joined = document.getElementById("statJoined");
+    if (joined) {
+        let date = null;
+        if (profileData.createdAt?.toDate)              date = profileData.createdAt.toDate();
+        else if (typeof profileData.createdAt === "string") date = new Date(profileData.createdAt);
+        if (date && !isNaN(date)) joined.textContent = date.toLocaleDateString("vi-VN", { month: "short", year: "numeric" });
+    }
+
+    // Info chips
+    const chips = [];
+    if (profileData.dob)      chips.push(`<span class="profile-chip"><i class="fa-solid fa-cake-candles" style="color:var(--brand-light)"></i> ${formatDob(profileData.dob)}</span>`);
+    if (profileData.phone)    chips.push(`<span class="profile-chip"><i class="fa-solid fa-phone" style="color:var(--brand-light)"></i> ${profileData.phone}</span>`);
+    if (profileData.location) chips.push(`<span class="profile-chip"><i class="fa-solid fa-location-dot" style="color:var(--brand-light)"></i> ${profileData.location}</span>`);
+    const chipsEl = document.getElementById("profileInfoChips");
+    if (chipsEl) chipsEl.innerHTML = chips.join("");
 }
