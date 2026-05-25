@@ -8,7 +8,7 @@
             name="description"
             content="Tra cứu lời bài hát, thông tin nghệ sĩ và album hàng đầu thế giới. Powered by Genius."
         />
-        <link rel="icon" href="../../assets/public/images/logo.webp" />
+        <link rel="icon" href="assets/public/images/logo.webp" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -19,7 +19,7 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        <link rel="stylesheet" href="../styles/main.css" />
+        <link rel="stylesheet" href="src/styles/main.css" />
         <!-- Firebase -->
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -39,7 +39,7 @@
             </a>
             <div class="navbar-links">
                 <a href="index.html" class="active">Khám phá</a>
-                <a href="charts.html">Charts</a>
+                <a href="src/pages/charts.html">Charts</a>
             </div>
             <div class="navbar-actions">
                 <div style="position: relative" id="userMenuWrap">
@@ -77,7 +77,7 @@
             </button>
             <div class="navbar-collapse" id="navCollapse">
                 <a href="index.html">Khám phá</a>
-                <a href="charts.html">Charts</a>
+                <a href="src/pages/charts.html">Charts</a>
                 <button
                     class="user-dropdown-item"
                     id="mobileLoginBtn"
@@ -546,7 +546,7 @@
                                 >Trending hôm nay
                             </h2>
                         </div>
-                        <a href="charts.html" class="btn btn-sm btn-outline"
+                        <a href="src/pages/charts.html" class="btn btn-sm btn-outline"
                             >Xem tất cả <i class="fa-solid fa-arrow-right"></i
                         ></a>
                     </div>
@@ -718,7 +718,7 @@
                                 >Top nghệ sĩ
                             </h2>
                         </div>
-                        <a href="charts.html" class="btn btn-sm btn-outline"
+                        <a href="src/pages/charts.html" class="btn btn-sm btn-outline"
                             >Xem thêm <i class="fa-solid fa-arrow-right"></i
                         ></a>
                     </div>
@@ -885,7 +885,7 @@
                         <i class="fa-solid fa-music"></i> Lyrix
                     </div>
                     <div class="footer-links">
-                        <a href="charts.html">Charts</a>
+                        <a href="src/pages/charts.html">Charts</a>
                         <a href="#" target="_blank">Genius API</a>
                     </div>
                     <div class="footer-copy">
@@ -895,9 +895,9 @@
             </div>
         </footer>
 
-        <script src="../scripts/api/genius.js"></script>
-        <script src="../scripts/pages/index.js"></script>
-        <script src="../scripts/components/auth.js"></script>
-        <script src="../scripts/components/navbar.js"></script>
+        <script src="src/scripts/api/genius.js"></script>
+        <script src="src/scripts/pages/index.js"></script>
+        <script src="src/scripts/components/auth.js"></script>
+        <script src="src/scripts/components/navbar.js"></script>
     </body>
 </html>

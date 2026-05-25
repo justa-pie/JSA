@@ -237,7 +237,7 @@ function renderResults(tab) {
 
             if (tab === "songs") {
                 return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
-        onclick="window.location.href='details-song.html?id=${r.id}'">
+        onclick="window.location.href='src/pages/details-song.html?id=${r.id}'">
         <span class="chart-position">${i + 1}</span>
         <img class="chart-image" src="${safeImg(r.song_art_image_url || r.song_art_image_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
         <div class="chart-info">
@@ -250,7 +250,7 @@ function renderResults(tab) {
 
             if (tab === "artists") {
                 return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
-        onclick="window.location.href='details-artist.html?id=${r.id}'">
+        onclick="window.location.href='src/pages/details-artist.html?id=${r.id}'">
         <span class="chart-position">${i + 1}</span>
         <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
         <div class="chart-info">
@@ -267,7 +267,7 @@ function renderResults(tab) {
 
             if (tab === "albums") {
                 return `<div class="chart-item animate-slide-up" style="${delay};cursor:pointer"
-        onclick="window.location.href='details-album.html?id=${r.id}'">
+        onclick="window.location.href='src/pages/details-album.html?id=${r.id}'">
         <span class="chart-position">${i + 1}</span>
         <img class="chart-image" src="${safeImg(r.cover_art_url || r.cover_art_thumbnail_url)}" alt="" onerror="this.src='${safeImg()}'"/>
         <div class="chart-info">
@@ -319,7 +319,7 @@ async function loadTrending() {
                           ? '<i class="fa-solid fa-trophy" style="color:#cd7c2f;font-size:13px"></i>'
                           : i + 1;
               return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${i * 0.05}s;cursor:pointer"
-          onclick="window.location.href='details-song.html?id=${s.id}'">
+          onclick="window.location.href='src/pages/details-song.html?id=${s.id}'">
           <span class="chart-position">${trophy}</span>
           <img class="chart-image" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
           <div class="chart-info">
@@ -360,7 +360,7 @@ async function loadArtists() {
               const a = c.item;
               if (!a) return "";
               return `<div class="chart-item animate-slide-up" style="animation-delay:${i * 0.05}s;cursor:pointer"
-          onclick="window.location.href='details-artist.html?id=${a.id}'">
+          onclick="window.location.href='src/pages/details-artist.html?id=${a.id}'">
           <span class="chart-position">${i + 1}</span>
           <img class="chart-image artist" src="${safeImg(a.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
           <div class="chart-info">
