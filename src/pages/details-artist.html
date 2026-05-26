@@ -19,15 +19,15 @@
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    </head>
+    <style>.navbar-avatar{overflow:hidden}.navbar-avatar span{display:flex;align-items:center;justify-content:center;width:100%;height:100%}</style>
+</head>
     <body>
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
 
         <nav class="navbar" id="navbar">
             <a class="navbar-brand" href="../../index.html">
-                <div class="logo-icon"><i class="fa-solid fa-music"></i></div>
-                Lyrix
+                <img src="../../assets/public/images/logo.webp" style="width:32px;height:32px;border-radius:8px;object-fit:cover" alt="Lyrix"/> Lyrix
             </a>
             <div class="navbar-links">
                 <a href="../../index.html">Khám phá</a>
@@ -44,7 +44,7 @@
                         onclick="toggleUserMenu()"
                         style="display: none"
                     >
-                        <span id="navUserInitial">U</span>
+                        <span id="navUserInitial" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%">U</span>
                     </button>
                     <div class="user-dropdown" id="userDropdown">
                         <div class="user-dropdown-header">

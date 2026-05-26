@@ -1990,3 +1990,13 @@ main {
     .playlist-grid      { grid-template-columns: repeat(2, 1fr); }
     .photo-grid         { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ─── Navbar avatar fix ──────────────────────────────────────────────────── */
+.navbar-avatar { overflow: hidden; }
+.navbar-avatar span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
