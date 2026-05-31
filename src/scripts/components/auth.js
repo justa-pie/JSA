@@ -51,37 +51,105 @@ window.toggleUserMenu = function () {
 };
 document.addEventListener("click", (e) => {
     const wrap = document.getElementById("userMenuWrap");
-    if (wrap && !wrap.contains(e.target)) {
+    if (wrap && !wrap.contains(e.target))
         document.getElementById("userDropdown")?.classList.remove("open");
-    }
 });
 
+// ─── Resolve path (index.html ở root, các trang khác ở src/pages/) ───────────
+function resolvePath(path) {
+    const inPages = window.location.pathname.includes("/src/pages/");
+    return inPages ? path : "src/pages/" + path;
+}
+
+// ─── Render avatar vào navInitial ─────────────────────────────────────────────
+// Ưu tiên: avatarUrl từ Firestore → Google photoURL → initial
+function renderNavAvatar(avatarUrl, user) {
+    const navInitial = document.getElementById("navUserInitial");
+    if (!navInitial) return;
+    if (avatarUrl) {
+        navInitial.innerHTML = `<img src="${avatarUrl}"
+            style="width:100%;height:100%;object-fit:cover;border-radius:50%"
+            referrerpolicy="no-referrer" />`;
+    } else if (user.photoURL) {
+        navInitial.innerHTML = `<img src="${user.photoURL}"
+            style="width:100%;height:100%;object-fit:cover;border-radius:50%"
+            referrerpolicy="no-referrer" />`;
+    } else {
+        navInitial.textContent = (user.displayName ||
+            user.email ||
+            "U")[0].toUpperCase();
+    }
+}
+
+// ─── Inject Dashboard — navbar-links + mobile collapse + dropdown ─────────────
+function injectAdminButton() {
+    const adminHref = resolvePath("admin.html");
+
+    // ① Navbar links (desktop) — chèn sau link Charts
+    const navLinks = document.querySelector(".navbar-links");
+    if (navLinks && !navLinks.querySelector(".nav-admin-link")) {
+        const a = document.createElement("a");
+        a.href = adminHref;
+        a.className = "nav-admin-link";
+        a.innerHTML = '<i class="fa-solid fa-gauge-high"></i> Dashboard';
+        if (window.location.pathname.includes("admin.html"))
+            a.classList.add("active");
+        navLinks.appendChild(a);
+    }
+
+    // ② Mobile collapse
+    const collapse = document.getElementById("navCollapse");
+    if (collapse && !collapse.querySelector(".nav-admin-link-mobile")) {
+        const a = document.createElement("a");
+        a.href = adminHref;
+        a.className = "nav-admin-link-mobile";
+        a.innerHTML = '<i class="fa-solid fa-gauge-high"></i> Dashboard';
+        const loginBtn = collapse.querySelector("#mobileLoginBtn");
+        if (loginBtn) collapse.insertBefore(a, loginBtn);
+        else collapse.appendChild(a);
+    }
+
+    // ③ User dropdown
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown && !dropdown.querySelector(".dd-admin-link")) {
+        const btn = document.createElement("button");
+        btn.className = "user-dropdown-item dd-admin-link";
+        btn.innerHTML = '<i class="fa-solid fa-gauge-high"></i> Dashboard';
+        btn.onclick = () => {
+            window.location.href = adminHref;
+        };
+        const profileBtn = dropdown.querySelector(".dd-profile-link");
+        const signOutBtn = dropdown.querySelector('[onclick="signOut()"]');
+        const before = profileBtn || signOutBtn;
+        if (before) dropdown.insertBefore(btn, before);
+        else dropdown.appendChild(btn);
+    }
+}
+
 // ─── Auth state ───────────────────────────────────────────────────────────────
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
     if (user) {
         if (navLoginBtn) navLoginBtn.style.display = "none";
         if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
-        if (navUserBtn) {
-            navUserBtn.style.display = "flex";
+        if (navUserBtn) navUserBtn.style.display = "flex";
 
-            // Ưu tiên: local avatar → Google photoURL → initial
-            const localAvatar = localStorage.getItem(`avatar_${user.uid}`);
-            const navInitial = document.getElementById("navUserInitial");
-            if (navInitial) {
-                if (localAvatar) {
-                    navInitial.innerHTML = `<img src="${localAvatar}"
-                        style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
-                } else if (user.photoURL) {
-                    navInitial.innerHTML = `<img src="${user.photoURL}"
-                        style="width:100%;height:100%;object-fit:cover;border-radius:50%"
-                        referrerpolicy="no-referrer" />`;
-                } else {
-                    navInitial.textContent = (user.displayName ||
-                        user.email ||
-                        "U")[0].toUpperCase();
-                }
+        // Đọc Firestore lấy avatarUrl mới nhất + role
+        let avatarUrl = null;
+        let role = "user";
+        try {
+            const db = firebase.firestore();
+            const doc = await db.collection("users").doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                avatarUrl = data.avatarUrl || null;
+                role = data.role || "user";
             }
+        } catch (e) {
+            console.warn("auth.js: không đọc được Firestore", e.message);
         }
+
+        // Render avatar từ Firestore (luôn mới nhất)
+        renderNavAvatar(avatarUrl, user);
 
         // Dropdown header
         const ddName = document.getElementById("ddName");
@@ -97,19 +165,16 @@ auth.onAuthStateChanged((user) => {
             profileBtn.innerHTML =
                 '<i class="fa-solid fa-user-circle"></i> Trang cá nhân';
             profileBtn.onclick = () => {
-                const inPages =
-                    window.location.pathname.includes("/src/pages/");
-                window.location.href = inPages
-                    ? "profile.html"
-                    : "src/pages/profile.html";
+                window.location.href = resolvePath("profile.html");
             };
-            // Insert trước nút đăng xuất
             const signOutBtn = dropdown.querySelector('[onclick="signOut()"]');
-            if (signOutBtn) {
-                dropdown.insertBefore(profileBtn, signOutBtn);
-            } else {
-                dropdown.appendChild(profileBtn);
-            }
+            if (signOutBtn) dropdown.insertBefore(profileBtn, signOutBtn);
+            else dropdown.appendChild(profileBtn);
+        }
+
+        // Inject Dashboard button nếu là admin
+        if (role === "admin") {
+            injectAdminButton();
         }
 
         closeAuthModal();
@@ -125,7 +190,6 @@ window.handleLogin = async function () {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
     const errEl = document.getElementById("loginError");
-
     if (!email || !password) {
         showError(errEl, "Vui lòng điền đầy đủ thông tin.");
         return;
@@ -146,7 +210,6 @@ window.handleRegister = async function () {
     const email = document.getElementById("registerEmail").value.trim();
     const password = document.getElementById("registerPassword").value;
     const errEl = document.getElementById("registerError");
-
     if (!name || !email || !password) {
         showError(errEl, "Vui lòng điền đầy đủ thông tin.");
         return;
@@ -191,23 +254,29 @@ window.signOut = async function () {
 async function saveUserToFirestore(user, displayName) {
     if (typeof firebase === "undefined" || !firebase.firestore) return;
     const db = firebase.firestore();
-    await db
-        .collection("users")
-        .doc(user.uid)
-        .set(
-            {
-                uid: user.uid,
-                displayName: displayName || user.displayName || "",
-                email: user.email,
-                photoURL: user.photoURL || "",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true },
-        );
+    const ref = db.collection("users").doc(user.uid);
+
+    // Kiểm tra doc đã tồn tại chưa
+    const snap = await ref.get();
+
+    const data = {
+        uid: user.uid,
+        displayName: displayName || user.displayName || "",
+        email: user.email,
+        photoURL: user.photoURL || "",
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (!snap.exists) {
+        // User mới: ghi thêm role + createdAt
+        data.role = "user";
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    // merge:true → không overwrite role nếu admin đã set thủ công
+    await ref.set(data, { merge: true });
 }
 
-// ─── Favorites helper (dùng ở details-song.js) ───────────────────────────────
+// ─── Favorites helper ─────────────────────────────────────────────────────────
 window.toggleFavorite = async function (songData) {
     const user = auth.currentUser;
     if (!user) {
@@ -223,13 +292,13 @@ window.toggleFavorite = async function (songData) {
     const snap = await ref.get();
     if (snap.exists) {
         await ref.delete();
-        return false; // đã bỏ
+        return false;
     } else {
         await ref.set({
             ...songData,
             savedAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-        return true; // đã thêm
+        return true;
     }
 };
 
@@ -246,7 +315,7 @@ window.checkFavorite = async function (songId) {
     return snap.exists;
 };
 
-// ─── History helper (dùng ở details-song.js) ─────────────────────────────────
+// ─── History helper ───────────────────────────────────────────────────────────
 window.addToHistory = async function (songData) {
     const user = auth.currentUser;
     if (!user) return;
