@@ -104,24 +104,42 @@ const Admin = {
 
   // ---------- FILTER / SORT ----------
   applyFilters() {
-    const { role, status, sort } = State.filters;
-    const q = document.getElementById("search-input").value.toLowerCase().trim();
+    const q         = (document.getElementById("search-input")?.value  || "").toLowerCase().trim();
+    const fName     = (document.getElementById("flt-name")?.value      || "").toLowerCase().trim();
+    const fEmail    = (document.getElementById("flt-email")?.value     || "").toLowerCase().trim();
+    const fDateFrom = document.getElementById("flt-date-from")?.value  || "";
+    const fDateTo   = document.getElementById("flt-date-to")?.value    || "";
+    const fMinFavs  = parseInt(document.getElementById("flt-min-favs")?.value || "0") || 0;
+    const sort      = document.getElementById("adrop-sort")?.dataset.val || "newest";
 
     let list = [...State.users];
 
-    // Search
+    // Quick search (topbar)
     if (q) list = list.filter(u =>
       (u.displayName||"").toLowerCase().includes(q) ||
       (u.email||"").toLowerCase().includes(q) ||
       u.id.toLowerCase().includes(q)
     );
 
-    // Role
-    if (role !== "all") list = list.filter(u => (u.role||"user") === role);
+    // Panel filters
+    if (fName)  list = list.filter(u => (u.displayName||"").toLowerCase().includes(fName));
+    if (fEmail) list = list.filter(u => (u.email||"").toLowerCase().includes(fEmail));
+    if (fMinFavs > 0) list = list.filter(u => u._favsCount >= fMinFavs);
+    if (fDateFrom) {
+      const from = new Date(fDateFrom);
+      list = list.filter(u => u.createdAt?.seconds && new Date(u.createdAt.seconds*1000) >= from);
+    }
+    if (fDateTo) {
+      const to = new Date(fDateTo); to.setHours(23,59,59,999);
+      list = list.filter(u => u.createdAt?.seconds && new Date(u.createdAt.seconds*1000) <= to);
+    }
 
-    // Status
-    if (status === "active")  list = list.filter(u => !u.blocked);
-    if (status === "blocked") list = list.filter(u =>  u.blocked === true);
+    // Role chip
+    if (State.filters.role !== "all") list = list.filter(u => (u.role||"user") === State.filters.role);
+
+    // Status chip
+    if (State.filters.status === "active")  list = list.filter(u => !u.blocked);
+    if (State.filters.status === "blocked") list = list.filter(u =>  u.blocked === true);
 
     // Sort
     switch (sort) {
@@ -134,11 +152,35 @@ const Admin = {
     }
 
     State.filtered = list;
-    document.getElementById("filter-result").textContent = `${list.length} người dùng`;
+    const badge = document.getElementById("filter-result-badge");
+    if (badge) badge.textContent = list.length;
     Render.users(list);
   },
 
   handleSearch() { Admin.applyFilters(); },
+
+  toggleFilterPanel() {
+    const panel = document.getElementById("filter-panel");
+    const btn   = document.getElementById("btn-filter-toggle");
+    const open  = panel.style.display !== "none";
+    panel.style.display = open ? "none" : "block";
+    btn.classList.toggle("active", !open);
+  },
+
+  clearFilters() {
+    ["flt-name","flt-email","flt-date-from","flt-date-to","flt-min-favs"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    Admin.setDrop("adrop-sort", "newest", "Mới tham gia nhất");
+    // Reset role/status chips
+    document.querySelectorAll("#filter-role .admin-chip").forEach((b,i) => b.classList.toggle("active", i===0));
+    document.querySelectorAll("#filter-status .admin-chip").forEach(b => b.classList.remove("active"));
+    State.filters.role   = "all";
+    State.filters.status = "all";
+    document.getElementById("search-input").value = "";
+    Admin.applyFilters();
+  },
 
   // ---------- ACTIONS ----------
   blockUser(uid) {
@@ -204,6 +246,23 @@ const Admin = {
     // rotate chevron
     const btn = document.querySelector(`[onclick="Admin.toggleExpand('${id}')"] i`);
     if (btn) btn.style.transform = open ? "" : "rotate(180deg)";
+  },
+
+  toggleDrop(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.classList.contains("open");
+    // close all
+    document.querySelectorAll(".adrop.open").forEach(d => d.classList.remove("open"));
+    if (!isOpen) el.classList.add("open");
+  },
+
+  setDrop(id, val, label) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.dataset.val = val;
+    el.querySelector(".adrop-label").textContent = label;
+    el.querySelectorAll(".adrop-item").forEach(i => i.classList.toggle("active", i.dataset.val === val));
   },
 
   closeConfirm() { UI.closeConfirm(); },
@@ -582,21 +641,28 @@ document.getElementById("confirm-modal").addEventListener("click", e => {
   if (e.target === e.currentTarget) UI.closeConfirm();
 });
 
-// Filter chips
-["filter-role","filter-status"].forEach(groupId => {
-  document.getElementById(groupId).addEventListener("click", e => {
-    const btn = e.target.closest(".admin-chip");
-    if (!btn) return;
-    document.querySelectorAll(`#${groupId} .admin-chip`).forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    const key = groupId === "filter-role" ? "role" : "status";
-    State.filters[key] = btn.dataset.val;
-    Admin.applyFilters();
-  });
+// Role chips
+document.getElementById("filter-role").addEventListener("click", e => {
+  const btn = e.target.closest(".admin-chip");
+  if (!btn) return;
+  document.querySelectorAll("#filter-role .admin-chip").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  State.filters.role = btn.dataset.val;
+  Admin.applyFilters();
 });
 
-document.getElementById("filter-sort").addEventListener("change", e => {
-  State.filters.sort = e.target.value;
+// Status chips — toggle, không exclusive
+document.getElementById("filter-status").addEventListener("click", e => {
+  const btn = e.target.closest(".admin-chip");
+  if (!btn) return;
+  const isActive = btn.classList.contains("active");
+  document.querySelectorAll("#filter-status .admin-chip").forEach(b => b.classList.remove("active"));
+  if (!isActive) {
+    btn.classList.add("active");
+    State.filters.status = btn.dataset.val;
+  } else {
+    State.filters.status = "all";
+  }
   Admin.applyFilters();
 });
 
@@ -612,6 +678,25 @@ document.getElementById("period-tabs").addEventListener("click", e => {
 
 // Redraw chart on resize
 window.addEventListener("resize", () => { Chart.render(); });
+
+// Adrop click delegation
+document.addEventListener("click", e => {
+  // close on outside click
+  if (!e.target.closest(".adrop")) {
+    document.querySelectorAll(".adrop.open").forEach(d => d.classList.remove("open"));
+  }
+  // item select
+  const item = e.target.closest(".adrop-item");
+  if (item) {
+    const drop = item.closest(".adrop");
+    drop.querySelectorAll(".adrop-item").forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+    drop.dataset.val = item.dataset.val;
+    drop.querySelector(".adrop-label").textContent = item.textContent;
+    drop.classList.remove("open");
+    Admin.applyFilters();
+  }
+});
 
 // ── ❾ UTILS ────────────────────────────────────────────────────
 function esc(str) {

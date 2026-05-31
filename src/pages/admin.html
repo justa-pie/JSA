@@ -77,11 +77,11 @@
     <header class="admin-topbar">
       <h1 class="admin-page-title" id="page-title">Quản lý người dùng</h1>
       <div style="flex:1"></div>
-      <div class="search-wrapper" style="width:240px">
+      <div class="search-wrapper" style="width:220px">
         <i class="fa-solid fa-magnifying-glass search-icon" style="font-size:.8rem"></i>
         <input id="search-input" class="search-input"
           style="padding:.55rem .9rem .55rem 2.4rem;font-size:.85rem"
-          placeholder="Tìm kiếm tên, email..." oninput="Admin.handleSearch()" />
+          placeholder="Tìm nhanh..." oninput="Admin.applyFilters()" />
       </div>
       <button class="btn btn-outline btn-sm" onclick="Admin.loadAll()">
         <i class="fa-solid fa-rotate-right"></i> Reload
@@ -152,39 +152,87 @@
           </div>
         </div>
 
-        <!-- Filter bar -->
-        <div class="admin-filter-bar card">
-          <div class="admin-filter-group">
-            <label class="admin-filter-label"><i class="fa-solid fa-shield-halved"></i> Role</label>
+        <!-- Filter header bar -->
+        <div class="admin-filter-header">
+          <div style="display:flex;align-items:center;gap:.625rem">
+            <i class="fa-solid fa-users" style="color:var(--text-3);font-size:.85rem"></i>
+            <span style="font-size:.875rem;font-weight:600">Danh sách người dùng</span>
+            <span class="badge badge-number" id="filter-result-badge">0</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
             <div class="admin-filter-chips" id="filter-role">
               <button class="admin-chip active" data-val="all">Tất cả</button>
-              <button class="admin-chip" data-val="admin">Admin</button>
+              <button class="admin-chip" data-val="admin"><i class="fa-solid fa-shield-halved" style="font-size:.7rem"></i> Admin</button>
               <button class="admin-chip" data-val="user">User</button>
             </div>
+            <div class="admin-filter-chips" id="filter-status" style="margin-left:.25rem">
+              <button class="admin-chip" data-val="active"><span class="admin-dot" style="background:#4ade80"></span> Active</button>
+              <button class="admin-chip" data-val="blocked"><span class="admin-dot" style="background:#f87171"></span> Blocked</button>
+            </div>
+            <button class="admin-filter-toggle-btn" id="btn-filter-toggle" onclick="Admin.toggleFilterPanel()">
+              <i class="fa-solid fa-sliders"></i> Lọc
+            </button>
           </div>
-          <div class="admin-filter-divider"></div>
-          <div class="admin-filter-group">
-            <label class="admin-filter-label"><i class="fa-solid fa-circle-dot"></i> Trạng thái</label>
-            <div class="admin-filter-chips" id="filter-status">
-              <button class="admin-chip active" data-val="all">Tất cả</button>
-              <button class="admin-chip" data-val="active">Active</button>
-              <button class="admin-chip" data-val="blocked">Blocked</button>
+        </div>
+
+        <!-- Filter panel (collapsible) -->
+        <div class="admin-filter-panel" id="filter-panel" style="display:none">
+          <div class="admin-filter-panel-grid">
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-user"></i> Tên người dùng
+              </label>
+              <input class="admin-filter-input" id="flt-name" placeholder="Nhập tên..." oninput="Admin.applyFilters()" />
+            </div>
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-envelope"></i> Email
+              </label>
+              <input class="admin-filter-input" id="flt-email" placeholder="Nhập email..." oninput="Admin.applyFilters()" />
+            </div>
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-arrow-down-wide-short"></i> Sắp xếp
+              </label>
+              <div class="adrop" id="adrop-sort">
+                <button class="adrop-trigger" onclick="Admin.toggleDrop('adrop-sort')">
+                  <span class="adrop-label">Mới tham gia nhất</span>
+                  <i class="fa-solid fa-chevron-down adrop-arrow"></i>
+                </button>
+                <div class="adrop-menu">
+                  <div class="adrop-item active" data-val="newest">Mới tham gia nhất</div>
+                  <div class="adrop-item" data-val="oldest">Tham gia lâu nhất</div>
+                  <div class="adrop-item" data-val="name">Tên A → Z</div>
+                  <div class="adrop-item" data-val="favs">Nhiều yêu thích nhất</div>
+                  <div class="adrop-item" data-val="hist">Nhiều lịch sử nhất</div>
+                  <div class="adrop-item" data-val="pl">Nhiều playlist nhất</div>
+                </div>
+              </div>
+            </div>
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-calendar"></i> Tham gia từ ngày
+              </label>
+              <input class="admin-filter-input" id="flt-date-from" type="date" onchange="Admin.applyFilters()" />
+            </div>
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-calendar-check"></i> Tham gia đến ngày
+              </label>
+              <input class="admin-filter-input" id="flt-date-to" type="date" onchange="Admin.applyFilters()" />
+            </div>
+            <div class="admin-filter-field">
+              <label class="admin-filter-field-label">
+                <i class="fa-solid fa-heart"></i> Yêu thích tối thiểu
+              </label>
+              <input class="admin-filter-input" id="flt-min-favs" type="number" min="0" placeholder="0" oninput="Admin.applyFilters()" />
             </div>
           </div>
-          <div class="admin-filter-divider"></div>
-          <div class="admin-filter-group">
-            <label class="admin-filter-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Sắp xếp</label>
-            <select class="admin-select" id="filter-sort" onchange="Admin.applyFilters()">
-              <option value="newest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
-              <option value="name">Tên A→Z</option>
-              <option value="favs">Nhiều yêu thích nhất</option>
-              <option value="hist">Nhiều lịch sử nhất</option>
-              <option value="pl">Nhiều playlist nhất</option>
-            </select>
+          <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+            <button class="btn btn-ghost btn-sm" onclick="Admin.clearFilters()">
+              <i class="fa-solid fa-xmark"></i> Xoá bộ lọc
+            </button>
           </div>
-          <div style="flex:1"></div>
-          <div class="admin-filter-result" id="filter-result">0 người dùng</div>
         </div>
 
         <!-- Table -->
