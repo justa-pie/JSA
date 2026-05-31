@@ -61,11 +61,6 @@ auth.onAuthStateChanged(async (user) => {
     Admin.loadAll();
 });
 
-document.getElementById("btn-login").addEventListener("click", Admin.login);
-document.getElementById("login-password").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") Admin.login();
-});
-
 // ── ❹ ADMIN NAMESPACE ───────────────────────────────────────────
 const Admin = {
     // ---------- AUTH ----------
@@ -655,6 +650,12 @@ document.getElementById("confirm-modal").addEventListener("click", (e) => {
 });
 
 // ── ❼ UTILS ─────────────────────────────────────────────────────
+// ⚠️ Event listeners cho login phải đặt SAU khi Admin đã được khai báo
+document.getElementById("btn-login").addEventListener("click", () => Admin.login());
+document.getElementById("login-password").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") Admin.login();
+});
+
 function esc(str) {
     return String(str || "").replace(
         /[&<>"']/g,
