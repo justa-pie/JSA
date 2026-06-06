@@ -1,289 +1,768 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin — Lyrix</title>
-  <link rel="icon" href="../../assets/public/images/logo.webp" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles/main.css" />
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin — Lyrix</title>
+        <link rel="icon" href="../../assets/public/images/logo.webp" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../styles/main.css" />
+    </head>
+    <body>
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
 
-<div class="gradient-orb orb-1"></div>
-<div class="gradient-orb orb-2"></div>
-<div class="gradient-orb orb-3"></div>
-
-<!-- AUTH WALL -->
-<div id="auth-wall" class="admin-auth-wall">
-  <div class="admin-auth-card card animate-slide-up">
-    <div class="admin-auth-logo">
-      <div class="navbar-brand">
-        <img src="../../assets/public/images/logo.webp" style="width:32px;height:32px;border-radius:8px;object-fit:cover" alt="Lyrix" />
-        Lyrix
-      </div>
-      <span class="badge badge-brand" style="margin-left:.5rem">Admin</span>
-    </div>
-    <p style="color:var(--text-2);font-size:.875rem;margin:.5rem 0 1.5rem">Chỉ dành cho quản trị viên</p>
-    <div style="display:flex;flex-direction:column;gap:.75rem">
-      <input id="login-email"    class="search-input" style="padding:.75rem 1rem" type="email"    placeholder="Email" />
-      <input id="login-password" class="search-input" style="padding:.75rem 1rem" type="password" placeholder="Mật khẩu" />
-    </div>
-    <div id="auth-error" class="admin-auth-error">Sai email / mật khẩu hoặc không có quyền admin.</div>
-    <button class="btn btn-primary btn-lg" style="width:100%;margin-top:1.25rem;justify-content:center" id="btn-login">
-      <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-    </button>
-  </div>
-</div>
-
-<!-- LAYOUT -->
-<div class="admin-layout" id="admin-app" style="display:none">
-
-  <!-- Sidebar -->
-  <aside class="admin-sidebar">
-    <div class="admin-sidebar-logo">
-      <div class="navbar-brand">
-        <img src="../../assets/public/images/logo.webp" style="width:32px;height:32px;border-radius:8px;object-fit:cover" alt="Lyrix" />
-        Lyrix
-      </div>
-      <span class="badge badge-brand">Admin</span>
-    </div>
-    <nav class="admin-nav">
-      <div class="admin-nav-section">Overview</div>
-      <a class="admin-nav-item active">
-        <i class="fa-solid fa-users"></i>
-        Người dùng
-        <span class="badge badge-number" id="badge-users">—</span>
-      </a>
-    </nav>
-    <div class="admin-sidebar-footer">
-      <div class="admin-sidebar-user">
-        <div class="admin-sidebar-avatar" id="sidebar-avatar">A</div>
-        <div>
-          <div class="admin-sidebar-name"  id="sidebar-name">Admin</div>
-          <div class="admin-sidebar-email" id="sidebar-email"></div>
-        </div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="Admin.logout()" title="Đăng xuất">
-        <i class="fa-solid fa-right-from-bracket"></i>
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <div class="admin-main">
-    <header class="admin-topbar">
-      <h1 class="admin-page-title" id="page-title">Quản lý người dùng</h1>
-      <div style="flex:1"></div>
-      <div class="search-wrapper" style="width:220px">
-        <i class="fa-solid fa-magnifying-glass search-icon" style="font-size:.8rem"></i>
-        <input id="search-input" class="search-input"
-          style="padding:.55rem .9rem .55rem 2.4rem;font-size:.85rem"
-          placeholder="Tìm nhanh..." oninput="Admin.applyFilters()" />
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="Admin.loadAll()">
-        <i class="fa-solid fa-rotate-right"></i> Reload
-      </button>
-    </header>
-
-    <div class="admin-content">
-
-      <!-- Stat cards -->
-      <div class="admin-stat-grid">
-        <div class="admin-stat-card admin-stat-purple">
-          <div class="admin-stat-icon"><i class="fa-solid fa-users"></i></div>
-          <div class="admin-stat-value" id="stat-users">—</div>
-          <div class="admin-stat-label">Tổng người dùng</div>
-        </div>
-        <div class="admin-stat-card admin-stat-pink">
-          <div class="admin-stat-icon"><i class="fa-solid fa-heart"></i></div>
-          <div class="admin-stat-value" id="stat-favs">—</div>
-          <div class="admin-stat-label">Tổng yêu thích</div>
-        </div>
-        <div class="admin-stat-card admin-stat-amber">
-          <div class="admin-stat-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
-          <div class="admin-stat-value" id="stat-hist">—</div>
-          <div class="admin-stat-label">Tổng lịch sử xem</div>
-        </div>
-        <div class="admin-stat-card admin-stat-green">
-          <div class="admin-stat-icon"><i class="fa-solid fa-music"></i></div>
-          <div class="admin-stat-value" id="stat-pl">—</div>
-          <div class="admin-stat-label">Tổng playlist</div>
-        </div>
-      </div>
-
-      <!-- USERS + CHART merged -->
-      <div id="tab-users" class="admin-tab-panel active">
-
-        <!-- Chart -->
-        <div class="card" style="padding:1.25rem;margin-bottom:1.25rem">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
-            <div>
-              <div style="font-size:.875rem;font-weight:700">Đăng ký theo thời gian</div>
-              <div style="font-size:.72rem;color:var(--text-3);margin-top:2px">Số tài khoản đăng ký mới</div>
+        <!-- NAVBAR — giống các trang khác -->
+        <nav class="navbar" id="navbar">
+            <a class="navbar-brand" href="../../index.html">
+                <div class="logo-icon"></div>
+                Lyrix
+            </a>
+            <div class="navbar-links">
+                <a href="../../index.html">Khám phá</a>
+                <a href="charts.html">Charts</a>
+                <a href="admin.html" class="active">Dashboard</a>
             </div>
-            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-              <div style="display:flex;gap:1.5rem">
-                <div style="text-align:center">
-                  <div style="font-size:.65rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Hôm nay</div>
-                  <div class="admin-stat-value" id="ana-today" style="font-size:1.4rem;line-height:1.2">—</div>
+            <div class="navbar-actions">
+                <div style="position: relative" id="userMenuWrap">
+                    <button
+                        class="navbar-avatar"
+                        id="navUserBtn"
+                        onclick="toggleUserMenuAdmin()"
+                        style="display: none"
+                    >
+                        <span id="navUserInitial">A</span>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name" id="ddName">—</div>
+                            <div class="user-dropdown-email" id="ddEmail">
+                                —
+                            </div>
+                        </div>
+                        <button
+                            class="user-dropdown-item"
+                            onclick="window.location.href = 'profile.html'"
+                        >
+                            <i class="fa-solid fa-user-circle"></i> Trang cá
+                            nhân
+                        </button>
+                        <button
+                            class="user-dropdown-item"
+                            onclick="Admin.logout()"
+                        >
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng
+                            xuất
+                        </button>
+                    </div>
                 </div>
-                <div style="text-align:center">
-                  <div style="font-size:.65rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Tuần này</div>
-                  <div class="admin-stat-value" id="ana-week" style="font-size:1.4rem;line-height:1.2">—</div>
-                </div>
-                <div style="text-align:center">
-                  <div style="font-size:.65rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Tháng này</div>
-                  <div class="admin-stat-value" id="ana-month" style="font-size:1.4rem;line-height:1.2">—</div>
-                </div>
-              </div>
-              <div class="admin-period-tabs" id="period-tabs">
-                <button class="admin-period-btn active" data-period="day">Ngày</button>
-                <button class="admin-period-btn" data-period="week">Tuần</button>
-                <button class="admin-period-btn" data-period="month">Tháng</button>
-                <button class="admin-period-btn" data-period="year">Năm</button>
-              </div>
             </div>
-          </div>
-          <div style="position:relative;height:220px">
-            <canvas id="chart-canvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Filter header bar -->
-        <div class="admin-filter-header">
-          <div style="display:flex;align-items:center;gap:.625rem">
-            <i class="fa-solid fa-users" style="color:var(--text-3);font-size:.85rem"></i>
-            <span style="font-size:.875rem;font-weight:600">Danh sách người dùng</span>
-            <span class="badge badge-number" id="filter-result-badge">0</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <div class="admin-filter-chips" id="filter-role">
-              <button class="admin-chip active" data-val="all">Tất cả</button>
-              <button class="admin-chip" data-val="admin"><i class="fa-solid fa-shield-halved" style="font-size:.7rem"></i> Admin</button>
-              <button class="admin-chip" data-val="user">User</button>
-            </div>
-            <div class="admin-filter-chips" id="filter-status" style="margin-left:.25rem">
-              <button class="admin-chip" data-val="active"><span class="admin-dot" style="background:#4ade80"></span> Active</button>
-              <button class="admin-chip" data-val="blocked"><span class="admin-dot" style="background:#f87171"></span> Blocked</button>
-            </div>
-            <button class="admin-filter-toggle-btn" id="btn-filter-toggle" onclick="Admin.toggleFilterPanel()">
-              <i class="fa-solid fa-sliders"></i> Lọc
+            <button class="navbar-toggler" id="navToggle" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
             </button>
-          </div>
-        </div>
+            <div class="navbar-collapse" id="navCollapse">
+                <a href="../../index.html">Khám phá</a>
+                <a href="charts.html">Charts</a>
+                <a href="admin.html">Dashboard</a>
+            </div>
+        </nav>
 
-        <!-- Filter panel (collapsible) -->
-        <div class="admin-filter-panel" id="filter-panel" style="display:none">
-          <div class="admin-filter-panel-grid">
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-user"></i> Tên người dùng
-              </label>
-              <input class="admin-filter-input" id="flt-name" placeholder="Nhập tên..." oninput="Admin.applyFilters()" />
-            </div>
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-envelope"></i> Email
-              </label>
-              <input class="admin-filter-input" id="flt-email" placeholder="Nhập email..." oninput="Admin.applyFilters()" />
-            </div>
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-arrow-down-wide-short"></i> Sắp xếp
-              </label>
-              <div class="adrop" id="adrop-sort">
-                <button class="adrop-trigger" onclick="Admin.toggleDrop('adrop-sort')">
-                  <span class="adrop-label">Mới tham gia nhất</span>
-                  <i class="fa-solid fa-chevron-down adrop-arrow"></i>
+        <!-- AUTH WALL -->
+        <div id="auth-wall" class="admin-auth-wall">
+            <div class="admin-auth-card card animate-slide-up">
+                <div class="admin-auth-logo">
+                    <div class="navbar-brand">
+                        <img
+                            src="../../assets/public/images/logo.webp"
+                            style="
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 8px;
+                                object-fit: cover;
+                            "
+                            alt="Lyrix"
+                        />
+                        Lyrix
+                    </div>
+                    <span class="badge badge-brand" style="margin-left: 0.5rem"
+                        >Admin</span
+                    >
+                </div>
+                <p
+                    style="
+                        color: var(--text-2);
+                        font-size: 0.875rem;
+                        margin: 0.5rem 0 1.5rem;
+                    "
+                >
+                    Chỉ dành cho quản trị viên
+                </p>
+                <div
+                    style="display: flex; flex-direction: column; gap: 0.75rem"
+                >
+                    <input
+                        id="login-email"
+                        class="search-input"
+                        style="padding: 0.75rem 1rem"
+                        type="email"
+                        placeholder="Email"
+                    />
+                    <input
+                        id="login-password"
+                        class="search-input"
+                        style="padding: 0.75rem 1rem"
+                        type="password"
+                        placeholder="Mật khẩu"
+                    />
+                </div>
+                <div id="auth-error" class="admin-auth-error">
+                    Sai email / mật khẩu hoặc không có quyền admin.
+                </div>
+                <button
+                    class="btn btn-primary btn-lg"
+                    style="
+                        width: 100%;
+                        margin-top: 1.25rem;
+                        justify-content: center;
+                    "
+                    id="btn-login"
+                >
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
                 </button>
-                <div class="adrop-menu">
-                  <div class="adrop-item active" data-val="newest">Mới tham gia nhất</div>
-                  <div class="adrop-item" data-val="oldest">Tham gia lâu nhất</div>
-                  <div class="adrop-item" data-val="name">Tên A → Z</div>
-                  <div class="adrop-item" data-val="favs">Nhiều yêu thích nhất</div>
-                  <div class="adrop-item" data-val="hist">Nhiều lịch sử nhất</div>
-                  <div class="adrop-item" data-val="pl">Nhiều playlist nhất</div>
+            </div>
+        </div>
+
+        <!-- LAYOUT -->
+        <div class="admin-layout" id="admin-app" style="display: none">
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-logo">
+                    <div class="navbar-brand">
+                        <img
+                            src="../../assets/public/images/logo.webp"
+                            style="
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 8px;
+                                object-fit: cover;
+                            "
+                            alt="Lyrix"
+                        />
+                        Lyrix
+                    </div>
+                    <span class="badge badge-brand">Admin</span>
                 </div>
-              </div>
+                <nav class="admin-nav">
+                    <div class="admin-nav-section">Overview</div>
+                    <a class="admin-nav-item active">
+                        <i class="fa-solid fa-users"></i>
+                        Người dùng
+                        <span class="badge badge-number" id="badge-users"
+                            >—</span
+                        >
+                    </a>
+                </nav>
+                <div class="admin-sidebar-footer">
+                    <div class="admin-sidebar-user">
+                        <div class="admin-sidebar-avatar" id="sidebar-avatar">
+                            A
+                        </div>
+                        <div>
+                            <div class="admin-sidebar-name" id="sidebar-name">
+                                Admin
+                            </div>
+                            <div
+                                class="admin-sidebar-email"
+                                id="sidebar-email"
+                            ></div>
+                        </div>
+                    </div>
+                    <button
+                        class="btn btn-ghost btn-sm"
+                        onclick="Admin.logout()"
+                        title="Đăng xuất"
+                    >
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main -->
+            <div class="admin-main">
+                <header class="admin-topbar">
+                    <h1 class="admin-page-title" id="page-title">
+                        Quản lý người dùng
+                    </h1>
+                    <div style="flex: 1"></div>
+                    <div class="search-wrapper" style="width: 220px">
+                        <i
+                            class="fa-solid fa-magnifying-glass search-icon"
+                            style="font-size: 0.8rem"
+                        ></i>
+                        <input
+                            id="search-input"
+                            class="search-input"
+                            style="
+                                padding: 0.55rem 0.9rem 0.55rem 2.4rem;
+                                font-size: 0.85rem;
+                            "
+                            placeholder="Tìm nhanh..."
+                            oninput="Admin.applyFilters()"
+                        />
+                    </div>
+                    <button
+                        class="btn btn-outline btn-sm"
+                        onclick="Admin.loadAll()"
+                    >
+                        <i class="fa-solid fa-rotate-right"></i> Reload
+                    </button>
+                </header>
+
+                <div class="admin-content">
+                    <!-- Stat cards -->
+                    <div class="admin-stat-grid">
+                        <div class="admin-stat-card admin-stat-purple">
+                            <div class="admin-stat-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div class="admin-stat-value" id="stat-users">
+                                —
+                            </div>
+                            <div class="admin-stat-label">Tổng người dùng</div>
+                        </div>
+                        <div class="admin-stat-card admin-stat-pink">
+                            <div class="admin-stat-icon">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <div class="admin-stat-value" id="stat-favs">—</div>
+                            <div class="admin-stat-label">Tổng yêu thích</div>
+                        </div>
+                        <div class="admin-stat-card admin-stat-amber">
+                            <div class="admin-stat-icon">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div class="admin-stat-value" id="stat-hist">—</div>
+                            <div class="admin-stat-label">Tổng lịch sử xem</div>
+                        </div>
+                        <div class="admin-stat-card admin-stat-green">
+                            <div class="admin-stat-icon">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <div class="admin-stat-value" id="stat-pl">—</div>
+                            <div class="admin-stat-label">Tổng playlist</div>
+                        </div>
+                    </div>
+
+                    <!-- USERS + CHART merged -->
+                    <div id="tab-users" class="admin-tab-panel active">
+                        <!-- Chart -->
+                        <div
+                            class="card"
+                            style="padding: 1.25rem; margin-bottom: 1.25rem"
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    margin-bottom: 1rem;
+                                    flex-wrap: wrap;
+                                    gap: 0.75rem;
+                                "
+                            >
+                                <div>
+                                    <div
+                                        style="
+                                            font-size: 0.875rem;
+                                            font-weight: 700;
+                                        "
+                                    >
+                                        Đăng ký theo thời gian
+                                    </div>
+                                    <div
+                                        style="
+                                            font-size: 0.72rem;
+                                            color: var(--text-3);
+                                            margin-top: 2px;
+                                        "
+                                    >
+                                        Số tài khoản đăng ký mới
+                                    </div>
+                                </div>
+                                <div
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 1rem;
+                                        flex-wrap: wrap;
+                                    "
+                                >
+                                    <div style="display: flex; gap: 1.5rem">
+                                        <div style="text-align: center">
+                                            <div
+                                                style="
+                                                    font-size: 0.65rem;
+                                                    color: var(--text-3);
+                                                    text-transform: uppercase;
+                                                    letter-spacing: 0.06em;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Hôm nay
+                                            </div>
+                                            <div
+                                                class="admin-stat-value"
+                                                id="ana-today"
+                                                style="
+                                                    font-size: 1.4rem;
+                                                    line-height: 1.2;
+                                                "
+                                            >
+                                                —
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center">
+                                            <div
+                                                style="
+                                                    font-size: 0.65rem;
+                                                    color: var(--text-3);
+                                                    text-transform: uppercase;
+                                                    letter-spacing: 0.06em;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Tuần này
+                                            </div>
+                                            <div
+                                                class="admin-stat-value"
+                                                id="ana-week"
+                                                style="
+                                                    font-size: 1.4rem;
+                                                    line-height: 1.2;
+                                                "
+                                            >
+                                                —
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center">
+                                            <div
+                                                style="
+                                                    font-size: 0.65rem;
+                                                    color: var(--text-3);
+                                                    text-transform: uppercase;
+                                                    letter-spacing: 0.06em;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Tháng này
+                                            </div>
+                                            <div
+                                                class="admin-stat-value"
+                                                id="ana-month"
+                                                style="
+                                                    font-size: 1.4rem;
+                                                    line-height: 1.2;
+                                                "
+                                            >
+                                                —
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="admin-period-tabs"
+                                        id="period-tabs"
+                                    >
+                                        <button
+                                            class="admin-period-btn active"
+                                            data-period="day"
+                                        >
+                                            Ngày
+                                        </button>
+                                        <button
+                                            class="admin-period-btn"
+                                            data-period="week"
+                                        >
+                                            Tuần
+                                        </button>
+                                        <button
+                                            class="admin-period-btn"
+                                            data-period="month"
+                                        >
+                                            Tháng
+                                        </button>
+                                        <button
+                                            class="admin-period-btn"
+                                            data-period="year"
+                                        >
+                                            Năm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="position: relative; height: 220px">
+                                <canvas id="chart-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Filter header bar -->
+                        <div class="admin-filter-header">
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.625rem;
+                                "
+                            >
+                                <i
+                                    class="fa-solid fa-users"
+                                    style="
+                                        color: var(--text-3);
+                                        font-size: 0.85rem;
+                                    "
+                                ></i>
+                                <span
+                                    style="
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    "
+                                    >Danh sách người dùng</span
+                                >
+                                <span
+                                    class="badge badge-number"
+                                    id="filter-result-badge"
+                                    >0</span
+                                >
+                            </div>
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.5rem;
+                                "
+                            >
+                                <div
+                                    class="admin-filter-chips"
+                                    id="filter-role"
+                                >
+                                    <button
+                                        class="admin-chip active"
+                                        data-val="all"
+                                    >
+                                        Tất cả
+                                    </button>
+                                    <button class="admin-chip" data-val="admin">
+                                        <i
+                                            class="fa-solid fa-shield-halved"
+                                            style="font-size: 0.7rem"
+                                        ></i>
+                                        Admin
+                                    </button>
+                                    <button class="admin-chip" data-val="user">
+                                        User
+                                    </button>
+                                </div>
+                                <div
+                                    class="admin-filter-chips"
+                                    id="filter-status"
+                                    style="margin-left: 0.25rem"
+                                >
+                                    <button
+                                        class="admin-chip"
+                                        data-val="active"
+                                    >
+                                        <span
+                                            class="admin-dot"
+                                            style="background: #4ade80"
+                                        ></span>
+                                        Active
+                                    </button>
+                                    <button
+                                        class="admin-chip"
+                                        data-val="blocked"
+                                    >
+                                        <span
+                                            class="admin-dot"
+                                            style="background: #f87171"
+                                        ></span>
+                                        Blocked
+                                    </button>
+                                </div>
+                                <button
+                                    class="admin-filter-toggle-btn"
+                                    id="btn-filter-toggle"
+                                    onclick="Admin.toggleFilterPanel()"
+                                >
+                                    <i class="fa-solid fa-sliders"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filter panel (collapsible) -->
+                        <div
+                            class="admin-filter-panel"
+                            id="filter-panel"
+                            style="display: none"
+                        >
+                            <div class="admin-filter-panel-grid">
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i class="fa-solid fa-user"></i> Tên
+                                        người dùng
+                                    </label>
+                                    <input
+                                        class="admin-filter-input"
+                                        id="flt-name"
+                                        placeholder="Nhập tên..."
+                                        oninput="Admin.applyFilters()"
+                                    />
+                                </div>
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        Email
+                                    </label>
+                                    <input
+                                        class="admin-filter-input"
+                                        id="flt-email"
+                                        placeholder="Nhập email..."
+                                        oninput="Admin.applyFilters()"
+                                    />
+                                </div>
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i
+                                            class="fa-solid fa-arrow-down-wide-short"
+                                        ></i>
+                                        Sắp xếp
+                                    </label>
+                                    <div class="adrop" id="adrop-sort">
+                                        <button
+                                            class="adrop-trigger"
+                                            onclick="
+                                                Admin.toggleDrop('adrop-sort')
+                                            "
+                                        >
+                                            <span class="adrop-label"
+                                                >Mới tham gia nhất</span
+                                            >
+                                            <i
+                                                class="fa-solid fa-chevron-down adrop-arrow"
+                                            ></i>
+                                        </button>
+                                        <div class="adrop-menu">
+                                            <div
+                                                class="adrop-item active"
+                                                data-val="newest"
+                                            >
+                                                Mới tham gia nhất
+                                            </div>
+                                            <div
+                                                class="adrop-item"
+                                                data-val="oldest"
+                                            >
+                                                Tham gia lâu nhất
+                                            </div>
+                                            <div
+                                                class="adrop-item"
+                                                data-val="name"
+                                            >
+                                                Tên A → Z
+                                            </div>
+                                            <div
+                                                class="adrop-item"
+                                                data-val="favs"
+                                            >
+                                                Nhiều yêu thích nhất
+                                            </div>
+                                            <div
+                                                class="adrop-item"
+                                                data-val="hist"
+                                            >
+                                                Nhiều lịch sử nhất
+                                            </div>
+                                            <div
+                                                class="adrop-item"
+                                                data-val="pl"
+                                            >
+                                                Nhiều playlist nhất
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        Tham gia từ ngày
+                                    </label>
+                                    <input
+                                        class="admin-filter-input"
+                                        id="flt-date-from"
+                                        type="date"
+                                        onchange="Admin.applyFilters()"
+                                    />
+                                </div>
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i
+                                            class="fa-solid fa-calendar-check"
+                                        ></i>
+                                        Tham gia đến ngày
+                                    </label>
+                                    <input
+                                        class="admin-filter-input"
+                                        id="flt-date-to"
+                                        type="date"
+                                        onchange="Admin.applyFilters()"
+                                    />
+                                </div>
+                                <div class="admin-filter-field">
+                                    <label class="admin-filter-field-label">
+                                        <i class="fa-solid fa-heart"></i> Yêu
+                                        thích tối thiểu
+                                    </label>
+                                    <input
+                                        class="admin-filter-input"
+                                        id="flt-min-favs"
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        oninput="Admin.applyFilters()"
+                                    />
+                                </div>
+                            </div>
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: flex-end;
+                                    margin-top: 1rem;
+                                "
+                            >
+                                <button
+                                    class="btn btn-ghost btn-sm"
+                                    onclick="Admin.clearFilters()"
+                                >
+                                    <i class="fa-solid fa-xmark"></i> Xoá bộ lọc
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div
+                            class="admin-table-wrap card"
+                            style="margin-top: 1rem"
+                        >
+                            <div class="admin-table-scroll">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Người dùng</th>
+                                            <th>Role</th>
+                                            <th>Yêu thích</th>
+                                            <th>Lịch sử</th>
+                                            <th>Playlist</th>
+                                            <th>Tham gia</th>
+                                            <th>Trạng thái</th>
+                                            <th style="width: 1px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-tbody">
+                                        <tr>
+                                            <td
+                                                colspan="8"
+                                                class="admin-loading-cell"
+                                            >
+                                                <div
+                                                    class="skeleton"
+                                                    style="
+                                                        height: 14px;
+                                                        width: 55%;
+                                                        margin: 1rem auto;
+                                                    "
+                                                ></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-calendar"></i> Tham gia từ ngày
-              </label>
-              <input class="admin-filter-input" id="flt-date-from" type="date" onchange="Admin.applyFilters()" />
-            </div>
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-calendar-check"></i> Tham gia đến ngày
-              </label>
-              <input class="admin-filter-input" id="flt-date-to" type="date" onchange="Admin.applyFilters()" />
-            </div>
-            <div class="admin-filter-field">
-              <label class="admin-filter-field-label">
-                <i class="fa-solid fa-heart"></i> Yêu thích tối thiểu
-              </label>
-              <input class="admin-filter-input" id="flt-min-favs" type="number" min="0" placeholder="0" oninput="Admin.applyFilters()" />
-            </div>
-          </div>
-          <div style="display:flex;justify-content:flex-end;margin-top:1rem">
-            <button class="btn btn-ghost btn-sm" onclick="Admin.clearFilters()">
-              <i class="fa-solid fa-xmark"></i> Xoá bộ lọc
-            </button>
-          </div>
         </div>
 
-        <!-- Table -->
-        <div class="admin-table-wrap card" style="margin-top:1rem">
-          <div class="admin-table-scroll">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Người dùng</th>
-                  <th>Role</th>
-                  <th>Yêu thích</th>
-                  <th>Lịch sử</th>
-                  <th>Playlist</th>
-                  <th>Tham gia</th>
-                  <th>Trạng thái</th>
-                  <th style="width:1px"></th>
-                </tr>
-              </thead>
-              <tbody id="users-tbody">
-                <tr><td colspan="8" class="admin-loading-cell">
-                  <div class="skeleton" style="height:14px;width:55%;margin:1rem auto"></div>
-                </td></tr>
-              </tbody>
-            </table>
-          </div>
+        <!-- Toast -->
+        <div id="admin-toast" class="admin-toast"></div>
+
+        <!-- Confirm modal -->
+        <div
+            id="confirm-modal"
+            class="modal-overlay"
+            style="display: none; align-items: center; justify-content: center"
+        >
+            <div
+                class="modal-box card animate-slide-up"
+                style="max-width: 380px; padding: 2rem"
+            >
+                <h3 id="confirm-title" style="margin-bottom: 0.5rem">
+                    Xác nhận
+                </h3>
+                <p
+                    id="confirm-msg"
+                    style="
+                        color: var(--text-2);
+                        font-size: 0.875rem;
+                        margin-bottom: 1.5rem;
+                    "
+                ></p>
+                <div
+                    style="
+                        display: flex;
+                        gap: 0.75rem;
+                        justify-content: flex-end;
+                    "
+                >
+                    <button
+                        class="btn btn-ghost btn-sm"
+                        onclick="Admin.closeConfirm()"
+                    >
+                        Huỷ
+                    </button>
+                    <button class="btn btn-sm btn-danger" id="confirm-ok">
+                        Xác nhận
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
 
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="admin-toast" class="admin-toast"></div>
-
-<!-- Confirm modal -->
-<div id="confirm-modal" class="modal-overlay" style="display:none;align-items:center;justify-content:center">
-  <div class="modal-box card animate-slide-up" style="max-width:380px;padding:2rem">
-    <h3 id="confirm-title" style="margin-bottom:.5rem">Xác nhận</h3>
-    <p  id="confirm-msg"   style="color:var(--text-2);font-size:.875rem;margin-bottom:1.5rem"></p>
-    <div style="display:flex;gap:.75rem;justify-content:flex-end">
-      <button class="btn btn-ghost btn-sm" onclick="Admin.closeConfirm()">Huỷ</button>
-      <button class="btn btn-sm btn-danger" id="confirm-ok">Xác nhận</button>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="../scripts/pages/admin.js"></script>
-</body>
+        <!-- Firebase -->
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+        <script src="../scripts/pages/admin.js"></script>
+        <script>
+            // Toggle dropdown navbar trên admin page
+            function toggleUserMenuAdmin() {
+                document
+                    .getElementById("userDropdown")
+                    ?.classList.toggle("open");
+            }
+            document.addEventListener("click", (e) => {
+                const wrap = document.getElementById("userMenuWrap");
+                if (wrap && !wrap.contains(e.target))
+                    document
+                        .getElementById("userDropdown")
+                        ?.classList.remove("open");
+            });
+        </script>
+        <script src="../scripts/components/navbar.js"></script>
+    </body>
 </html>

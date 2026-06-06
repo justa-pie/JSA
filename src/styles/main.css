@@ -2616,6 +2616,8 @@ main {
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
 }
+.admin-sub-section {
+}
 .admin-sub-title {
     display: flex;
     align-items: center;
@@ -2822,6 +2824,9 @@ main {
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Cover banner ───────────────────────────────────────────────── */
+.profile-cover-wrap {
+    position: relative;  /* anchor cho .profile-cover-edit absolute */
+}
 .profile-cover {
     height: 200px;
     background: linear-gradient(
@@ -2853,11 +2858,16 @@ main {
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     z-index: 0;
 }
-.profile-cover-edit {
+.profile-cover-actions {
     position: absolute;
     bottom: 0.75rem;
     right: 0.75rem;
-    z-index: 2; /* luôn nổi lên trên ảnh bìa */
+    z-index: 30;
+    display: flex;
+    gap: 0.5rem;
+}
+.profile-cover-edit {
+    position: static;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -2905,7 +2915,7 @@ main {
     margin-top: -52px;
     margin-bottom: 1rem;
     position: relative;
-    z-index: 10; /* nổi lên trên cover */
+    z-index: 20; /* cao hơn cover-wrap */
 }
 .profile-avatar-wrap {
     position: relative;
@@ -3016,6 +3026,14 @@ main {
 }
 .profile-stat-box.active {
     background: var(--surface-3);
+}
+/* Bo góc dưới cho stat box đầu và cuối khi active/hover
+   để khớp với border-radius của .profile-card */
+.profile-stat-box:first-child {
+    border-radius: 0 0 0 var(--radius-xl);
+}
+.profile-stat-box:last-child {
+    border-radius: 0 0 var(--radius-xl) 0;
 }
 .profile-stat-num {
     font-size: 1.35rem;
@@ -3377,7 +3395,6 @@ select.admin-filter-input option {
     margin: 0;
 }
 .admin-filter-input[type="number"] {
-    appearance: textfield;
     -moz-appearance: textfield;
 }
 
@@ -3470,3 +3487,35 @@ select.admin-filter-input option {
     color: var(--brand-light);
     margin-right: 0.1rem;
 }
+
+
+/* ── PAGE LOADER ── */
+#page-loader {
+    position: fixed; inset: 0;
+    background: var(--surface);
+    z-index: 99999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.5rem;
+    transition: opacity .4s ease, visibility .4s ease;
+}
+#page-loader.loader-fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo {
+    width: 64px; height: 64px; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 0 40px rgba(124,58,237,.5);
+    animation: loader-pulse 1.8s ease-in-out infinite;
+}
+.loader-logo img { width: 100%; height: 100%; object-fit: cover; }
+.loader-bar { width: 140px; height: 3px; background: var(--surface-4); border-radius: 99px; overflow: hidden; }
+.loader-bar-fill {
+    height: 100%; width: 40%;
+    background: linear-gradient(90deg, #7c3aed, #ec4899, #7c3aed);
+    background-size: 200% 100%; border-radius: 99px;
+    animation: loader-slide 1.4s ease-in-out infinite, loader-gradient 2s linear infinite;
+}
+@keyframes loader-pulse {
+    0%,100% { transform:scale(1);    box-shadow:0 0 40px rgba(124,58,237,.5); }
+    50%      { transform:scale(1.06);box-shadow:0 0 60px rgba(192,132,252,.7); }
+}
+@keyframes loader-slide { 0%{transform:translateX(-150%)} 100%{transform:translateX(350%)} }
+@keyframes loader-gradient { 0%{background-position:0% 0} 100%{background-position:200% 0} }

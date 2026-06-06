@@ -126,11 +126,9 @@ function renderAvatar() {
     } else {
         el.textContent = (profileData.displayName || currentUser?.displayName || "U")[0].toUpperCase();
     }
-    // Sync navbar
-    const navEl = document.getElementById("navUserInitial");
-    if (navEl) {
-        if (src) navEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" referrerpolicy="no-referrer"/>`;
-        else navEl.textContent = (profileData.displayName || "U")[0].toUpperCase();
+    // Sync navbar qua NavBar.ready
+    if (window.NavBar && currentUser) {
+        NavBar.ready(currentUser, profileData.role || "user", src || null);
     }
 }
 
@@ -144,6 +142,8 @@ window.handleAvatarChange = async function (e) {
         await firebase.firestore().collection("users").doc(currentUser.uid)
             .set({ avatarUrl: base64 }, { merge: true });
         profileData.avatarUrl = base64;
+        // Cập nhật localStorage cache → các trang khác dùng được ngay
+        if (currentUser) localStorage.setItem("lyrix_avatarUrl_" + currentUser.uid, base64);
         renderAvatar();
         showToast("Đã cập nhật ảnh đại diện", "success");
     } catch { showToast("Lỗi cập nhật ảnh", "error"); }

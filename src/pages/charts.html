@@ -19,71 +19,10 @@
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <style>.navbar-avatar{overflow:hidden}.navbar-avatar span{display:flex;align-items:center;justify-content:center;width:100%;height:100%}</style>
-</head>
+    </head>
     <body>
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
-
-        <nav class="navbar" id="navbar">
-            <a class="navbar-brand" href="../../index.html">
-                <img src="../../assets/public/images/logo.webp" style="width:32px;height:32px;border-radius:8px;object-fit:cover" alt="Lyrix"/> Lyrix
-            </a>
-            <div class="navbar-links">
-                <a href="../../index.html">Khám phá</a>
-                <a href="charts.html" class="active">Charts</a>
-            </div>
-            <div class="navbar-actions">
-                <button class="btn-nav btn-nav-ghost" onclick="history.back()">
-                    <i class="fa-solid fa-arrow-left"></i> Quay lại
-                </button>
-                <div style="position: relative" id="userMenuWrap">
-                    <button
-                        class="navbar-avatar"
-                        id="navUserBtn"
-                        onclick="toggleUserMenu()"
-                        style="display: none"
-                    >
-                        <span id="navUserInitial" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%">U</span>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <div class="user-dropdown-header">
-                            <div class="user-dropdown-name" id="ddName">—</div>
-                            <div class="user-dropdown-email" id="ddEmail">
-                                —
-                            </div>
-                        </div>
-                        <button class="user-dropdown-item" onclick="signOut()">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng
-                            xuất
-                        </button>
-                    </div>
-                </div>
-                <button
-                    class="btn-nav btn-nav-primary"
-                    id="navLoginBtn"
-                    onclick="openAuthModal()"
-                >
-                    <i class="fa-solid fa-user"></i> Đăng nhập
-                </button>
-            </div>
-            <button class="navbar-toggler" id="navToggle" aria-label="Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div class="navbar-collapse" id="navCollapse">
-                <a href="../../index.html">Khám phá</a>
-                <a href="charts.html">Charts</a>
-                <button
-                    class="user-dropdown-item"
-                    id="mobileLoginBtn"
-                    onclick="openAuthModal()"
-                    style="border-radius: 8px; margin-top: 4px; display: flex"
-                >
-                    <i class="fa-solid fa-user"></i> Đăng nhập
-                </button>
-            </div>
-        </nav>
-
         <!-- Auth Modal -->
         <div class="modal-overlay" id="authModalOverlay">
             <div class="modal">
@@ -357,7 +296,7 @@
 
         <script src="../scripts/api/genius.js"></script>
         <script src="../scripts/pages/charts.js"></script>
-        <script src="../scripts/components/auth.js"></script>
         <script src="../scripts/components/navbar.js"></script>
+        <script src="../scripts/components/auth.js"></script>
     </body>
 </html>
