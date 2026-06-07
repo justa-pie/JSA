@@ -56,6 +56,7 @@ async function loadArtist() {
             ${a.twitter_name ? `<a href="https://twitter.com/${a.twitter_name}"   target="_blank" class="btn btn-ghost btn-sm"><i class="fa-brands fa-twitter"></i></a>` : ""}
             ${a.facebook_name ? `<a href="https://facebook.com/${a.facebook_name}" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-brands fa-facebook"></i></a>` : ""}
           </div>
+          <div class="ai-buttons-row" id="aiButtonsRow"></div>
         </div>
       </div>
 
@@ -102,6 +103,26 @@ async function loadArtist() {
       </div>`;
 
         loadSongs();
+
+        // ── Tích hợp AI ──────────────────────────────────────────────
+        if (typeof LyrixAI !== "undefined") {
+            const aiRow = document.getElementById("aiButtonsRow");
+
+            // Nút: Tóm tắt tiểu sử nghệ sĩ
+            LyrixAI.initArtistSummary({
+                name: a.name,
+                bio: bio,
+                container: aiRow,
+            });
+
+            // Floating chatbot — biết đang xem nghệ sĩ nào
+            LyrixAI.initFloatingChat({
+                page: "Chi tiết nghệ sĩ",
+                title: a.name,
+                artist: a.name,
+            });
+        }
+        // ─────────────────────────────────────────────────────────────
     } catch (err) {
         showError(err.message);
         container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p></div>`;

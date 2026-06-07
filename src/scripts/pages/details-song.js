@@ -76,8 +76,11 @@ async function loadSong() {
             <button class="btn btn-outline btn-sm" onclick="copyLyrics()"><i class="fa-solid fa-copy"></i> Sao chép lời</button>
             ${s.primary_artist?.id ? `<button class="btn btn-ghost btn-sm" onclick="window.location.href='details-artist.html?id=${s.primary_artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
           </div>
+          <div class="ai-buttons-row" id="aiButtonsRow"></div>
         </div>
       </div>
+
+      <div id="preview-player-container" class="animate-slide-up stagger-1"></div>
 
       <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
         <div class="stats-bar">
@@ -164,6 +167,38 @@ async function loadSong() {
         </div>
       </div>`;
 
+        // Render preview player
+        renderPreviewPlayer(s.title, s.primary_artist?.name || "");
+
+        // ── Tích hợp AI ──────────────────────────────────────────────
+        if (typeof LyrixAI !== "undefined") {
+            const aiRow = document.getElementById("aiButtonsRow");
+
+            // Nút 1: Phân tích lời bài hát
+            LyrixAI.initLyricsAnalyze({
+                title: s.title,
+                artist: s.primary_artist?.name || "",
+                lyrics: lyricsText,
+                container: aiRow,
+            });
+
+            // Nút 2: Gợi ý bài hát tương tự
+            LyrixAI.initSimilarSongs({
+                title: s.title,
+                artist: s.primary_artist?.name || "",
+                tags: s.tags?.join(", ") || "",
+                container: aiRow,
+            });
+
+            // Floating chatbot — biết ngữ cảnh đang xem bài nào
+            LyrixAI.initFloatingChat({
+                page: "Chi tiết bài hát",
+                title: s.title,
+                artist: s.primary_artist?.name || "",
+            });
+        }
+        // ─────────────────────────────────────────────────────────────
+
         // Kiểm tra trạng thái yêu thích sau khi render
         setTimeout(async () => {
             if (typeof checkFavorite === "function") {
@@ -242,6 +277,146 @@ window.copyLyrics = function () {
         }
     });
 };
+
+// ─── iTunes Preview Player ────────────────────────────────────────────────────
+async function fetchItunesPreview(songTitle, artistName) {
+    try {
+        const q = encodeURIComponent(`${songTitle} ${artistName}`);
+        const res = await fetch(
+            `https://itunes.apple.com/search?term=${q}&media=music&entity=song&limit=5`,
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.results?.length) return null;
+        const match =
+            data.results.find((r) =>
+                r.artistName.toLowerCase().includes(artistName.toLowerCase()),
+            ) || data.results[0];
+        return match.previewUrl || null;
+    } catch {
+        return null;
+    }
+}
+
+async function renderPreviewPlayer(songTitle, artistName) {
+    const container = document.getElementById("preview-player-container");
+    if (!container) return;
+
+    // Skeleton loading
+    container.innerHTML = `
+        <div class="preview-player preview-loading">
+            <div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                <div class="skeleton" style="width:90px;height:9px;border-radius:4px"></div>
+                <div class="skeleton" style="width:100%;height:4px;border-radius:2px"></div>
+            </div>
+        </div>`;
+
+    const previewUrl = await fetchItunesPreview(songTitle, artistName);
+
+    if (!previewUrl) {
+        container.innerHTML = `
+            <div class="preview-unavailable">
+                <i class="fa-solid fa-headphones" style="font-size:14px"></i>
+                <span>Không tìm thấy bản nghe thử cho bài này</span>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="preview-player" id="previewPlayer">
+            <button class="preview-play-btn" id="previewPlayBtn" aria-label="Phát / Dừng">
+                <i class="fa-solid fa-play" id="previewIcon"></i>
+            </button>
+            <div class="preview-info">
+                <span class="preview-label"><i class="fa-brands fa-apple" style="margin-right:4px"></i>Nghe thử · 30 giây</span>
+                <div class="preview-progress-row">
+                    <div class="preview-bar" id="previewBar">
+                        <div class="preview-bar-fill" id="previewFill"></div>
+                    </div>
+                    <span class="preview-time" id="previewTime">0:00</span>
+                </div>
+            </div>
+            <div class="preview-vol-wrap">
+                <i class="fa-solid fa-volume-high preview-vol-icon" id="previewVolIcon"></i>
+                <input type="range" class="preview-vol-input" id="previewVol" min="0" max="1" step="0.05" value="0.8">
+            </div>
+            <audio id="previewAudio" src="${previewUrl}" preload="none"></audio>
+        </div>`;
+
+    const audio = document.getElementById("previewAudio");
+    const playBtn = document.getElementById("previewPlayBtn");
+    const icon = document.getElementById("previewIcon");
+    const fill = document.getElementById("previewFill");
+    const timeEl = document.getElementById("previewTime");
+    const volInput = document.getElementById("previewVol");
+    const volIcon = document.getElementById("previewVolIcon");
+    const player = document.getElementById("previewPlayer");
+
+    audio.volume = 0.8;
+
+    const fmt = (s) =>
+        `${Math.floor(s / 60)}:${Math.floor(s % 60)
+            .toString()
+            .padStart(2, "0")}`;
+
+    playBtn.addEventListener("click", () => {
+        if (audio.paused) {
+            audio.play();
+            icon.className = "fa-solid fa-pause";
+            player.classList.add("is-playing");
+        } else {
+            audio.pause();
+            icon.className = "fa-solid fa-play";
+            player.classList.remove("is-playing");
+        }
+    });
+
+    audio.addEventListener("timeupdate", () => {
+        if (!audio.duration) return;
+        fill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+        timeEl.textContent = fmt(audio.currentTime);
+    });
+
+    audio.addEventListener("ended", () => {
+        icon.className = "fa-solid fa-play";
+        fill.style.width = "0%";
+        timeEl.textContent = "0:00";
+        player.classList.remove("is-playing");
+    });
+
+    document
+        .getElementById("previewBar")
+        .addEventListener("click", function (e) {
+            if (!audio.duration) return;
+            const r = this.getBoundingClientRect();
+            audio.currentTime =
+                ((e.clientX - r.left) / r.width) * audio.duration;
+        });
+
+    volInput.addEventListener("input", () => {
+        audio.volume = volInput.value;
+        volIcon.className =
+            audio.volume == 0
+                ? "fa-solid fa-volume-xmark preview-vol-icon"
+                : audio.volume < 0.5
+                  ? "fa-solid fa-volume-low preview-vol-icon"
+                  : "fa-solid fa-volume-high preview-vol-icon";
+    });
+
+    volIcon.addEventListener("click", () => {
+        if (audio.volume > 0) {
+            audio._prev = audio.volume;
+            audio.volume = 0;
+            volInput.value = 0;
+            volIcon.className = "fa-solid fa-volume-xmark preview-vol-icon";
+        } else {
+            audio.volume = audio._prev || 0.8;
+            volInput.value = audio.volume;
+            volIcon.className = "fa-solid fa-volume-high preview-vol-icon";
+        }
+    });
+}
 
 // ─── Toggle lyrics expand ─────────────────────────────────────────────────────
 let expanded = false;

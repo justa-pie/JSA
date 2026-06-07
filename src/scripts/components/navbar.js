@@ -1,16 +1,17 @@
 // ─── navbar.js — Loader + Navbar inject + Scroll + Mobile toggle ──────────────
 (function () {
-
-    const inPages  = window.location.pathname.includes("/src/pages/");
-    const root     = inPages ? "../../" : "";
+    const inPages = window.location.pathname.includes("/src/pages/");
+    const root = inPages ? "../../" : "";
     const pagesDir = inPages ? "" : "src/pages/";
-    const logoSrc  = root + "assets/public/images/logo.webp";
-    const pageName = window.location.pathname.split("/").pop().replace(".html","") || "index";
+    const logoSrc = root + "assets/public/images/logo.webp";
+    const pageName =
+        window.location.pathname.split("/").pop().replace(".html", "") ||
+        "index";
 
     // ── ❶ Loader ─────────────────────────────────────────────────────────────
     if (!document.getElementById("page-loader")) {
         const el = document.createElement("div");
-        el.id    = "page-loader";
+        el.id = "page-loader";
         el.innerHTML = `
             <div class="loader-logo">
                 <img src="${logoSrc}" alt="Lyrix"
@@ -23,8 +24,8 @@
     // ── ❷ Navbar inject (chỉ khi chưa có — admin.html tự có navbar) ──────────
     if (!document.getElementById("navbar")) {
         const chartsHref = inPages ? "charts.html" : "src/pages/charts.html";
-        const nav        = document.createElement("nav");
-        nav.id        = "navbar";
+        const nav = document.createElement("nav");
+        nav.id = "navbar";
         nav.className = "navbar";
         nav.innerHTML = `
             <a class="navbar-brand" href="${root}index.html">
@@ -77,35 +78,44 @@
     }
 
     // ── ❸ Logo ────────────────────────────────────────────────────────────────
-    document.querySelectorAll("#navbar-logo-icon, .logo-icon:not([data-logo-set])").forEach((el) => {
-        el.dataset.logoSet = "1";
-        el.innerHTML = "";
-        el.style.cssText = "background:none;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0";
-        const img = document.createElement("img");
-        img.src   = logoSrc;
-        img.alt   = "Lyrix";
-        img.style.cssText = "width:32px;height:32px;object-fit:contain;border-radius:6px";
-        img.onerror = () => { el.textContent = "♪"; el.removeAttribute("style"); };
-        el.appendChild(img);
-    });
+    document
+        .querySelectorAll("#navbar-logo-icon, .logo-icon:not([data-logo-set])")
+        .forEach((el) => {
+            el.dataset.logoSet = "1";
+            el.innerHTML = "";
+            el.style.cssText =
+                "background:none;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0";
+            const img = document.createElement("img");
+            img.src = logoSrc;
+            img.alt = "Lyrix";
+            img.style.cssText =
+                "width:32px;height:32px;object-fit:contain;border-radius:6px";
+            img.onerror = () => {
+                el.textContent = "♪";
+                el.removeAttribute("style");
+            };
+            el.appendChild(img);
+        });
 
     // ── ❹ Scroll ─────────────────────────────────────────────────────────────
     const navbar = document.getElementById("navbar");
     if (navbar) {
-        window.addEventListener("scroll",
+        window.addEventListener(
+            "scroll",
             () => navbar.classList.toggle("scrolled", window.scrollY > 20),
-            { passive: true }
+            { passive: true },
         );
     }
 
     // ── ❺ Mobile toggle ───────────────────────────────────────────────────────
-    const toggle   = document.getElementById("navToggle");
+    const toggle = document.getElementById("navToggle");
     const collapse = document.getElementById("navCollapse");
     if (toggle && collapse) {
         toggle.addEventListener("click", () => {
             const open = collapse.classList.toggle("open");
-            const i    = toggle.querySelector("i");
-            if (i) i.className = open ? "fa-solid fa-xmark" : "fa-solid fa-bars";
+            const i = toggle.querySelector("i");
+            if (i)
+                i.className = open ? "fa-solid fa-xmark" : "fa-solid fa-bars";
         });
         collapse.querySelectorAll("a").forEach((a) => {
             a.addEventListener("click", () => {
@@ -136,20 +146,20 @@
     // ── ❼ NavBar.ready(user, role, avatarUrl) — auth.js gọi sau khi resolve ──
     window.NavBar = {
         ready(user, role, avatarUrl) {
-            const loginBtn  = document.getElementById("navLoginBtn");
+            const loginBtn = document.getElementById("navLoginBtn");
             const mobileBtn = document.getElementById("mobileLoginBtn");
-            const userBtn   = document.getElementById("navUserBtn");
-            const initial   = document.getElementById("navUserInitial");
-            const ddName    = document.getElementById("ddName");
-            const ddEmail   = document.getElementById("ddEmail");
-            const slot      = document.getElementById("dropdown-items-slot");
-            const navLinks  = document.getElementById("navbar-links");
-            const collapse  = document.getElementById("navCollapse");
+            const userBtn = document.getElementById("navUserBtn");
+            const initial = document.getElementById("navUserInitial");
+            const ddName = document.getElementById("ddName");
+            const ddEmail = document.getElementById("ddEmail");
+            const slot = document.getElementById("dropdown-items-slot");
+            const navLinks = document.getElementById("navbar-links");
+            const collapse = document.getElementById("navCollapse");
 
             if (user) {
-                if (loginBtn)  loginBtn.style.display  = "none";
+                if (loginBtn) loginBtn.style.display = "none";
                 if (mobileBtn) mobileBtn.style.display = "none";
-                if (userBtn)   userBtn.style.display   = "flex";
+                if (userBtn) userBtn.style.display = "flex";
 
                 // Avatar
                 if (initial) {
@@ -158,45 +168,61 @@
                             style="width:100%;height:100%;object-fit:cover;border-radius:50%"
                             referrerpolicy="no-referrer"/>`;
                     } else {
-                        initial.textContent = (user.displayName || user.email || "U")[0].toUpperCase();
+                        initial.textContent = (user.displayName ||
+                            user.email ||
+                            "U")[0].toUpperCase();
                     }
                 }
 
-                if (ddName)  ddName.textContent  = user.displayName || "Người dùng";
+                if (ddName)
+                    ddName.textContent = user.displayName || "Người dùng";
                 if (ddEmail) ddEmail.textContent = user.email || "";
 
                 // Dropdown: Trang cá nhân (không có Dashboard — đã có trên navbar)
                 if (slot) {
                     slot.innerHTML = "";
-                    const profileBtn     = document.createElement("button");
+                    const profileBtn = document.createElement("button");
                     profileBtn.className = "user-dropdown-item";
-                    profileBtn.innerHTML = '<i class="fa-solid fa-user-circle"></i> Trang cá nhân';
-                    profileBtn.onclick   = () => { window.location.href = pagesDir + "profile.html"; };
+                    profileBtn.innerHTML =
+                        '<i class="fa-solid fa-user-circle"></i> Trang cá nhân';
+                    profileBtn.onclick = () => {
+                        window.location.href = pagesDir + "profile.html";
+                    };
                     slot.appendChild(profileBtn);
                 }
 
                 // Link Dashboard trên navbar (chỉ chữ, không icon)
                 if (role === "admin") {
-                    if (navLinks && !navLinks.querySelector(".nav-admin-link")) {
+                    if (
+                        navLinks &&
+                        !navLinks.querySelector(".nav-admin-link")
+                    ) {
                         const a = document.createElement("a");
-                        a.href      = pagesDir + "admin.html";
-                        a.className = "nav-admin-link" + (pageName === "admin" ? " active" : "");
+                        a.href = pagesDir + "admin.html";
+                        a.className =
+                            "nav-admin-link" +
+                            (pageName === "admin" ? " active" : "");
                         a.textContent = "Dashboard";
                         navLinks.appendChild(a);
                     }
-                    if (collapse && !collapse.querySelector(".nav-admin-link-mobile")) {
+                    if (
+                        collapse &&
+                        !collapse.querySelector(".nav-admin-link-mobile")
+                    ) {
                         const a = document.createElement("a");
-                        a.href      = pagesDir + "admin.html";
+                        a.href = pagesDir + "admin.html";
                         a.className = "nav-admin-link-mobile";
                         a.textContent = "Dashboard";
                         const mBtn = collapse.querySelector("#mobileLoginBtn");
-                        mBtn ? collapse.insertBefore(a, mBtn) : collapse.appendChild(a);
+                        mBtn
+                            ? collapse.insertBefore(a, mBtn)
+                            : collapse.appendChild(a);
                     }
                 }
             } else {
-                if (loginBtn)  loginBtn.style.display  = "flex";
+                if (loginBtn) loginBtn.style.display = "flex";
                 if (mobileBtn) mobileBtn.style.display = "flex";
-                if (userBtn)   userBtn.style.display   = "none";
+                if (userBtn) userBtn.style.display = "none";
             }
 
             NavBar.hideLoader();
@@ -222,5 +248,4 @@
     setTimeout(() => {
         if (document.getElementById("page-loader")) NavBar.hideLoader();
     }, 5000);
-
 })();

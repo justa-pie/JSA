@@ -45,6 +45,7 @@ async function loadAlbum() {
             ${al.url ? `<a href="${al.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
             ${al.artist?.id ? `<button class="btn btn-outline btn-sm" onclick="window.location.href='details-artist.html?id=${al.artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
           </div>
+          <div class="ai-buttons-row" id="aiButtonsRow"></div>
         </div>
       </div>
 
@@ -102,6 +103,28 @@ async function loadAlbum() {
           }
         </div>
       </div>`;
+
+        // ── Tích hợp AI ──────────────────────────────────────────────
+        if (typeof LyrixAI !== "undefined") {
+            const aiRow = document.getElementById("aiButtonsRow");
+
+            // Nút: Mô tả vibe album
+            LyrixAI.initAlbumVibe({
+                title: al.name,
+                artist: al.artist?.name || "",
+                releaseDate: releaseYear,
+                tracks: tracks.map((t) => t.song?.title).filter(Boolean),
+                container: aiRow,
+            });
+
+            // Floating chatbot
+            LyrixAI.initFloatingChat({
+                page: "Chi tiết album",
+                title: al.name,
+                artist: al.artist?.name || "",
+            });
+        }
+        // ─────────────────────────────────────────────────────────────
     } catch (err) {
         showError(err.message);
         container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="../../index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;

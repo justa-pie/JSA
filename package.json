@@ -1,0 +1,26 @@
+{
+    "name": "jsa",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "> Web app tra cứu lời bài hát, thông tin nghệ sĩ và album — powered by **Genius Song Lyrics API** via RapidAPI.",
+    "main": "server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node server.js"
+    },
+    "repository": {
+        "url": "git+https://github.com/justa-pie/JSA.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/justa-pie/JSA/issues"
+    },
+    "homepage": "https://github.com/justa-pie/JSA#readme",
+    "dependencies": {
+        "@google/genai": "^2.8.0",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1"
+    }
+}
