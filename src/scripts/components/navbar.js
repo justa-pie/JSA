@@ -41,7 +41,7 @@
             <div class="navbar-actions">
                 <button class="btn-nav btn-nav-primary" id="navLoginBtn"
                     onclick="openAuthModal()" style="display:none">
-                    <i class="fa-solid fa-user"></i> Đăng nhập
+                    Đăng nhập
                 </button>
                 <div style="position:relative" id="userMenuWrap">
                     <button class="navbar-avatar" id="navUserBtn"
