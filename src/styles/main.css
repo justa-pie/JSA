@@ -2616,8 +2616,6 @@ main {
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
 }
-.admin-sub-section {
-}
 .admin-sub-title {
     display: flex;
     align-items: center;
@@ -3395,6 +3393,7 @@ select.admin-filter-input option {
     margin: 0;
 }
 .admin-filter-input[type="number"] {
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 
