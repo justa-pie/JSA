@@ -1,26 +1,18 @@
 // ─── Lyrix — API Config ───────────────────────────────────────────────────────
-const API_CONFIG = {
-    host: "genius-song-lyrics1.p.rapidapi.com",
-    key: "f405287279msha2ee93f99d91b69p153223jsn9bccd2e5b5b4",
-    baseURL: "https://genius-song-lyrics1.p.rapidapi.com",
-};
+// API key được giữ bí mật ở backend (Vercel).
+// Frontend chỉ gọi proxy /genius?endpoint=...
+const PROXY_BASE = "https://lyrix-dusky.vercel.app";
 
-// ─── Core fetch ───────────────────────────────────────────────────────────────
+// ─── Core fetch (qua proxy Vercel) ───────────────────────────────────────────
 async function fetchAPI(endpoint, params = {}) {
-    const url = new URL(API_CONFIG.baseURL + endpoint);
+    const url = new URL(PROXY_BASE + "/genius");
+    url.searchParams.append("endpoint", endpoint);
     Object.entries(params).forEach(([k, v]) => {
         if (v !== undefined && v !== null && v !== "")
             url.searchParams.append(k, v);
     });
 
-    const res = await fetch(url.toString(), {
-        method: "GET",
-        headers: {
-            "x-rapidapi-host": API_CONFIG.host,
-            "x-rapidapi-key": API_CONFIG.key,
-        },
-    });
-
+    const res = await fetch(url.toString());
     const text = await res.text();
 
     if (!res.ok) {
@@ -49,7 +41,6 @@ function formatNumber(num) {
 
 function safeImg(src) {
     if (src && src.startsWith("http")) return src;
-    // SVG placeholder
     return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52'><rect width='52' height='52' fill='%23242429'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2371717a'>♪</text></svg>`;
 }
 
@@ -77,7 +68,6 @@ function stripHtml(html) {
 }
 
 // ─── Session Cache (tiết kiệm quota) ─────────────────────────────────────────
-// TTL mặc định: 30 phút
 const CACHE_TTL = 30 * 60 * 1000;
 
 function sessionSet(key, data) {
@@ -101,7 +91,6 @@ function sessionGet(key) {
     }
 }
 
-// Wrapper có cache
 async function fetchCached(cacheKey, endpoint, params = {}) {
     const cached = sessionGet(cacheKey);
     if (cached) {

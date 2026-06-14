@@ -10,24 +10,63 @@ const PORT = process.env.PORT || 3000;
 if (!process.env.GEMINI_API_KEY) {
   console.warn("⚠️  Thiếu GEMINI_API_KEY trong file .env");
 }
+if (!process.env.RAPIDAPI_KEY) {
+  console.warn("⚠️  Thiếu RAPIDAPI_KEY trong file .env");
+}
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.use(express.json());
 app.use(express.static("public"));
 
-// CORS — cho phép Lyrix (GitHub Pages / localhost khác port) gọi vào
+// CORS — cho phép GitHub Pages gọi vào
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
+// ── Genius Proxy ──────────────────────────────────────────────────────────────
+// Frontend gọi /genius?endpoint=/chart/songs/&per_page=20
+// Backend dùng RAPIDAPI_KEY để gọi thật — key không bao giờ lộ ra client
+app.get("/genius", async (req, res) => {
+  const { endpoint, ...params } = req.query;
+  if (!endpoint) return res.status(400).json({ error: "Thiếu endpoint." });
+
+  const url = new URL("https://genius-song-lyrics1.p.rapidapi.com" + endpoint);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") url.searchParams.append(k, v);
+  });
+
+  try {
+    const apiRes = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "x-rapidapi-host": "genius-song-lyrics1.p.rapidapi.com",
+        "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+      },
+    });
+
+    const text = await apiRes.text();
+
+    if (!apiRes.ok) {
+      return res.status(apiRes.status).json({ error: `Genius API: ${apiRes.status}` });
+    }
+
+    try {
+      res.json(JSON.parse(text));
+    } catch {
+      res.status(500).json({ error: "Response không hợp lệ từ Genius." });
+    }
+  } catch (err) {
+    console.error("Genius proxy error:", err);
+    res.status(500).json({ error: "Lỗi kết nối Genius API." });
+  }
+});
+
 // ── Helper: stream Gemini → SSE ───────────────────────────────────────────────
-// Mỗi endpoint gọi hàm này thay vì ask().
-// Client nhận từng chunk text qua SSE, hiển thị dần như Gemini app.
 async function streamToSSE(res, prompt) {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -42,12 +81,10 @@ async function streamToSSE(res, prompt) {
     for await (const chunk of stream) {
       const text = chunk.text;
       if (text) {
-        // Gửi từng chunk dưới dạng SSE event
         res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
       }
     }
 
-    // Báo kết thúc
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   } catch (err) {
     console.error(err);
@@ -207,7 +244,7 @@ Viết theo phong cách thân thiện, vui vẻ, như người bạn hiểu nh�
   await streamToSSE(res, prompt);
 });
 
-// ── 6. Chatbot chung (floating) — vẫn dùng JSON bình thường (chat ngắn) ───────
+// ── 6. Chatbot chung ──────────────────────────────────────────────────────────
 app.post("/api/chat", async (req, res) => {
   const { message, context = {} } = req.body;
   if (!message) return res.status(400).json({ error: "Thiếu tin nhắn." });
@@ -227,10 +264,7 @@ Trả lời ngắn gọn, thân thiện.
 Câu hỏi: ${message}
 `.trim();
 
-  // Chat dùng stream SSE luôn cho nhất quán
   await streamToSSE(res, prompt);
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Lyrix AI Server chạy tại http://localhost:${PORT}`);
-});
+export default app;
