@@ -74,7 +74,7 @@ async function streamToSSE(res, prompt) {
 
   try {
     const stream = await ai.models.generateContentStream({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents: prompt,
     });
 
