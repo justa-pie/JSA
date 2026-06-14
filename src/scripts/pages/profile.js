@@ -100,6 +100,16 @@ async function initProfile(user) {
 
     renderHero();
     loadFavorites();
+
+    // ── Floating chatbot (profile) ────────────────────────────────
+    if (typeof LyrixAI !== "undefined") {
+        LyrixAI.initFloatingChat({
+            page: "Trang cá nhân",
+            title: profileData.displayName || user.displayName || "",
+            artist: "",
+        });
+    }
+    // ─────────────────────────────────────────────────────────────
 }
 
 // ─── Render hero ──────────────────────────────────────────────────────────────
@@ -304,6 +314,44 @@ async function loadFavorites() {
             `<div style="display:flex;flex-direction:column;gap:.5rem">
                 ${items.map((s, i) => renderSongRow(s, i, "favorites")).join("")}
             </div>`;
+
+        // ── Nút AI phân tích gu âm nhạc ──────────────────────────
+        if (typeof LyrixAI !== "undefined") {
+            // Xóa nút cũ nếu có (tránh duplicate khi switch tab)
+            document.getElementById("profileAIRow")?.remove();
+
+            const aiRow = document.createElement("div");
+            aiRow.id = "profileAIRow";
+            aiRow.className = "ai-buttons-row";
+            aiRow.style.marginTop = "16px";
+
+            // Lấy history nếu đã cache, không thì dùng mảng rỗng
+            const histSnap = await firebase
+                .firestore()
+                .collection("users")
+                .doc(currentUser.uid)
+                .collection("history")
+                .orderBy("viewedAt", "desc")
+                .limit(20)
+                .get()
+                .catch(() => ({ docs: [] }));
+            const histItems = histSnap.docs.map((d) => d.data());
+
+            LyrixAI.initTasteAnalysis({
+                favorites: items.map((s) => ({
+                    title: s.title || "",
+                    artist: s.artist || "",
+                })),
+                history: histItems.map((s) => ({
+                    title: s.title || "",
+                    artist: s.artist || "",
+                })),
+                container: aiRow,
+            });
+
+            document.getElementById("profileTabContent").appendChild(aiRow);
+        }
+        // ─────────────────────────────────────────────────────────
     } catch {
         renderError("Không tải được danh sách yêu thích.");
     }
