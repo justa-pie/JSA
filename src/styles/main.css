@@ -880,6 +880,25 @@ a {
 }
 
 /* ─── Dropdown results ───────────── */
+.search-dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 400;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.18s ease,
+        visibility 0.18s;
+    pointer-events: none;
+}
+.search-dropdown-backdrop.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
 .search-dropdown {
     position: absolute;
     top: calc(100% + 8px);

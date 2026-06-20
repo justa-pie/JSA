@@ -3,6 +3,9 @@
 const searchInput = document.getElementById("searchInput");
 const searchClear = document.getElementById("searchClear");
 const searchDropdown = document.getElementById("searchDropdown");
+const searchDropdownBackdrop = document.getElementById(
+    "searchDropdownBackdrop",
+);
 const searchWrapper = document.getElementById("searchWrapper");
 const searchResultsSection = document.getElementById("searchResultsSection");
 const searchResultsTitle = document.getElementById("searchResultsTitle");
@@ -18,11 +21,15 @@ let lastResults = { song: [], artist: [], album: [] };
 function openDropdown() {
     searchDropdown.classList.add("open");
     searchWrapper.classList.add("results-open");
+    searchDropdownBackdrop?.classList.add("open");
 }
 function closeDropdown() {
     searchDropdown.classList.remove("open");
     searchWrapper.classList.remove("results-open");
+    searchDropdownBackdrop?.classList.remove("open");
 }
+
+searchDropdownBackdrop?.addEventListener("click", closeDropdown);
 
 // ─── Quick tags ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".hero-tag").forEach((tag) => {
@@ -107,20 +114,20 @@ async function fetchDropdown(q) {
                 return `<div class="search-dropdown-item" onclick="triggerSearch('${searchInput.value.trim().replace(/'/g, "\\'")}')">
         <img src="${safeImg(r.song_art_image_url || r.song_art_image_thumbnail_url)}" onerror="this.src='${safeImg()}'"/>
         <div style="min-width:0;flex:1">
-          <div class="search-dropdown-type">Bài hát</div>
-          <div class="search-dropdown-name">${r.title}</div>
-          <div style="font-size:.72rem;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.primary_artist?.name || ""}</div>
+            <div class="search-dropdown-type">Bài hát</div>
+            <div class="search-dropdown-name">${r.title}</div>
+            <div style="font-size:.72rem;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.primary_artist?.name || ""}</div>
         </div>
-        <div style="font-size:.75rem;color:var(--text-3);flex-shrink:0;margin-left:.5rem">${formatNumber(r.stats?.pageviews)}</div>
-      </div>`;
+            <div style="font-size:.75rem;color:var(--text-3);flex-shrink:0;margin-left:.5rem">${formatNumber(r.stats?.pageviews)}</div>
+        </div>`;
             })
             .join("");
 
         searchDropdown.innerHTML += `
-      <div class="search-dropdown-item" style="justify-content:center;color:var(--brand-light);font-weight:600;font-size:.85rem"
-           onclick="triggerSearch('${q.replace(/'/g, "\\'")}')">
-        Xem tất cả kết quả <i class="fa-solid fa-arrow-right" style="font-size:11px;margin-left:4px"></i>
-      </div>`;
+        <div class="search-dropdown-item" style="justify-content:center;color:var(--brand-light);font-weight:600;font-size:.85rem"
+            onclick="triggerSearch('${q.replace(/'/g, "\\'")}')">
+            Xem tất cả kết quả <i class="fa-solid fa-arrow-right" style="font-size:11px;margin-left:4px"></i>
+        </div>`;
         openDropdown();
     } catch {
         closeDropdown();
@@ -312,34 +319,34 @@ async function loadTrending() {
             return;
         }
         trendingList.innerHTML = `<div style="display:flex;flex-direction:column;gap:.5rem">
-      ${items
-          .map((c, i) => {
-              const s = c.item;
-              if (!s) return "";
-              const cls = i < 3 ? `top-${i + 1}` : "";
-              const trophy =
-                  i === 0
-                      ? '<i class="fa-solid fa-trophy" style="color:#fbbf24;font-size:13px"></i>'
-                      : i === 1
-                        ? '<i class="fa-solid fa-trophy" style="color:#94a3b8;font-size:13px"></i>'
-                        : i === 2
-                          ? '<i class="fa-solid fa-trophy" style="color:#cd7c2f;font-size:13px"></i>'
-                          : i + 1;
-              return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${i * 0.05}s;cursor:pointer"
-          onclick="window.location.href='src/pages/details-song.html?id=${s.id}'">
-          <span class="chart-position">${trophy}</span>
-          <img class="chart-image" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info">
-            <div class="chart-title">${s.title}</div>
-            <div class="chart-sub">${s.primary_artist?.name || ""}</div>
-          </div>
-          <div class="chart-stats">
-            <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(s.stats?.pageviews)}</span>
-            ${s.stats?.hot ? '<span class="badge badge-hot" style="font-size:.65rem;padding:2px 6px">HOT</span>' : ""}
-          </div>
-        </div>`;
-          })
-          .join("")}
+        ${items
+            .map((c, i) => {
+                const s = c.item;
+                if (!s) return "";
+                const cls = i < 3 ? `top-${i + 1}` : "";
+                const trophy =
+                    i === 0
+                        ? '<i class="fa-solid fa-trophy" style="color:#fbbf24;font-size:13px"></i>'
+                        : i === 1
+                          ? '<i class="fa-solid fa-trophy" style="color:#94a3b8;font-size:13px"></i>'
+                          : i === 2
+                            ? '<i class="fa-solid fa-trophy" style="color:#cd7c2f;font-size:13px"></i>'
+                            : i + 1;
+                return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${i * 0.05}s;cursor:pointer"
+            onclick="window.location.href='src/pages/details-song.html?id=${s.id}'">
+            <span class="chart-position">${trophy}</span>
+            <img class="chart-image" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+            <div class="chart-info">
+                <div class="chart-title">${s.title}</div>
+                <div class="chart-sub">${s.primary_artist?.name || ""}</div>
+            </div>
+            <div class="chart-stats">
+                <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(s.stats?.pageviews)}</span>
+                ${s.stats?.hot ? '<span class="badge badge-hot" style="font-size:.65rem;padding:2px 6px">HOT</span>' : ""}
+            </div>
+            </div>`;
+            })
+            .join("")}
     </div>`;
     } catch (err) {
         trendingList.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${err.message}</p></div>`;
