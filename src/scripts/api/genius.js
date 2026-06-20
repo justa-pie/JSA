@@ -1,7 +1,7 @@
 // ─── Lyrix — API Config ───────────────────────────────────────────────────────
 // API key được giữ bí mật ở backend (Vercel).
 // Frontend chỉ gọi proxy /genius?endpoint=...
-const PROXY_BASE = "https://lyrix-dusky.vercel.app";
+const PROXY_BASE = "https://lyrix-backend.vercel.app";
 
 // ─── Core fetch (qua proxy Vercel) ───────────────────────────────────────────
 async function fetchAPI(endpoint, params = {}) {

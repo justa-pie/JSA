@@ -4,7 +4,7 @@
  */
 
 const LyrixAI = (() => {
-const AI_BASE_URL = "https://lyrix-dusky.vercel.app";
+const AI_BASE_URL = "https://lyrix-backend.vercel.app";
 
   // ── Markdown renderer ─────────────────────────────────────────────────────
   function renderMarkdown(text) {

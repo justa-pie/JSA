@@ -4,14 +4,14 @@ import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 if (!process.env.GEMINI_API_KEY) {
-  console.warn("⚠️  Thiếu GEMINI_API_KEY trong file .env");
+    console.warn("⚠️  Thiếu GEMINI_API_KEY trong file .env");
 }
 if (!process.env.RAPIDAPI_KEY) {
-  console.warn("⚠️  Thiếu RAPIDAPI_KEY trong file .env");
+    console.warn("⚠️  Thiếu RAPIDAPI_KEY trong file .env");
 }
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -21,85 +21,92 @@ app.use(express.static("public"));
 
 // CORS — cho phép GitHub Pages gọi vào
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+    next();
 });
 
 // ── Genius Proxy ──────────────────────────────────────────────────────────────
 // Frontend gọi /genius?endpoint=/chart/songs/&per_page=20
 // Backend dùng RAPIDAPI_KEY để gọi thật — key không bao giờ lộ ra client
 app.get("/genius", async (req, res) => {
-  const { endpoint, ...params } = req.query;
-  if (!endpoint) return res.status(400).json({ error: "Thiếu endpoint." });
+    const { endpoint, ...params } = req.query;
+    if (!endpoint) return res.status(400).json({ error: "Thiếu endpoint." });
 
-  const url = new URL("https://genius-song-lyrics1.p.rapidapi.com" + endpoint);
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== "") url.searchParams.append(k, v);
-  });
-
-  try {
-    const apiRes = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        "x-rapidapi-host": "genius-song-lyrics1.p.rapidapi.com",
-        "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-      },
+    const url = new URL(
+        "https://genius-song-lyrics1.p.rapidapi.com" + endpoint,
+    );
+    Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "")
+            url.searchParams.append(k, v);
     });
 
-    const text = await apiRes.text();
-
-    if (!apiRes.ok) {
-      return res.status(apiRes.status).json({ error: `Genius API: ${apiRes.status}` });
-    }
-
     try {
-      res.json(JSON.parse(text));
-    } catch {
-      res.status(500).json({ error: "Response không hợp lệ từ Genius." });
+        const apiRes = await fetch(url.toString(), {
+            method: "GET",
+            headers: {
+                "x-rapidapi-host": "genius-song-lyrics1.p.rapidapi.com",
+                "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+            },
+        });
+
+        const text = await apiRes.text();
+
+        if (!apiRes.ok) {
+            return res
+                .status(apiRes.status)
+                .json({ error: `Genius API: ${apiRes.status}` });
+        }
+
+        try {
+            res.json(JSON.parse(text));
+        } catch {
+            res.status(500).json({ error: "Response không hợp lệ từ Genius." });
+        }
+    } catch (err) {
+        console.error("Genius proxy error:", err);
+        res.status(500).json({ error: "Lỗi kết nối Genius API." });
     }
-  } catch (err) {
-    console.error("Genius proxy error:", err);
-    res.status(500).json({ error: "Lỗi kết nối Genius API." });
-  }
 });
 
 // ── Helper: stream Gemini → SSE ───────────────────────────────────────────────
 async function streamToSSE(res, prompt) {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-  try {
-    const stream = await ai.models.generateContentStream({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-    });
+    try {
+        const stream = await ai.models.generateContentStream({
+            model: "gemini-3.5-flash",
+            contents: prompt,
+        });
 
-    for await (const chunk of stream) {
-      const text = chunk.text;
-      if (text) {
-        res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
-      }
+        for await (const chunk of stream) {
+            const text = chunk.text;
+            if (text) {
+                res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
+            }
+        }
+
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    } catch (err) {
+        console.error(err);
+        res.write(
+            `data: ${JSON.stringify({ error: "Gemini API thất bại." })}\n\n`,
+        );
+    } finally {
+        res.end();
     }
-
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-  } catch (err) {
-    console.error(err);
-    res.write(`data: ${JSON.stringify({ error: "Gemini API thất bại." })}\n\n`);
-  } finally {
-    res.end();
-  }
 }
 
 // ── 1. Phân tích lời bài hát ──────────────────────────────────────────────────
 app.post("/api/lyrics/analyze", async (req, res) => {
-  const { title, artist, lyrics } = req.body;
-  if (!lyrics) return res.status(400).json({ error: "Thiếu lyrics." });
+    const { title, artist, lyrics } = req.body;
+    if (!lyrics) return res.status(400).json({ error: "Thiếu lyrics." });
 
-  const prompt = `
+    const prompt = `
 Bạn là chuyên gia phân tích âm nhạc. Hãy phân tích bài hát sau bằng tiếng Việt.
 
 Bài hát: "${title}" - ${artist}
@@ -122,15 +129,15 @@ Hãy phân tích theo cấu trúc sau (dùng markdown):
 Giữ phân tích ngắn gọn, súc tích, dễ hiểu.
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 // ── 2. Tóm tắt tiểu sử nghệ sĩ ───────────────────────────────────────────────
 app.post("/api/artist/summary", async (req, res) => {
-  const { name, bio } = req.body;
-  if (!name) return res.status(400).json({ error: "Thiếu tên nghệ sĩ." });
+    const { name, bio } = req.body;
+    if (!name) return res.status(400).json({ error: "Thiếu tên nghệ sĩ." });
 
-  const prompt = `
+    const prompt = `
 Bạn là chuyên gia âm nhạc. Hãy tóm tắt thông tin về nghệ sĩ "${name}" bằng tiếng Việt.
 
 ${bio ? `Tiểu sử gốc:\n${bio}\n` : ""}
@@ -148,19 +155,19 @@ Viết tóm tắt theo cấu trúc (dùng markdown):
 Ngắn gọn, thân thiện, dễ đọc.
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 // ── 3. Mô tả vibe album ───────────────────────────────────────────────────────
 app.post("/api/album/vibe", async (req, res) => {
-  const { title, artist, releaseDate, tracks } = req.body;
-  if (!title) return res.status(400).json({ error: "Thiếu tên album." });
+    const { title, artist, releaseDate, tracks } = req.body;
+    if (!title) return res.status(400).json({ error: "Thiếu tên album." });
 
-  const trackList = Array.isArray(tracks)
-    ? tracks.map((t, i) => `${i + 1}. ${t}`).join("\n")
-    : "";
+    const trackList = Array.isArray(tracks)
+        ? tracks.map((t, i) => `${i + 1}. ${t}`).join("\n")
+        : "";
 
-  const prompt = `
+    const prompt = `
 Bạn là chuyên gia âm nhạc. Hãy mô tả "vibe" của album sau bằng tiếng Việt.
 
 Album: "${title}" - ${artist}${releaseDate ? ` (${releaseDate})` : ""}
@@ -182,15 +189,15 @@ Viết theo cấu trúc (dùng markdown):
 Viết sáng tạo, hấp dẫn, như một bài review âm nhạc thật sự.
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 // ── 4. Gợi ý bài hát tương tự ────────────────────────────────────────────────
 app.post("/api/song/similar", async (req, res) => {
-  const { title, artist, tags } = req.body;
-  if (!title) return res.status(400).json({ error: "Thiếu tên bài hát." });
+    const { title, artist, tags } = req.body;
+    if (!title) return res.status(400).json({ error: "Thiếu tên bài hát." });
 
-  const prompt = `
+    const prompt = `
 Bạn là chuyên gia âm nhạc. Hãy gợi ý các bài hát tương tự bằng tiếng Việt.
 
 Bài hát gốc: "${title}" - ${artist}
@@ -206,23 +213,29 @@ Với mỗi bài:
 Chọn các bài hát thực sự tồn tại, đa dạng nghệ sĩ.
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 // ── 5. Phân tích gu âm nhạc (profile) ────────────────────────────────────────
 app.post("/api/profile/taste", async (req, res) => {
-  const { favorites = [], history = [] } = req.body;
-  if (!favorites.length && !history.length) {
-    return res.status(400).json({ error: "Chưa có dữ liệu nghe nhạc." });
-  }
+    const { favorites = [], history = [] } = req.body;
+    if (!favorites.length && !history.length) {
+        return res.status(400).json({ error: "Chưa có dữ liệu nghe nhạc." });
+    }
 
-  const favList  = favorites.slice(0, 20).map((s) => `- "${s.title}" - ${s.artist}`).join("\n");
-  const histList = history.slice(0, 20).map((s) => `- "${s.title}" - ${s.artist}`).join("\n");
+    const favList = favorites
+        .slice(0, 20)
+        .map((s) => `- "${s.title}" - ${s.artist}`)
+        .join("\n");
+    const histList = history
+        .slice(0, 20)
+        .map((s) => `- "${s.title}" - ${s.artist}`)
+        .join("\n");
 
-  const prompt = `
+    const prompt = `
 Bạn là chuyên gia tâm lý âm nhạc. Hãy phân tích gu nghe nhạc của người dùng bằng tiếng Việt.
 
-${favList  ? `Bài hát yêu thích:\n${favList}\n`        : ""}
+${favList ? `Bài hát yêu thích:\n${favList}\n` : ""}
 ${histList ? `Lịch sử nghe gần đây:\n${histList}` : ""}
 
 Phân tích theo cấu trúc (dùng markdown):
@@ -241,19 +254,19 @@ Phân tích theo cấu trúc (dùng markdown):
 Viết theo phong cách thân thiện, vui vẻ, như người bạn hiểu nhạc.
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 // ── 6. Chatbot chung ──────────────────────────────────────────────────────────
 app.post("/api/chat", async (req, res) => {
-  const { message, context = {} } = req.body;
-  if (!message) return res.status(400).json({ error: "Thiếu tin nhắn." });
+    const { message, context = {} } = req.body;
+    if (!message) return res.status(400).json({ error: "Thiếu tin nhắn." });
 
-  const contextStr = context.title
-    ? `Người dùng đang xem: "${context.title}"${context.artist ? ` - ${context.artist}` : ""} trên trang ${context.page || "Lyrix"}.`
-    : `Người dùng đang dùng ứng dụng nghe nhạc Lyrix.`;
+    const contextStr = context.title
+        ? `Người dùng đang xem: "${context.title}"${context.artist ? ` - ${context.artist}` : ""} trên trang ${context.page || "Lyrix"}.`
+        : `Người dùng đang dùng ứng dụng nghe nhạc Lyrix.`;
 
-  const prompt = `
+    const prompt = `
 Bạn là trợ lý AI của ứng dụng âm nhạc Lyrix. Trả lời bằng tiếng Việt.
 ${contextStr}
 
@@ -264,7 +277,7 @@ Trả lời ngắn gọn, thân thiện.
 Câu hỏi: ${message}
 `.trim();
 
-  await streamToSSE(res, prompt);
+    await streamToSSE(res, prompt);
 });
 
 export default app;
