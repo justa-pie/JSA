@@ -17,9 +17,11 @@ let lastResults = { song: [], artist: [], album: [] };
 // ─── Dropdown helpers ─────────────────────────────────────────────────────────
 function openDropdown() {
     searchDropdown.classList.add("open");
+    searchWrapper.classList.add("results-open");
 }
 function closeDropdown() {
     searchDropdown.classList.remove("open");
+    searchWrapper.classList.remove("results-open");
 }
 
 // ─── Quick tags ───────────────────────────────────────────────────────────────
@@ -45,6 +47,9 @@ searchInput.addEventListener("input", () => {
         hideResults();
         return;
     }
+    // Đang gõ từ khoá mới: ẩn luôn kết quả search trước đó (nếu có) để
+    // dropdown preview không bị chồng lên trên nó.
+    hideResults();
     debounceTimer = setTimeout(() => fetchDropdown(q), 350);
 });
 
