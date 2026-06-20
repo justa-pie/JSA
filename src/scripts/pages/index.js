@@ -3,9 +3,6 @@
 const searchInput = document.getElementById("searchInput");
 const searchClear = document.getElementById("searchClear");
 const searchDropdown = document.getElementById("searchDropdown");
-const searchDropdownBackdrop = document.getElementById(
-    "searchDropdownBackdrop",
-);
 const searchWrapper = document.getElementById("searchWrapper");
 const searchResultsSection = document.getElementById("searchResultsSection");
 const searchResultsTitle = document.getElementById("searchResultsTitle");
@@ -21,15 +18,11 @@ let lastResults = { song: [], artist: [], album: [] };
 function openDropdown() {
     searchDropdown.classList.add("open");
     searchWrapper.classList.add("results-open");
-    searchDropdownBackdrop?.classList.add("open");
 }
 function closeDropdown() {
     searchDropdown.classList.remove("open");
     searchWrapper.classList.remove("results-open");
-    searchDropdownBackdrop?.classList.remove("open");
 }
-
-searchDropdownBackdrop?.addEventListener("click", closeDropdown);
 
 // ─── Quick tags ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".hero-tag").forEach((tag) => {
