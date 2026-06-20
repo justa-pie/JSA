@@ -479,10 +479,7 @@ a {
 /* ─── Search ─────────────────────── */
 .search-wrapper {
     position: relative;
-    z-index: 10;
-}
-.search-wrapper.results-open {
-    z-index: 1;
+    z-index: 50;
 }
 .search-input {
     width: 100%;

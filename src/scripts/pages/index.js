@@ -17,11 +17,9 @@ let lastResults = { song: [], artist: [], album: [] };
 // ─── Dropdown helpers ─────────────────────────────────────────────────────────
 function openDropdown() {
     searchDropdown.classList.add("open");
-    searchWrapper.classList.add("results-open");
 }
 function closeDropdown() {
     searchDropdown.classList.remove("open");
-    searchWrapper.classList.remove("results-open");
 }
 
 // ─── Quick tags ───────────────────────────────────────────────────────────────
