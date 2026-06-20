@@ -50,6 +50,7 @@ searchInput.addEventListener("input", () => {
 
 searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
+        clearTimeout(debounceTimer);
         const q = searchInput.value.trim();
         if (q) triggerSearch(q);
     }
@@ -123,6 +124,7 @@ async function fetchDropdown(q) {
 
 // ─── Full search: cache key riêng "_full", per_page: 15 ──────────────────────
 window.triggerSearch = async function (q) {
+    clearTimeout(debounceTimer);
     closeDropdown();
     searchInput.blur();
 
