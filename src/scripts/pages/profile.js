@@ -1,5 +1,3 @@
-// ─── profile.js ──────────────────────────────────────────────────────────────
-
 let currentUser = null;
 let currentTab = "favorites";
 let profileData = {};
@@ -8,7 +6,6 @@ const AVATAR_MAX_PX = 300;
 const PHOTO_MAX_PX = 900;
 const PHOTO_QUALITY = 0.78;
 
-// ─── Image resize helper ──────────────────────────────────────────────────────
 function fileToBase64(file, maxPx, quality = 0.82) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -39,7 +36,6 @@ function fileToBase64(file, maxPx, quality = 0.82) {
     });
 }
 
-// ─── Auth gate ────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     const timeout = setTimeout(() => {
         window.location.href = "index.html";
@@ -59,11 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
 });
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
 async function initProfile(user) {
     document.title = `${user.displayName || "Hồ sơ"} — Lyrix`;
 
-    // Load Firestore profile
     try {
         const db = firebase.firestore();
         const ref = db.collection("users").doc(user.uid);
@@ -86,7 +80,6 @@ async function initProfile(user) {
             await ref.set(profileData);
         }
 
-        // Merge auth info
         if (!profileData.avatarUrl && user.photoURL)
             profileData.avatarUrl = user.photoURL;
         if (!profileData.displayName && user.displayName)
@@ -101,7 +94,6 @@ async function initProfile(user) {
     renderHero();
     loadFavorites();
 
-    // ── Floating chatbot (profile) ────────────────────────────────
     if (typeof LyrixAI !== "undefined") {
         LyrixAI.initFloatingChat({
             page: "Trang cá nhân",
@@ -109,15 +101,11 @@ async function initProfile(user) {
             artist: "",
         });
     }
-    // ─────────────────────────────────────────────────────────────
 }
 
-// ─── Render hero ──────────────────────────────────────────────────────────────
 function renderHero() {
-    // Avatar
     renderAvatar();
 
-    // Text fields
     document.getElementById("profileName").textContent =
         profileData.displayName || currentUser.displayName || "Người dùng";
     document.getElementById("profileEmail").textContent =
@@ -125,7 +113,6 @@ function renderHero() {
     document.getElementById("profileRole").textContent = profileData.role || "";
     document.getElementById("profileBio").textContent = profileData.bio || "";
 
-    // Ngày tham gia
     const joined = document.getElementById("statJoined");
     let date = null;
     if (profileData.createdAt?.toDate) date = profileData.createdAt.toDate();
@@ -138,7 +125,6 @@ function renderHero() {
         });
     }
 
-    // Info chips
     const chips = [];
     if (profileData.dob)
         chips.push(
@@ -166,7 +152,6 @@ function formatDob(dob) {
     });
 }
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
 function renderAvatar() {
     const el = document.getElementById("profileAvatar");
     if (!el) return;
@@ -178,7 +163,6 @@ function renderAvatar() {
             currentUser?.displayName ||
             "U")[0].toUpperCase();
     }
-    // Sync navbar qua NavBar.ready
     if (window.NavBar && currentUser) {
         NavBar.ready(currentUser, profileData.role || "user", src || null);
     }
@@ -200,7 +184,6 @@ window.handleAvatarChange = async function (e) {
             .doc(currentUser.uid)
             .set({ avatarUrl: base64 }, { merge: true });
         profileData.avatarUrl = base64;
-        // Cập nhật localStorage cache → các trang khác dùng được ngay
         if (currentUser)
             localStorage.setItem("lyrix_avatarUrl_" + currentUser.uid, base64);
         renderAvatar();
@@ -210,7 +193,6 @@ window.handleAvatarChange = async function (e) {
     }
 };
 
-// ─── Edit profile modal ───────────────────────────────────────────────────────
 window.openEditModal = function () {
     document.getElementById("editName").value =
         profileData.displayName || currentUser?.displayName || "";
@@ -274,7 +256,6 @@ window.saveProfile = async function () {
     }
 };
 
-// ─── Tab switching ────────────────────────────────────────────────────────────
 window.switchProfileTab = function (tab) {
     currentTab = tab;
     ["favorites", "history", "playlists", "photos"].forEach((t) => {
@@ -292,7 +273,6 @@ window.switchProfileTab = function (tab) {
     else if (tab === "photos") loadPhotos();
 };
 
-// ─── Favorites ────────────────────────────────────────────────────────────────
 async function loadFavorites() {
     if (!currentUser) return;
     try {
@@ -315,9 +295,7 @@ async function loadFavorites() {
                 ${items.map((s, i) => renderSongRow(s, i, "favorites")).join("")}
             </div>`;
 
-        // ── Nút AI phân tích gu âm nhạc ──────────────────────────
         if (typeof LyrixAI !== "undefined") {
-            // Xóa nút cũ nếu có (tránh duplicate khi switch tab)
             document.getElementById("profileAIRow")?.remove();
 
             const aiRow = document.createElement("div");
@@ -325,7 +303,6 @@ async function loadFavorites() {
             aiRow.className = "ai-buttons-row";
             aiRow.style.marginTop = "16px";
 
-            // Lấy history nếu đã cache, không thì dùng mảng rỗng
             const histSnap = await firebase
                 .firestore()
                 .collection("users")
@@ -351,13 +328,11 @@ async function loadFavorites() {
 
             document.getElementById("profileTabContent").appendChild(aiRow);
         }
-        // ─────────────────────────────────────────────────────────
     } catch {
         renderError("Không tải được danh sách yêu thích.");
     }
 }
 
-// ─── History ──────────────────────────────────────────────────────────────────
 async function loadHistory() {
     if (!currentUser) return;
     try {
@@ -384,7 +359,6 @@ async function loadHistory() {
     }
 }
 
-// ─── Playlists ────────────────────────────────────────────────────────────────
 async function loadPlaylists() {
     if (!currentUser) return;
     try {
@@ -442,7 +416,6 @@ function renderPlaylistCard(p, i) {
     </div>`;
 }
 
-// ─── Photos (from MeetMe) ─────────────────────────────────────────────────────
 async function loadPhotos() {
     if (!currentUser) return;
     const el = document.getElementById("profileTabContent");
@@ -536,7 +509,6 @@ window.deletePhoto = async function (photoId, btn) {
     }
 };
 
-// ─── Playlist modal ───────────────────────────────────────────────────────────
 window.openCreatePlaylist = function () {
     document.getElementById("plModalTitle").textContent = "Tạo playlist mới";
     document.getElementById("plName").value = "";
@@ -659,7 +631,6 @@ window.deletePlaylist = async function (plId) {
     }
 };
 
-// ─── Remove favorite / history ────────────────────────────────────────────────
 window.removeFavorite = async function (songId, btn) {
     btn.innerHTML =
         '<i class="fa-solid fa-circle-notch fa-spin" style="font-size:13px"></i>';
@@ -709,7 +680,6 @@ function removeRow(btn, statId, emptyType) {
     }, 250);
 }
 
-// ─── Render helpers ───────────────────────────────────────────────────────────
 const PH = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52'><rect width='52' height='52' fill='%23242429'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2371717a'>♪</text></svg>`;
 
 function renderSongRow(s, i, type) {
@@ -767,7 +737,6 @@ function renderError(msg) {
         </div>`;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function esc(str) {
     return (str || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
 }
@@ -793,18 +762,15 @@ function showToast(msg, type = "success") {
     setTimeout(() => el.remove(), 3000);
 }
 
-// ─── Override switchProfileTab để sync stat boxes và tab buttons mới ─────────
 window.switchProfileTab = function (tab) {
     currentTab = tab;
 
-    // Tab buttons
     ["favorites", "history", "playlists", "photos"].forEach((t) => {
         document
             .getElementById("tab_" + t)
             ?.classList.toggle("active", t === tab);
     });
 
-    // Stat boxes
     ["favorites", "history", "playlists", "photos"].forEach((t) => {
         document
             .getElementById("statBox_" + t)
@@ -822,7 +788,6 @@ window.switchProfileTab = function (tab) {
     else if (tab === "photos") loadPhotos();
 };
 
-// ─── Cover image ──────────────────────────────────────────────────────────────
 window.handleCoverChange = async function (e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -851,7 +816,6 @@ window.handleCoverChange = async function (e) {
     }
 };
 
-// ─── Patch renderHero để dùng class mới ──────────────────────────────────────
 const _origRenderHero = typeof renderHero === "function" ? renderHero : null;
 function renderHero() {
     const el = document.getElementById("profileAvatar");
@@ -873,7 +837,6 @@ function renderHero() {
         }
     }
 
-    // Cover
     if (profileData.coverUrl) {
         const cover = document.getElementById("profileCover");
         if (cover) {
@@ -896,7 +859,6 @@ function renderHero() {
     setEl("profileBio", profileData.bio || "");
     document.title = `${profileData.displayName || "Hồ sơ"} — Lyrix`;
 
-    // Joined date
     const joined = document.getElementById("statJoined");
     if (joined) {
         let date = null;
@@ -911,7 +873,6 @@ function renderHero() {
             });
     }
 
-    // Info chips
     const chips = [];
     if (profileData.dob)
         chips.push(

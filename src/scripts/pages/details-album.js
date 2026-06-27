@@ -1,5 +1,3 @@
-// ─── details-album.js ────────────────────────────────────────────────────────
-
 const params = new URLSearchParams(window.location.search);
 const albumId = params.get("id");
 const container = document.getElementById("albumDetailContent");
@@ -10,14 +8,12 @@ if (!albumId) {
     loadAlbum();
 }
 
-// ─── iTunes tracklist fallback ────────────────────────────────────────────────
 async function fetchItunesTracks(albumName, artistName) {
     try {
         const cacheKey = `itunes_tracks_${albumName}_${artistName}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
 
-        // Bước 1: tìm album → lấy collectionId
         const q = encodeURIComponent(`${albumName} ${artistName}`);
         const searchRes = await fetch(
             `https://itunes.apple.com/search?term=${q}&entity=album&limit=3`
@@ -65,7 +61,6 @@ function formatDuration(ms) {
     return `${m}:${s}`;
 }
 
-// Render Genius tracks (có Genius song ID → navigate trực tiếp)
 function renderGeniusTracks(tracks, al) {
     return `<div style="display:flex;flex-direction:column;gap:.5rem">
         ${tracks.map((t, i) => {
@@ -84,7 +79,6 @@ function renderGeniusTracks(tracks, al) {
     </div>`;
 }
 
-// Render iTunes tracks (không có Genius ID → search Genius khi click)
 function renderItunesTracks(tracks, al) {
     if (!tracks.length) {
         return `<div class="empty-state"><i class="fa-solid fa-compact-disc"></i><p>Không có thông tin track.</p></div>`;
@@ -106,12 +100,10 @@ function renderItunesTracks(tracks, al) {
     </div>`;
 }
 
-// Khi click iTunes track: search Genius để lấy ID rồi navigate
 window.navigateToSong = async function(encodedTitle, encodedArtist, el) {
     const title = decodeURIComponent(encodedTitle);
     const artist = decodeURIComponent(encodedArtist);
 
-    // Loading state trên item
     el.style.opacity = "0.6";
     el.style.pointerEvents = "none";
 
@@ -136,7 +128,6 @@ window.navigateToSong = async function(encodedTitle, encodedArtist, el) {
             sessionStorage.setItem(cacheKey, hit.id);
             window.location.href = `details-song.html?id=${hit.id}`;
         } else {
-            // Không tìm thấy trên Genius → fallback search trang chủ
             window.location.href = `../../index.html?q=${encodeURIComponent(title + " " + artist)}`;
         }
     } catch (e) {
@@ -146,7 +137,6 @@ window.navigateToSong = async function(encodedTitle, encodedArtist, el) {
     }
 };
 
-// ─── Main load ────────────────────────────────────────────────────────────────
 async function loadAlbum() {
     try {
         const data = await fetchCached(
@@ -167,64 +157,62 @@ async function loadAlbum() {
             "";
 
         container.innerHTML = `
-      <div class="song-detail-header animate-slide-up">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.07),transparent);pointer-events:none"></div>
-        <img class="detail-cover" src="${safeImg(al.cover_art_url)}" alt="${al.name}" onerror="this.src='${safeImg()}'"/>
-        <div class="detail-info" style="flex:1;min-width:0">
-          <div style="margin-bottom:6px"><span class="badge badge-brand"><i class="fa-solid fa-compact-disc"></i> Album</span></div>
-          <h1>${al.name}</h1>
-          <div class="artist-name" style="cursor:pointer;margin-top:4px" onclick="window.location.href='details-artist.html?id=${al.artist?.id}'">${al.artist?.name || "Unknown Artist"}</div>
-          <div class="detail-meta">
-            ${releaseYear ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${releaseYear}</div>` : ""}
-            <div class="meta-chip" id="trackCountChip"><i class="fa-solid fa-list-ol"></i> <span id="trackCountVal">${geniusTracks.length || "..."}</span> tracks</div>
-          </div>
-          <div class="detail-actions">
-            ${al.url ? `<a href="${al.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
-            ${al.artist?.id ? `<button class="btn btn-outline btn-sm" onclick="window.location.href='details-artist.html?id=${al.artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
-          </div>
-          <div class="ai-buttons-row" id="aiButtonsRow"></div>
-        </div>
-      </div>
-
-      <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
-        <div class="stats-bar">
-          <div class="stat-item"><div class="stat-value" id="statsTrackCount">${geniusTracks.length || "—"}</div><div class="stat-label">Tracks</div></div>
-          <div class="stat-item"><div class="stat-value">${releaseYear || "—"}</div><div class="stat-label">Phát hành</div></div>
-          <div class="stat-item"><div class="stat-value">${al.artist?.name || "—"}</div><div class="stat-label">Nghệ sĩ</div></div>
-        </div>
-      </div>
-
-      <div class="two-column-layout animate-slide-up stagger-2">
-        <div class="left-column">
-          ${desc ? `<h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
-          <div class="lyrics-container" style="font-size:.875rem;line-height:1.8;color:var(--text-2)">${desc}</div>` : ""}
-          ${al.artist ? `
-          <div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-artist.html?id=${al.artist.id}'">
-            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Nghệ sĩ</div>
-            <div style="display:flex;align-items:center;gap:.75rem">
-              <img src="${safeImg(al.artist.image_url)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.src='${safeImg()}'"/>
-              <div><div style="font-weight:600;font-size:.9rem">${al.artist.name}</div>${al.artist.is_verified ? '<div style="font-size:.72rem;color:var(--brand-light);margin-top:2px"><i class="fa-solid fa-circle-check"></i> Verified</div>' : ""}</div>
+        <div class="song-detail-header animate-slide-up">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.07),transparent);pointer-events:none"></div>
+            <img class="detail-cover" src="${safeImg(al.cover_art_url)}" alt="${al.name}" onerror="this.src='${safeImg()}'"/>
+            <div class="detail-info" style="flex:1;min-width:0">
+            <div style="margin-bottom:6px"><span class="badge badge-brand"><i class="fa-solid fa-compact-disc"></i> Album</span></div>
+            <h1>${al.name}</h1>
+            <div class="artist-name" style="cursor:pointer;margin-top:4px" onclick="window.location.href='details-artist.html?id=${al.artist?.id}'">${al.artist?.name || "Unknown Artist"}</div>
+            <div class="detail-meta">
+                ${releaseYear ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${releaseYear}</div>` : ""}
+                <div class="meta-chip" id="trackCountChip"><i class="fa-solid fa-list-ol"></i> <span id="trackCountVal">${geniusTracks.length || "..."}</span> tracks</div>
             </div>
-          </div>` : ""}
+            <div class="detail-actions">
+                ${al.url ? `<a href="${al.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
+                ${al.artist?.id ? `<button class="btn btn-outline btn-sm" onclick="window.location.href='details-artist.html?id=${al.artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
+            </div>
+            <div class="ai-buttons-row" id="aiButtonsRow"></div>
+            </div>
         </div>
-        <div class="right-column">
-          <h3 style="margin-bottom:1rem"><i class="fa-solid fa-list-ol" style="color:var(--brand-light);margin-right:6px"></i>Danh sách track</h3>
-          <div id="tracklistContainer">
-            ${geniusTracks.length
-                ? renderGeniusTracks(geniusTracks, al)
-                : `<div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Đang tải tracklist...</p></div>`
-            }
-          </div>
-        </div>
-      </div>`;
 
-        // ── Nếu Genius không có tracks → load iTunes ──────────────────
+        <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
+            <div class="stats-bar">
+            <div class="stat-item"><div class="stat-value" id="statsTrackCount">${geniusTracks.length || "—"}</div><div class="stat-label">Tracks</div></div>
+            <div class="stat-item"><div class="stat-value">${releaseYear || "—"}</div><div class="stat-label">Phát hành</div></div>
+            <div class="stat-item"><div class="stat-value">${al.artist?.name || "—"}</div><div class="stat-label">Nghệ sĩ</div></div>
+            </div>
+        </div>
+
+        <div class="two-column-layout animate-slide-up stagger-2">
+            <div class="left-column">
+            ${desc ? `<h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
+            <div class="lyrics-container" style="font-size:.875rem;line-height:1.8;color:var(--text-2)">${desc}</div>` : ""}
+            ${al.artist ? `
+            <div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-artist.html?id=${al.artist.id}'">
+                <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Nghệ sĩ</div>
+                <div style="display:flex;align-items:center;gap:.75rem">
+                <img src="${safeImg(al.artist.image_url)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.src='${safeImg()}'"/>
+                <div><div style="font-weight:600;font-size:.9rem">${al.artist.name}</div>${al.artist.is_verified ? '<div style="font-size:.72rem;color:var(--brand-light);margin-top:2px"><i class="fa-solid fa-circle-check"></i> Verified</div>' : ""}</div>
+                </div>
+            </div>` : ""}
+            </div>
+            <div class="right-column">
+            <h3 style="margin-bottom:1rem"><i class="fa-solid fa-list-ol" style="color:var(--brand-light);margin-right:6px"></i>Danh sách track</h3>
+            <div id="tracklistContainer">
+                ${geniusTracks.length
+                    ? renderGeniusTracks(geniusTracks, al)
+                    : `<div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Đang tải tracklist...</p></div>`
+                }
+            </div>
+            </div>
+        </div>`;
+
         if (!geniusTracks.length) {
             fetchItunesTracks(al.name, al.artist?.name || "").then((itunesTracks) => {
                 const tc = document.getElementById("tracklistContainer");
                 if (tc) tc.innerHTML = renderItunesTracks(itunesTracks, al);
 
-                // Cập nhật số track count
                 const count = itunesTracks.length;
                 if (count) {
                     const v = document.getElementById("trackCountVal");
@@ -233,7 +221,6 @@ async function loadAlbum() {
                     if (s) s.textContent = count;
                 }
 
-                // Cập nhật AI vibe với track names từ iTunes
                 if (typeof LyrixAI !== "undefined") {
                     const aiRow = document.getElementById("aiButtonsRow");
                     if (aiRow && !aiRow.hasChildNodes()) {
@@ -249,7 +236,6 @@ async function loadAlbum() {
             });
         }
 
-        // ── Tích hợp AI ───────────────────────────────────────────────
         if (typeof LyrixAI !== "undefined") {
             const aiRow = document.getElementById("aiButtonsRow");
 
@@ -269,7 +255,6 @@ async function loadAlbum() {
                 artist: al.artist?.name || "",
             });
         }
-        // ─────────────────────────────────────────────────────────────
     } catch (err) {
         showError(err.message);
         container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Lỗi tải dữ liệu</h3><p>${err.message}</p><a href="../../index.html" class="btn btn-primary" style="margin-top:1rem">Về trang chủ</a></div>`;

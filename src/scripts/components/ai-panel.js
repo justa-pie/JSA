@@ -1,12 +1,6 @@
-/**
- * ai-panel.js — Lyrix AI Integration
- * Streaming SSE + Font Awesome icons (không dùng emoji)
- */
-
 const LyrixAI = (() => {
     const AI_BASE_URL = "https://lyrix-backend.vercel.app";
 
-    // ── Markdown renderer ─────────────────────────────────────────────────────
     function renderMarkdown(text) {
         return text
             .replace(/^## (.+)$/gm, '<h3 class="ai-heading">$1</h3>')
@@ -23,7 +17,6 @@ const LyrixAI = (() => {
             .replace(/<p><\/p>/g, "");
     }
 
-    // ── Tạo panel slide-in ────────────────────────────────────────────────────
     function createPanel(title) {
         document.getElementById("lyrix-ai-panel")?.remove();
 
@@ -31,20 +24,20 @@ const LyrixAI = (() => {
         panel.id = "lyrix-ai-panel";
         panel.className = "ai-panel";
         panel.innerHTML = `
-      <div class="ai-panel-header">
-        <i class="fa-solid fa-wand-magic-sparkles ai-panel-icon"></i>
-        <span class="ai-panel-title">${title}</span>
-        <button class="ai-panel-close" aria-label="Đóng">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="ai-panel-body">
-        <div class="ai-panel-loading">
-          <div class="ai-dots"><span></span><span></span><span></span></div>
-          <p>AI đang phân tích...</p>
+        <div class="ai-panel-header">
+            <i class="fa-solid fa-wand-magic-sparkles ai-panel-icon"></i>
+            <span class="ai-panel-title">${title}</span>
+            <button class="ai-panel-close" aria-label="Đóng">
+            <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        <div class="ai-panel-content" style="display:none"></div>
-      </div>
+        <div class="ai-panel-body">
+            <div class="ai-panel-loading">
+            <div class="ai-dots"><span></span><span></span><span></span></div>
+            <p>AI đang phân tích...</p>
+            </div>
+            <div class="ai-panel-content" style="display:none"></div>
+        </div>
     `;
 
         document.body.appendChild(panel);
@@ -72,12 +65,11 @@ const LyrixAI = (() => {
     function showError(panel, msg) {
         const content = startStream(panel);
         content.innerHTML = `
-      <p class="ai-error">
-        <i class="fa-solid fa-triangle-exclamation"></i> ${msg}
-      </p>`;
+        <p class="ai-error">
+            <i class="fa-solid fa-triangle-exclamation"></i> ${msg}
+        </p>`;
     }
 
-    // ── Stream SSE từ server → render dần vào panel ───────────────────────────
     async function streamToPanel(endpoint, body, panel) {
         const res = await fetch(`${AI_BASE_URL}${endpoint}`, {
             method: "POST",
@@ -99,10 +91,8 @@ const LyrixAI = (() => {
 
             buffer += decoder.decode(value, { stream: true });
 
-            // Tách từng SSE event (mỗi event kết thúc bằng \n\n)
             const events = buffer.split("\n\n");
-            buffer = events.pop(); // phần chưa hoàn chỉnh giữ lại
-
+            buffer = events.pop();
             for (const event of events) {
                 const line = event.trim();
                 if (!line.startsWith("data:")) continue;
@@ -112,9 +102,9 @@ const LyrixAI = (() => {
 
                     if (json.error) {
                         content.innerHTML = `
-              <p class="ai-error">
-                <i class="fa-solid fa-triangle-exclamation"></i> ${json.error}
-              </p>`;
+                <p class="ai-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ${json.error}
+                </p>`;
                         return;
                     }
 
@@ -126,13 +116,11 @@ const LyrixAI = (() => {
                         panel.querySelector(".ai-panel-body").scrollTop = 99999;
                     }
                 } catch {
-                    // JSON parse lỗi — bỏ qua chunk này
                 }
             }
         }
     }
 
-    // ── Stream SSE cho chat (trả về plain text, không markdown) ──────────────
     async function streamToChat(endpoint, body, msgEl) {
         const res = await fetch(`${AI_BASE_URL}${endpoint}`, {
             method: "POST",
@@ -169,13 +157,11 @@ const LyrixAI = (() => {
                             msgEl.parentElement.scrollHeight;
                     }
                 } catch {
-                    /* skip */
                 }
             }
         }
     }
 
-    // ── Tạo nút trigger AI (Font Awesome icon) ───────────────────────────────
     function createAIButton(iconClass, label, onClick) {
         const btn = document.createElement("button");
         btn.className = "btn-ai-trigger";
@@ -183,10 +169,6 @@ const LyrixAI = (() => {
         btn.addEventListener("click", onClick);
         return btn;
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // PUBLIC API
-    // ══════════════════════════════════════════════════════════════════════════
 
     function initLyricsAnalyze({ title, artist, lyrics, container }) {
         if (!container || !lyrics) return;
@@ -302,35 +284,35 @@ const LyrixAI = (() => {
         const fab = document.createElement("div");
         fab.id = "lyrix-chat-fab";
         fab.innerHTML = `
-      <button class="chat-fab-btn" id="chatFabBtn" aria-label="Mở AI Chat">
-        <i class="fa-solid fa-comment-dots chat-fab-icon"></i>
-        <span class="chat-fab-label">AI</span>
-      </button>
-      <div class="chat-window" id="chatWindow" aria-hidden="true">
-        <div class="chat-window-header">
-          <span><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px"></i>Lyrix AI</span>
-          <button class="chat-window-close" id="chatClose" aria-label="Đóng">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+        <button class="chat-fab-btn" id="chatFabBtn" aria-label="Mở AI Chat">
+            <i class="fa-solid fa-comment-dots chat-fab-icon"></i>
+            <span class="chat-fab-label">AI</span>
+        </button>
+        <div class="chat-window" id="chatWindow" aria-hidden="true">
+            <div class="chat-window-header">
+            <span><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px"></i>Lyrix AI</span>
+            <button class="chat-window-close" id="chatClose" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg chat-msg--ai">
+                <i class="fa-solid fa-music" style="margin-right:6px;color:var(--brand-light)"></i>
+                Xin chào! Tôi là trợ lý AI của Lyrix. Hỏi tôi bất cứ điều gì về âm nhạc nhé!
+            </div>
+            </div>
+            <form class="chat-input-row" id="chatForm">
+            <input
+                type="text"
+                id="chatInput"
+                placeholder="Hỏi về âm nhạc..."
+                autocomplete="off"
+            />
+            <button type="submit" aria-label="Gửi">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+            </form>
         </div>
-        <div class="chat-messages" id="chatMessages">
-          <div class="chat-msg chat-msg--ai">
-            <i class="fa-solid fa-music" style="margin-right:6px;color:var(--brand-light)"></i>
-            Xin chào! Tôi là trợ lý AI của Lyrix. Hỏi tôi bất cứ điều gì về âm nhạc nhé!
-          </div>
-        </div>
-        <form class="chat-input-row" id="chatForm">
-          <input
-            type="text"
-            id="chatInput"
-            placeholder="Hỏi về âm nhạc..."
-            autocomplete="off"
-          />
-          <button type="submit" aria-label="Gửi">
-            <i class="fa-solid fa-paper-plane"></i>
-          </button>
-        </form>
-      </div>
     `;
 
         document.body.appendChild(fab);
@@ -363,7 +345,6 @@ const LyrixAI = (() => {
             input.disabled = true;
             form.querySelector('button[type="submit"]').disabled = true;
 
-            // Tạo bubble AI trống — stream sẽ điền vào
             const aiMsg = appendMsg(messages, "", "ai streaming");
 
             try {

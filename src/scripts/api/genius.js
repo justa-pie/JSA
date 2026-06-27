@@ -1,9 +1,5 @@
-// ─── Lyrix — API Config ───────────────────────────────────────────────────────
-// API key được giữ bí mật ở backend (Vercel).
-// Frontend chỉ gọi proxy /genius?endpoint=...
 const PROXY_BASE = "https://lyrix-backend.vercel.app";
 
-// ─── Core fetch (qua proxy Vercel) ───────────────────────────────────────────
 async function fetchAPI(endpoint, params = {}) {
     const url = new URL(PROXY_BASE + "/genius");
     url.searchParams.append("endpoint", endpoint);
@@ -29,7 +25,6 @@ async function fetchAPI(endpoint, params = {}) {
     }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatNumber(num) {
     if (!num || isNaN(num)) return "—";
     num = parseInt(num, 10);
@@ -67,7 +62,6 @@ function stripHtml(html) {
         .trim();
 }
 
-// ─── Session Cache (tiết kiệm quota) ─────────────────────────────────────────
 const CACHE_TTL = 30 * 60 * 1000;
 
 function sessionSet(key, data) {

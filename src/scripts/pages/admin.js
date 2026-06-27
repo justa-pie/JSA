@@ -1,9 +1,3 @@
-// ═══════════════════════════════════════════════════════════════
-// admin.js — Lyrix Admin Dashboard
-// Thứ tự: Firebase → State → UI → Render → Chart → Admin → Auth
-// ═══════════════════════════════════════════════════════════════
-
-// ── ❶ FIREBASE ─────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyANhY8Ze06tNkGF2MQmujPY2gXsMgIYMG4",
     authDomain: "lyrix-b258b.firebaseapp.com",
@@ -16,7 +10,6 @@ if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ── ❷ STATE ─────────────────────────────────────────────────────
 const State = {
     users: [],
     currentTab: "users",
@@ -25,7 +18,6 @@ const State = {
     filters: { role: "all", sort: "newest" },
 };
 
-// ── ❸ UI HELPERS — khai báo SỚM để auth callback dùng được ──────
 const UI = {
     showAuthWall() {
         document.getElementById("auth-wall").style.display = "flex";
@@ -69,14 +61,13 @@ const UI = {
     },
 };
 
-// ── ❹ RENDER ────────────────────────────────────────────────────
 const Render = {
     users(users) {
         const tb = document.getElementById("users-tbody");
         if (!users.length) {
             tb.innerHTML = `<tr><td colspan="7"><div class="admin-empty">
-              <i class="fa-solid fa-users-slash"></i>
-              <span>Không tìm thấy người dùng nào</span>
+                <i class="fa-solid fa-users-slash"></i>
+                <span>Không tìm thấy người dùng nào</span>
             </div></td></tr>`;
             return;
         }
@@ -92,106 +83,106 @@ const Render = {
                 const expandId = `expand-${u.id}`;
                 const joinDate = u.createdAt?.seconds
                     ? new Date(u.createdAt.seconds * 1000).toLocaleDateString(
-                          "vi-VN",
-                      )
+                            "vi-VN",
+                        )
                     : "—";
 
                 return `
-      <tr>
+        <tr>
         <td>
-          <div class="admin-user-cell">
+            <div class="admin-user-cell">
             ${avatarHtml}
             <div>
-              <div class="admin-user-name">${esc(u.displayName || "—")}</div>
-              <div class="admin-user-email">${esc(u.email || u.id)}</div>
+                <div class="admin-user-name">${esc(u.displayName || "—")}</div>
+                <div class="admin-user-email">${esc(u.email || u.id)}</div>
             </div>
-          </div>
+            </div>
         </td>
         <td>
-          <span class="badge ${isAdminU ? "badge-brand" : "admin-badge-user"}">
+            <span class="badge ${isAdminU ? "badge-brand" : "admin-badge-user"}">
             ${isAdminU ? '<i class="fa-solid fa-shield-halved"></i> admin' : "user"}
-          </span>
+            </span>
         </td>
         <td>
-          <span class="admin-mono" style="color:#f87171;font-weight:600">${u._favsCount}</span>
-          <span style="font-size:.7rem;color:var(--text-3)"> bài</span>
+            <span class="admin-mono" style="color:#f87171;font-weight:600">${u._favsCount}</span>
+            <span style="font-size:.7rem;color:var(--text-3)"> bài</span>
         </td>
         <td>
-          <span class="admin-mono" style="color:var(--accent);font-weight:600">${u._histCount}</span>
-          <span style="font-size:.7rem;color:var(--text-3)"> mục</span>
+            <span class="admin-mono" style="color:var(--accent);font-weight:600">${u._histCount}</span>
+            <span style="font-size:.7rem;color:var(--text-3)"> mục</span>
         </td>
         <td>
-          <span class="admin-mono" style="color:#4ade80;font-weight:600">${u._plCount}</span>
-          <span style="font-size:.7rem;color:var(--text-3)"> playlist</span>
+            <span class="admin-mono" style="color:#4ade80;font-weight:600">${u._plCount}</span>
+            <span style="font-size:.7rem;color:var(--text-3)"> playlist</span>
         </td>
         <td style="font-size:.78rem;color:var(--text-3)">${joinDate}</td>
         <td>
-          <div class="admin-action-btns">
+            <div class="admin-action-btns">
             <button class="btn btn-ghost btn-sm admin-expand-btn"
-              onclick="Admin.toggleExpand('${expandId}')">
-              <i class="fa-solid fa-chevron-down" style="transition:transform .2s"></i>
+                onclick="Admin.toggleExpand('${expandId}')">
+                <i class="fa-solid fa-chevron-down" style="transition:transform .2s"></i>
             </button>
             ${
                 !isAdminU
                     ? `
             <button class="btn btn-sm btn-danger"
-              onclick="Admin.deleteUser('${u.id}','${esc(u.displayName || u.email || u.id)}')">
-              <i class="fa-solid fa-trash"></i>
+                onclick="Admin.deleteUser('${u.id}','${esc(u.displayName || u.email || u.id)}')">
+                <i class="fa-solid fa-trash"></i>
             </button>`
                     : ""
             }
-          </div>
+            </div>
         </td>
-      </tr>
-      <tr id="${expandId}" class="admin-expand-row" style="display:none">
+        </tr>
+        <tr id="${expandId}" class="admin-expand-row" style="display:none">
         <td colspan="7">
-          <div class="admin-expand-inner">
+            <div class="admin-expand-inner">
             <div class="admin-uid-row">
-              <span style="color:var(--text-3);font-size:.75rem">UID:</span>
-              <code class="admin-uid">${u.id}</code>
-              ${u.bio ? `<span style="color:var(--text-3);font-size:.75rem;margin-left:.75rem">Bio: ${esc(u.bio)}</span>` : ""}
+                <span style="color:var(--text-3);font-size:.75rem">UID:</span>
+                <code class="admin-uid">${u.id}</code>
+                ${u.bio ? `<span style="color:var(--text-3);font-size:.75rem;margin-left:.75rem">Bio: ${esc(u.bio)}</span>` : ""}
             </div>
             <div class="admin-sub-grid" style="grid-template-columns:1fr 1fr 1fr">
-              <div>
+                <div>
                 <div class="admin-sub-title">
-                  <i class="fa-solid fa-heart" style="color:#f87171"></i>
-                  Yêu thích (${u._favsCount})
-                  ${
-                      u._favsCount
-                          ? `<button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:.7rem"
+                    <i class="fa-solid fa-heart" style="color:#f87171"></i>
+                    Yêu thích (${u._favsCount})
+                    ${
+                        u._favsCount
+                            ? `<button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:.7rem"
                     onclick="Admin.clearFavs('${u.id}','${esc(u.displayName || u.email || u.id)}')">Xoá tất cả</button>`
-                          : ""
-                  }
+                            : ""
+                    }
                 </div>
                 ${Render._subItems(u._favDocs)}
                 ${u._favsCount > 5 ? `<div class="admin-sub-more">+${u._favsCount - 5} bài khác</div>` : ""}
-              </div>
-              <div>
-                <div class="admin-sub-title">
-                  <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i>
-                  Lịch sử (${u._histCount})
-                  ${
-                      u._histCount
-                          ? `<button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:.7rem"
-                    onclick="Admin.clearHistory('${u.id}','${esc(u.displayName || u.email || u.id)}')">Xoá tất cả</button>`
-                          : ""
-                  }
                 </div>
-                ${Render._subItems(u._histDocs)}
-                ${u._histCount > 5 ? `<div class="admin-sub-more">+${u._histCount - 5} mục khác</div>` : ""}
-              </div>
-              <div>
+                <div>
                 <div class="admin-sub-title">
-                  <i class="fa-solid fa-music" style="color:#4ade80"></i>
-                  Playlist (${u._plCount})
+                    <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i>
+                    Lịch sử (${u._histCount})
+                    ${
+                        u._histCount
+                            ? `<button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:.7rem"
+                        onclick="Admin.clearHistory('${u.id}','${esc(u.displayName || u.email || u.id)}')">Xoá tất cả</button>`
+                            : ""
+                    }
+                    </div>
+                    ${Render._subItems(u._histDocs)}
+                    ${u._histCount > 5 ? `<div class="admin-sub-more">+${u._histCount - 5} mục khác</div>` : ""}
                 </div>
-                ${Render._subPlaylists(u._plDocs)}
-                ${u._plCount > 5 ? `<div class="admin-sub-more">+${u._plCount - 5} playlist khác</div>` : ""}
-              </div>
+                <div>
+                    <div class="admin-sub-title">
+                    <i class="fa-solid fa-music" style="color:#4ade80"></i>
+                    Playlist (${u._plCount})
+                    </div>
+                    ${Render._subPlaylists(u._plDocs)}
+                    ${u._plCount > 5 ? `<div class="admin-sub-more">+${u._plCount - 5} playlist khác</div>` : ""}
+                </div>
+                </div>
             </div>
-          </div>
-        </td>
-      </tr>`;
+            </td>
+        </tr>`;
             })
             .join("");
     },
@@ -203,17 +194,17 @@ const Render = {
             .slice(0, 5)
             .map(
                 (d) => `
-      <div class="admin-sub-item">
+        <div class="admin-sub-item">
         ${
             d.coverArt
                 ? `<img src="${d.coverArt}" class="admin-sub-thumb" />`
                 : `<div class="admin-sub-thumb admin-sub-thumb-placeholder"><i class="fa-solid fa-music"></i></div>`
         }
         <div class="admin-sub-item-info">
-          <div class="admin-sub-item-name">${esc(d.title || d.songId || "?")}</div>
-          <div class="admin-sub-item-meta">${esc(d.artist || "")}</div>
+            <div class="admin-sub-item-name">${esc(d.title || d.songId || "?")}</div>
+            <div class="admin-sub-item-meta">${esc(d.artist || "")}</div>
         </div>
-      </div>`,
+        </div>`,
             )
             .join("");
     },
@@ -225,23 +216,22 @@ const Render = {
             .slice(0, 5)
             .map(
                 (d) => `
-      <div class="admin-sub-item">
+        <div class="admin-sub-item">
         ${
             d.coverUrl
                 ? `<img src="${d.coverUrl}" class="admin-sub-thumb" style="border-radius:4px" />`
                 : `<div class="admin-sub-thumb admin-sub-thumb-placeholder"><i class="fa-solid fa-music"></i></div>`
         }
         <div class="admin-sub-item-info">
-          <div class="admin-sub-item-name">${esc(d.name || "Untitled")}</div>
-          <div class="admin-sub-item-meta">${Array.isArray(d.songs) ? d.songs.length : 0} bài</div>
+            <div class="admin-sub-item-name">${esc(d.name || "Untitled")}</div>
+            <div class="admin-sub-item-meta">${Array.isArray(d.songs) ? d.songs.length : 0} bài</div>
         </div>
-      </div>`,
+        </div>`,
             )
             .join("");
     },
 };
 
-// ── ❺ CHART ─────────────────────────────────────────────────────
 const Chart = {
     updateMiniStats() {
         const now = new Date();
@@ -439,7 +429,6 @@ const Chart = {
     },
 };
 
-// ── ❻ ADMIN ──────────────────────────────────────────────────────
 const Admin = {
     async login() {
         const email = document.getElementById("login-email").value.trim();
@@ -741,7 +730,6 @@ const Admin = {
     },
 };
 
-// ── ❼ AUTH STATE — đứng SAU khi UI/Render/Admin đã khai báo ─────
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
         UI.showAuthWall();
@@ -763,7 +751,6 @@ auth.onAuthStateChanged(async (user) => {
 
     UI.hideAuthWall();
 
-    // Load avatar từ Firestore
     try {
         const uDoc = await db.collection("users").doc(user.uid).get();
         const uData = uDoc.exists ? uDoc.data() : {};
@@ -793,12 +780,10 @@ auth.onAuthStateChanged(async (user) => {
     setEl("sidebar-name", user.displayName || user.email.split("@")[0]);
     setEl("sidebar-email", user.email);
 
-    // Sync navbar dropdown header + avatar
     setEl("ddName", user.displayName || "Admin");
     setEl("ddEmail", user.email || "");
     const navUserBtn = document.getElementById("navUserBtn");
     if (navUserBtn) navUserBtn.style.display = "flex";
-    // Navbar avatar — dùng lại avatarEl đã load ở trên
     try {
         const uDoc2 = await db.collection("users").doc(user.uid).get();
         const src2 = uDoc2.exists
@@ -814,13 +799,11 @@ auth.onAuthStateChanged(async (user) => {
                     .toUpperCase();
         }
     } catch {
-        /* ignore */
     }
 
     Admin.loadAll();
 });
 
-// ── ❽ EVENT LISTENERS ───────────────────────────────────────────
 document
     .getElementById("btn-login")
     .addEventListener("click", () => Admin.login());
@@ -835,7 +818,6 @@ document.getElementById("confirm-modal").addEventListener("click", (e) => {
     if (e.target === e.currentTarget) UI.closeConfirm();
 });
 
-// Role chips
 document.getElementById("filter-role")?.addEventListener("click", (e) => {
     const btn = e.target.closest(".admin-chip");
     if (!btn) return;
@@ -847,7 +829,6 @@ document.getElementById("filter-role")?.addEventListener("click", (e) => {
     Admin.applyFilters();
 });
 
-// Period tabs
 document.getElementById("period-tabs")?.addEventListener("click", (e) => {
     const btn = e.target.closest(".admin-period-btn");
     if (!btn) return;
@@ -861,7 +842,6 @@ document.getElementById("period-tabs")?.addEventListener("click", (e) => {
 
 window.addEventListener("resize", () => Chart.render());
 
-// Adrop
 document.addEventListener("click", (e) => {
     if (!e.target.closest(".adrop")) {
         document
@@ -883,7 +863,6 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// ── ❾ UTILS ─────────────────────────────────────────────────────
 function esc(str) {
     return String(str || "").replace(
         /[&<>"']/g,

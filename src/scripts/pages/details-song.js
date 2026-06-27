@@ -1,5 +1,3 @@
-// ─── details-song.js ─────────────────────────────────────────────────────────
-
 const params = new URLSearchParams(window.location.search);
 const songId = params.get("id");
 const container = document.getElementById("songDetailContent");
@@ -10,7 +8,6 @@ if (!songId) {
     loadSong();
 }
 
-// ─── Load song ────────────────────────────────────────────────────────────────
 async function loadSong() {
     try {
         const [detailData, lyricsData] = await Promise.all([
@@ -34,14 +31,12 @@ async function loadSong() {
         const producers = s.producer_artists || [];
         const featured = s.featured_artists || [];
 
-        // Ghi lịch sử xem (chỉ khi đã đăng nhập — auth.js expose addToHistory)
         const songMeta = {
             songId: s.id,
             title: s.title,
             artist: s.primary_artist?.name || "",
             artUrl: s.song_art_image_url || s.header_image_url || "",
         };
-        // Chờ auth state thật sự ready
         firebase.auth().onAuthStateChanged((user) => {
             if (user && typeof addToHistory === "function") {
                 addToHistory(songMeta);
@@ -49,132 +44,129 @@ async function loadSong() {
         });
 
         container.innerHTML = `
-      <div class="song-detail-header animate-slide-up" id="songHeader">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent);pointer-events:none"></div>
-        <img class="detail-cover" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="${s.title}" onerror="this.src='${safeImg()}'"/>
-        <div class="detail-info" style="flex:1;min-width:0">
-          <div style="margin-bottom:6px">
-            ${s.featured_video ? '<span class="badge badge-hot" style="margin-right:6px"><i class="fa-solid fa-video"></i> Video</span>' : ""}
-            ${s.lyrics_state === "complete" ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Full lyrics</span>' : ""}
-            ${s.stats?.hot ? '<span class="badge badge-hot" style="margin-left:4px"><i class="fa-solid fa-fire"></i> Hot</span>' : ""}
-          </div>
-          <h1 style="margin-bottom:4px">${s.title}</h1>
-          <div class="artist-name" style="cursor:pointer"
-               onclick="window.location.href='details-artist.html?id=${s.primary_artist?.id}'">
-            ${s.primary_artist?.name || "Unknown Artist"}
-          </div>
-          <div class="detail-meta">
-            ${s.release_date_for_display ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${s.release_date_for_display}</div>` : ""}
-            ${s.album ? `<div class="meta-chip" style="cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'"><i class="fa-solid fa-compact-disc"></i> ${s.album.name}</div>` : ""}
-            ${s.stats?.pageviews ? `<div class="meta-chip"><i class="fa-solid fa-eye"></i> ${formatNumber(s.stats.pageviews)} views</div>` : ""}
-          </div>
-          <div class="detail-actions">
-            ${s.url ? `<a href="${s.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
-            <button class="btn btn-fav btn-sm" id="favBtn" onclick="handleFavorite()">
-              <i class="fa-regular fa-heart"></i> Yêu thích
-            </button>
-            <button class="btn btn-outline btn-sm" onclick="copyLyrics()"><i class="fa-solid fa-copy"></i> Sao chép lời</button>
-            ${s.primary_artist?.id ? `<button class="btn btn-ghost btn-sm" onclick="window.location.href='details-artist.html?id=${s.primary_artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
-          </div>
-          <div class="ai-buttons-row" id="aiButtonsRow"></div>
-        </div>
-      </div>
-
-      <div id="preview-player-container" class="animate-slide-up stagger-1"></div>
-
-      <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
-        <div class="stats-bar">
-          <div class="stat-item"><div class="stat-value">${formatNumber(s.stats?.pageviews)}</div><div class="stat-label">Lượt xem</div></div>
-          <div class="stat-item"><div class="stat-value">${s.annotation_count ?? "—"}</div><div class="stat-label">Annotations</div></div>
-          <div class="stat-item"><div class="stat-value">${s.pyongs_count ?? "—"}</div><div class="stat-label">Pyongs</div></div>
-          <div class="stat-item"><div class="stat-value">${s.contributors_count ?? "—"}</div><div class="stat-label">Contributors</div></div>
-        </div>
-        ${
-            s.stats?.pageviews
-                ? `<div style="margin-top:1rem">
-          <div style="font-size:.72rem;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Popularity</div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, Math.round((s.stats.pageviews / 10000000) * 100))}%"></div></div>
-        </div>`
-                : ""
-        }
-      </div>
-
-      <div class="two-column-layout animate-slide-up stagger-2">
-        <div class="left-column">
-          ${
-              featured.length || writers.length || producers.length
-                  ? `<div class="credits-section">
-            ${
-                featured.length
-                    ? `<div style="margin-bottom:1rem">
-              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Featured</div>
-              <div class="credits-grid">${featured.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Featured</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
-            </div>`
-                    : ""
-            }
-            ${
-                writers.length
-                    ? `<div style="margin-bottom:1rem">
-              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Nhạc sĩ</div>
-              <div class="credits-grid">${writers.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Writer</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
-            </div>`
-                    : ""
-            }
-            ${
-                producers.length
-                    ? `<div>
-              <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Producer</div>
-              <div class="credits-grid">${producers.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Producer</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
-            </div>`
-                    : ""
-            }
-          </div>`
-                  : ""
-          }
-
-          ${
-              s.album
-                  ? `<div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'">
-            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Album</div>
-            <div style="display:flex;align-items:center;gap:.75rem">
-              <img src="${safeImg(s.album.cover_art_url)}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.src='${safeImg()}'"/>
-              <div><div style="font-weight:600;font-size:.875rem">${s.album.name}</div><div style="font-size:.75rem;color:var(--text-3);margin-top:2px">${s.album.release_date_for_display || ""}</div></div>
+        <div class="song-detail-header animate-slide-up" id="songHeader">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent);pointer-events:none"></div>
+            <img class="detail-cover" src="${safeImg(s.song_art_image_url || s.header_image_url)}" alt="${s.title}" onerror="this.src='${safeImg()}'"/>
+            <div class="detail-info" style="flex:1;min-width:0">
+            <div style="margin-bottom:6px">
+                ${s.featured_video ? '<span class="badge badge-hot" style="margin-right:6px"><i class="fa-solid fa-video"></i> Video</span>' : ""}
+                ${s.lyrics_state === "complete" ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Full lyrics</span>' : ""}
+                ${s.stats?.hot ? '<span class="badge badge-hot" style="margin-left:4px"><i class="fa-solid fa-fire"></i> Hot</span>' : ""}
             </div>
-          </div>`
-                  : ""
-          }
+            <h1 style="margin-bottom:4px">${s.title}</h1>
+            <div class="artist-name" style="cursor:pointer"
+                onclick="window.location.href='details-artist.html?id=${s.primary_artist?.id}'">
+                ${s.primary_artist?.name || "Unknown Artist"}
+            </div>
+            <div class="detail-meta">
+                ${s.release_date_for_display ? `<div class="meta-chip"><i class="fa-solid fa-calendar"></i> ${s.release_date_for_display}</div>` : ""}
+                ${s.album ? `<div class="meta-chip" style="cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'"><i class="fa-solid fa-compact-disc"></i> ${s.album.name}</div>` : ""}
+                ${s.stats?.pageviews ? `<div class="meta-chip"><i class="fa-solid fa-eye"></i> ${formatNumber(s.stats.pageviews)} views</div>` : ""}
+            </div>
+            <div class="detail-actions">
+                ${s.url ? `<a href="${s.url}" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Genius</a>` : ""}
+                <button class="btn btn-fav btn-sm" id="favBtn" onclick="handleFavorite()">
+                <i class="fa-regular fa-heart"></i> Yêu thích
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="copyLyrics()"><i class="fa-solid fa-copy"></i> Sao chép lời</button>
+                ${s.primary_artist?.id ? `<button class="btn btn-ghost btn-sm" onclick="window.location.href='details-artist.html?id=${s.primary_artist.id}'"><i class="fa-solid fa-user"></i> Nghệ sĩ</button>` : ""}
+            </div>
+            <div class="ai-buttons-row" id="aiButtonsRow"></div>
+            </div>
         </div>
 
-        <div class="right-column">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-            <h3 style="display:flex;align-items:center;gap:.5rem">
-              <div class="waveform"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
-              Lời bài hát
-            </h3>
-            <button class="btn btn-ghost btn-sm" onclick="toggleLyricsSize()" id="lyricsToggle">
-              <i class="fa-solid fa-expand"></i> Phóng to
-            </button>
-          </div>
-          <div class="lyrics-container" id="lyricsBox" style="max-height:600px;overflow-y:auto">${lyricsText}</div>
-          ${
-              s.description?.html
-                  ? `<div style="margin-top:1.5rem">
-            <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
-            <div class="lyrics-container" style="font-size:.875rem;line-height:1.75;color:var(--text-2)">${stripHtml(s.description.html)}</div>
-          </div>`
-                  : ""
-          }
-        </div>
-      </div>`;
+        <div id="preview-player-container" class="animate-slide-up stagger-1"></div>
 
-        // Render preview player
+        <div class="card animate-slide-up stagger-1" style="padding:1.25rem;margin-bottom:1.5rem">
+            <div class="stats-bar">
+            <div class="stat-item"><div class="stat-value">${formatNumber(s.stats?.pageviews)}</div><div class="stat-label">Lượt xem</div></div>
+            <div class="stat-item"><div class="stat-value">${s.annotation_count ?? "—"}</div><div class="stat-label">Annotations</div></div>
+            <div class="stat-item"><div class="stat-value">${s.pyongs_count ?? "—"}</div><div class="stat-label">Pyongs</div></div>
+            <div class="stat-item"><div class="stat-value">${s.contributors_count ?? "—"}</div><div class="stat-label">Contributors</div></div>
+            </div>
+            ${
+                s.stats?.pageviews
+                    ? `<div style="margin-top:1rem">
+            <div style="font-size:.72rem;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Popularity</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, Math.round((s.stats.pageviews / 10000000) * 100))}%"></div></div>
+            </div>`
+                    : ""
+            }
+        </div>
+
+        <div class="two-column-layout animate-slide-up stagger-2">
+            <div class="left-column">
+            ${
+                featured.length || writers.length || producers.length
+                    ? `<div class="credits-section">
+                ${
+                    featured.length
+                        ? `<div style="margin-bottom:1rem">
+                <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Featured</div>
+                <div class="credits-grid">${featured.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Featured</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
+                </div>`
+                        : ""
+                }
+                ${
+                    writers.length
+                        ? `<div style="margin-bottom:1rem">
+                <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Nhạc sĩ</div>
+                <div class="credits-grid">${writers.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Writer</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
+                </div>`
+                        : ""
+                }
+                ${
+                    producers.length
+                        ? `<div>
+                <div style="font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px">Producer</div>
+                <div class="credits-grid">${producers.map((a) => `<div class="credit-item" style="cursor:pointer" onclick="window.location.href='details-artist.html?id=${a.id}'"><div class="credit-role">Producer</div><div class="credit-name">${a.name}</div></div>`).join("")}</div>
+                </div>`
+                        : ""
+                }
+            </div>`
+                    : ""
+            }
+
+            ${
+                s.album
+                    ? `<div class="card" style="padding:1rem;margin-top:1.25rem;cursor:pointer" onclick="window.location.href='details-album.html?id=${s.album.id}'">
+                <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Album</div>
+                <div style="display:flex;align-items:center;gap:.75rem">
+                <img src="${safeImg(s.album.cover_art_url)}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.src='${safeImg()}'"/>
+                <div><div style="font-weight:600;font-size:.875rem">${s.album.name}</div><div style="font-size:.75rem;color:var(--text-3);margin-top:2px">${s.album.release_date_for_display || ""}</div></div>
+                </div>
+            </div>`
+                    : ""
+            }
+            </div>
+
+            <div class="right-column">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+                <h3 style="display:flex;align-items:center;gap:.5rem">
+                <div class="waveform"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
+                Lời bài hát
+                </h3>
+                <button class="btn btn-ghost btn-sm" onclick="toggleLyricsSize()" id="lyricsToggle">
+                <i class="fa-solid fa-expand"></i> Phóng to
+                </button>
+            </div>
+            <div class="lyrics-container" id="lyricsBox" style="max-height:600px;overflow-y:auto">${lyricsText}</div>
+            ${
+                s.description?.html
+                    ? `<div style="margin-top:1.5rem">
+                <h3 style="margin-bottom:.75rem"><i class="fa-solid fa-circle-info" style="color:var(--brand-light);margin-right:6px"></i>Giới thiệu</h3>
+                <div class="lyrics-container" style="font-size:.875rem;line-height:1.75;color:var(--text-2)">${stripHtml(s.description.html)}</div>
+            </div>`
+                    : ""
+            }
+            </div>
+        </div>`;
+
         renderPreviewPlayer(s.title, s.primary_artist?.name || "");
 
-        // ── Tích hợp AI ──────────────────────────────────────────────
         if (typeof LyrixAI !== "undefined") {
             const aiRow = document.getElementById("aiButtonsRow");
 
-            // Nút 1: Phân tích lời bài hát
             LyrixAI.initLyricsAnalyze({
                 title: s.title,
                 artist: s.primary_artist?.name || "",
@@ -182,7 +174,6 @@ async function loadSong() {
                 container: aiRow,
             });
 
-            // Nút 2: Gợi ý bài hát tương tự
             LyrixAI.initSimilarSongs({
                 title: s.title,
                 artist: s.primary_artist?.name || "",
@@ -190,16 +181,12 @@ async function loadSong() {
                 container: aiRow,
             });
 
-            // Floating chatbot — biết ngữ cảnh đang xem bài nào
             LyrixAI.initFloatingChat({
                 page: "Chi tiết bài hát",
                 title: s.title,
                 artist: s.primary_artist?.name || "",
             });
         }
-        // ─────────────────────────────────────────────────────────────
-
-        // Kiểm tra trạng thái yêu thích sau khi render
         setTimeout(async () => {
             if (typeof checkFavorite === "function") {
                 const isFav = await checkFavorite(s.id);
@@ -207,7 +194,6 @@ async function loadSong() {
             }
         }, 600);
 
-        // Lưu songMeta để dùng trong handleFavorite
         window._currentSongMeta = songMeta;
     } catch (err) {
         showError(err.message);
@@ -215,7 +201,6 @@ async function loadSong() {
     }
 }
 
-// ─── Favorite button ──────────────────────────────────────────────────────────
 function updateFavBtn(isFav) {
     const btn = document.getElementById("favBtn");
     if (!btn) return;
@@ -260,7 +245,6 @@ window.handleFavorite = async function () {
     }
 };
 
-// ─── Copy lyrics ──────────────────────────────────────────────────────────────
 window.copyLyrics = function () {
     const box = document.getElementById("lyricsBox");
     if (!box) return;
@@ -278,7 +262,6 @@ window.copyLyrics = function () {
     });
 };
 
-// ─── iTunes Preview Player ────────────────────────────────────────────────────
 async function fetchItunesPreview(songTitle, artistName) {
     try {
         const q = encodeURIComponent(`${songTitle} ${artistName}`);
@@ -302,7 +285,6 @@ async function renderPreviewPlayer(songTitle, artistName) {
     const container = document.getElementById("preview-player-container");
     if (!container) return;
 
-    // Skeleton loading
     container.innerHTML = `
         <div class="preview-player preview-loading">
             <div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0"></div>
@@ -400,8 +382,8 @@ async function renderPreviewPlayer(songTitle, artistName) {
             audio.volume == 0
                 ? "fa-solid fa-volume-xmark preview-vol-icon"
                 : audio.volume < 0.5
-                  ? "fa-solid fa-volume-low preview-vol-icon"
-                  : "fa-solid fa-volume-high preview-vol-icon";
+                    ? "fa-solid fa-volume-low preview-vol-icon"
+                    : "fa-solid fa-volume-high preview-vol-icon";
     });
 
     volIcon.addEventListener("click", () => {
@@ -418,7 +400,6 @@ async function renderPreviewPlayer(songTitle, artistName) {
     });
 }
 
-// ─── Toggle lyrics expand ─────────────────────────────────────────────────────
 let expanded = false;
 window.toggleLyricsSize = function () {
     const box = document.getElementById("lyricsBox");

@@ -1,5 +1,3 @@
-// ─── auth.js — Firebase Authentication ───────────────────────────────────────
-
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyANhY8Ze06tNkGF2MQmujPY2gXsMgIYMG4",
     authDomain: "lyrix-b258b.firebaseapp.com",
@@ -13,8 +11,6 @@ const FIREBASE_CONFIG = {
 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 
-// ─── localStorage cache helpers ───────────────────────────────────────────────
-// Cache avatarUrl + role theo uid để dùng ngay khi load trang, không cần chờ Firestore
 function cacheGet(uid, key) {
     return localStorage.getItem("lyrix_" + key + "_" + uid) || null;
 }
@@ -28,26 +24,20 @@ function cacheClear(uid) {
     localStorage.removeItem("lyrix_role_" + uid);
 }
 
-// ─── NavBar bridge ────────────────────────────────────────────────────────────
-// navbar.js có thể load trước hoặc sau auth.js tùy trang.
-// Dùng queue để đảm bảo NavBar.ready() luôn được gọi đúng lúc.
 window._navBarQueue = window._navBarQueue || null;
 function callNavBar(user, role, avatarUrl) {
     if (window.NavBar && window.NavBar.ready) {
         window.NavBar.ready(user, role, avatarUrl);
     } else {
-        // Lưu args, navbar.js sẽ flush khi init xong
         window._navBarQueue = { user, role, avatarUrl };
     }
 }
 
-// ─── UI Elements ──────────────────────────────────────────────────────────────
 const modalOverlay = document.getElementById("authModalOverlay");
 const navLoginBtn = document.getElementById("navLoginBtn");
 const navUserBtn = document.getElementById("navUserBtn");
 const mobileLoginBtn = document.getElementById("mobileLoginBtn");
 
-// ─── Open / Close auth modal ──────────────────────────────────────────────────
 window.openAuthModal = function (tab = "login") {
     modalOverlay?.classList.add("open");
     switchTab(tab);
@@ -61,7 +51,6 @@ modalOverlay?.addEventListener("click", (e) => {
     if (e.target === modalOverlay) closeAuthModal();
 });
 
-// ─── Tab switching ────────────────────────────────────────────────────────────
 window.switchTab = function (tab) {
     document
         .querySelectorAll(".modal-tab")
@@ -73,7 +62,6 @@ window.switchTab = function (tab) {
     clearErrors();
 };
 
-// ─── User dropdown ────────────────────────────────────────────────────────────
 window.toggleUserMenu = function () {
     document.getElementById("userDropdown")?.classList.toggle("open");
 };
@@ -83,8 +71,6 @@ document.addEventListener("click", (e) => {
         document.getElementById("userDropdown")?.classList.remove("open");
 });
 
-// ─── Firestore realtime listener (thay thế one-shot get) ─────────────────────
-// onSnapshot tự reconnect khi mạng phục hồi, không bị CORS-fail hoàn toàn
 let _firestoreUnsub = null;
 
 function subscribeUserDoc(user) {
@@ -103,15 +89,12 @@ function subscribeUserDoc(user) {
                     const avatarUrl = data.avatarUrl || user.photoURL || null;
                     const role = data.role || "user";
 
-                    // Cập nhật cache
                     cacheSet(user.uid, "avatarUrl", avatarUrl);
                     cacheSet(user.uid, "role", role);
 
-                    // Cập nhật navbar (gọi lại nếu có thay đổi)
                     callNavBar(user, role, avatarUrl);
                 },
                 (err) => {
-                    // CORS / offline → giữ nguyên cache, không làm gì thêm
                     console.warn(
                         "auth.js: Firestore snapshot error (thường do Safari local CORS)",
                         err.code,
@@ -123,7 +106,6 @@ function subscribeUserDoc(user) {
     }
 }
 
-// ─── Auth state ───────────────────────────────────────────────────────────────
 auth.onAuthStateChanged((user) => {
     if (user) {
         // ❶ Dùng cache ngay → navbar hiện avatar tức thì, không chờ network
@@ -133,7 +115,6 @@ auth.onAuthStateChanged((user) => {
         callNavBar(user, cachedRole, cachedAvatar);
         closeAuthModal();
 
-        // ❷ Subscribe Firestore realtime → cập nhật cache + navbar khi có dữ liệu mới
         subscribeUserDoc(user);
     } else {
         if (_firestoreUnsub) {
@@ -144,7 +125,6 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// ─── Login ────────────────────────────────────────────────────────────────────
 window.handleLogin = async function () {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
@@ -163,7 +143,6 @@ window.handleLogin = async function () {
     }
 };
 
-// ─── Register ─────────────────────────────────────────────────────────────────
 window.handleRegister = async function () {
     const name = document.getElementById("registerName").value.trim();
     const email = document.getElementById("registerEmail").value.trim();
@@ -189,7 +168,6 @@ window.handleRegister = async function () {
     }
 };
 
-// ─── Google Sign In ───────────────────────────────────────────────────────────
 window.handleGoogle = async function () {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -203,7 +181,6 @@ window.handleGoogle = async function () {
     }
 };
 
-// ─── Sign Out ─────────────────────────────────────────────────────────────────
 window.signOut = async function () {
     document.getElementById("userDropdown")?.classList.remove("open");
     const user = auth.currentUser;
@@ -211,7 +188,6 @@ window.signOut = async function () {
     await auth.signOut();
 };
 
-// ─── Save user to Firestore ───────────────────────────────────────────────────
 async function saveUserToFirestore(user, displayName) {
     if (typeof firebase === "undefined" || !firebase.firestore) return;
     const db = firebase.firestore();
@@ -231,7 +207,6 @@ async function saveUserToFirestore(user, displayName) {
         );
 }
 
-// ─── Favorites helper ─────────────────────────────────────────────────────────
 window.toggleFavorite = async function (songData) {
     const user = auth.currentUser;
     if (!user) {
@@ -270,7 +245,6 @@ window.checkFavorite = async function (songId) {
     return snap.exists;
 };
 
-// ─── History helper ───────────────────────────────────────────────────────────
 window.addToHistory = async function (songData) {
     const user = auth.currentUser;
     if (!user) return;
@@ -289,7 +263,6 @@ window.addToHistory = async function (songData) {
         );
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function showError(el, msg) {
     if (!el) return;
     el.textContent = msg;

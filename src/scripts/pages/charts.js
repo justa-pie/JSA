@@ -1,5 +1,3 @@
-// ─── charts.js ───────────────────────────────────────────────────────────────
-
 let chartType = "songs";
 let timePeriod = "day";
 
@@ -40,12 +38,12 @@ function showSkeleton() {
         .map(
             (_, i) => `
     <div class="chart-item">
-      <span class="chart-position" style="color:var(--text-3)">${i + 1}</span>
-      <div class="skeleton chart-image" style="border-radius:${chartType === "artists" ? "50%" : "8px"}"></div>
-      <div class="chart-info">
+        <span class="chart-position" style="color:var(--text-3)">${i + 1}</span>
+        <div class="skeleton chart-image" style="border-radius:${chartType === "artists" ? "50%" : "8px"}"></div>
+        <div class="chart-info">
         <div class="skeleton" style="height:14px;width:58%;margin-bottom:6px"></div>
         <div class="skeleton" style="height:12px;width:38%"></div>
-      </div>
+        </div>
     </div>`,
         )
         .join("");
@@ -90,38 +88,38 @@ async function loadChart() {
                     pos === 1
                         ? '<i class="fa-solid fa-trophy" style="color:#fbbf24;font-size:13px"></i>'
                         : pos === 2
-                          ? '<i class="fa-solid fa-trophy" style="color:#94a3b8;font-size:13px"></i>'
-                          : pos === 3
+                            ? '<i class="fa-solid fa-trophy" style="color:#94a3b8;font-size:13px"></i>'
+                            : pos === 3
                             ? '<i class="fa-solid fa-trophy" style="color:#cd7c2f;font-size:13px"></i>'
                             : pos;
 
                 if (chartType === "songs") {
                     if (i === 0) statTop.textContent = r.title || "—";
                     return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer" onclick="window.location.href='details-song.html?id=${r.id}'">
-          <span class="chart-position">${trophy}</span>
-          <img class="chart-image" src="${safeImg(r.song_art_image_url || r.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info"><div class="chart-title">${r.title}</div><div class="chart-sub">${r.primary_artist?.name || ""}${r.release_date_for_display ? " · " + r.release_date_for_display : ""}</div></div>
-          <div class="chart-stats">
+            <span class="chart-position">${trophy}</span>
+            <img class="chart-image" src="${safeImg(r.song_art_image_url || r.header_image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+            <div class="chart-info"><div class="chart-title">${r.title}</div><div class="chart-sub">${r.primary_artist?.name || ""}${r.release_date_for_display ? " · " + r.release_date_for_display : ""}</div></div>
+            <div class="chart-stats">
             <span class="chart-views"><i class="fa-solid fa-eye" style="font-size:10px;margin-right:3px"></i>${formatNumber(r.stats?.pageviews)}</span>
             ${r.stats?.hot ? '<span class="badge badge-hot" style="font-size:.65rem;padding:2px 6px">HOT</span>' : ""}
-          </div>
+            </div>
         </div>`;
                 }
                 if (chartType === "artists") {
                     if (i === 0) statTop.textContent = r.name || "—";
                     return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer" onclick="window.location.href='details-artist.html?id=${r.id}'">
-          <span class="chart-position">${trophy}</span>
-          <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info"><div class="chart-title">${r.name}</div><div class="chart-sub">${r.is_verified ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified' : "Nghệ sĩ"}</div></div>
-          ${r.is_verified ? '<span class="badge badge-brand" style="flex-shrink:0"><i class="fa-solid fa-check"></i></span>' : ""}
+            <span class="chart-position">${trophy}</span>
+            <img class="chart-image artist" src="${safeImg(r.image_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+            <div class="chart-info"><div class="chart-title">${r.name}</div><div class="chart-sub">${r.is_verified ? '<i class="fa-solid fa-circle-check" style="color:var(--brand-light);font-size:10px;margin-right:3px"></i>Verified' : "Nghệ sĩ"}</div></div>
+            ${r.is_verified ? '<span class="badge badge-brand" style="flex-shrink:0"><i class="fa-solid fa-check"></i></span>' : ""}
         </div>`;
                 }
                 if (chartType === "albums") {
                     if (i === 0) statTop.textContent = r.name || "—";
                     return `<div class="chart-item ${cls} animate-slide-up" style="animation-delay:${Math.min(i, 10) * 0.04}s;cursor:pointer" onclick="window.location.href='details-album.html?id=${r.id}'">
-          <span class="chart-position">${trophy}</span>
-          <img class="chart-image" src="${safeImg(r.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
-          <div class="chart-info"><div class="chart-title">${r.name}</div><div class="chart-sub">${r.artist?.name || ""}${r.release_date_components?.year ? " · " + r.release_date_components.year : ""}</div></div>
+            <span class="chart-position">${trophy}</span>
+            <img class="chart-image" src="${safeImg(r.cover_art_url)}" alt="" onerror="this.src='${safeImg()}'"/>
+            <div class="chart-info"><div class="chart-title">${r.name}</div><div class="chart-sub">${r.artist?.name || ""}${r.release_date_components?.year ? " · " + r.release_date_components.year : ""}</div></div>
         </div>`;
                 }
             })
